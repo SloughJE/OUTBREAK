@@ -5,3 +5,7 @@ matplotlib
 seaborn
 scikit-learn
 pyaml
+boto3
+python-dotenv
+pytorch-lightning
+gluonts

@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM python:3.11-slim-bullseye
 
 RUN mkdir /code
 WORKDIR /code
@@ -6,8 +6,7 @@ WORKDIR /code
 ENV PYTHONUNBUFFERED 1
 
 RUN apt-get -y update && \
-    apt-get -y install bc curl gnupg2 jq less python3 python3-pip unzip wget git && \
-    ln -s /usr/bin/python3 /usr/bin/python && \
+    apt-get -y install gcc python3-dev git curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
