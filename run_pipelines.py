@@ -8,6 +8,7 @@ from src.data.request_historical import get_historical_data
 from src.data.request_latest_week import get_latest_data
 from src.data.process_latest import process_data
 from src.data.process_historical import process_data_historical
+from src.models.train_model_prod import train_prod_model
 
 # Load environment variables from .env file
 load_dotenv()
@@ -38,6 +39,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--process_historical_data",
         help="process historical data",
+        action="store_true"
+    )
+
+    parser.add_argument(
+        "--train_prod_model",
+        help="train the production DeepAR model",
         action="store_true"
     )
 
@@ -76,4 +83,11 @@ if __name__ == "__main__":
                 input_filepath = "data/raw/historical/df_NNDSS_historical.pkl",
                 output_filepath = "data/interim/df_NNDSS_historical.pkl"
                 )
+            
+                
+        if args.train_prod_model:
+            train_prod_model(
+                input_filepath = "data/interim/df_NNDSS_historical.pkl"
+                )
+            
             
