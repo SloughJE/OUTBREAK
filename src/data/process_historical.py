@@ -24,7 +24,7 @@ def process_data_historical(
 
     ############# testing
     item_ids = ['ARKANSAS_Chlamydia trachomatis infection', 'ARKANSAS_Gonorrhea',
-       'CALIFORNIA_Campylobacteriosis',
+       'CALIFORNIA_Campylobacteriosis','ARIZONA_Campylobacteriosis',
        'CALIFORNIA_Chlamydia trachomatis infection',
        'CALIFORNIA_Gonorrhea', 'COLORADO_Chlamydia trachomatis infection',
        'COLORADO_Gonorrhea', 'DELAWARE_Chlamydia trachomatis infection',
