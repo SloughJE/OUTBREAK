@@ -32,7 +32,7 @@ def process_data_historical(
        'GEORGIA_Chlamydia trachomatis infection', 'GEORGIA_Gonorrhea',
        'IDAHO_Chlamydia trachomatis infection',
        'ILLINOIS_Chlamydia trachomatis infection',]
-    #df = df[df.item_id.isin(item_ids)]
+    df = df[df.item_id.isin(item_ids)]
     ###########
 
     df.sort_values(['item_id', 'date'], inplace=True)
@@ -54,7 +54,7 @@ def process_data_historical(
     # fill in any dates added by week/year
     df['date'] = pd.to_datetime(df['year'].astype(str) + '-' + df['week'].astype(str) + '-1', format='%Y-%W-%w')
     
-    df = df[['item_id','year','week','date','label','new_cases']]
+    df = df[['item_id','year','week','date','label','new_cases','filled_value']]
     df['new_cases'] = df.new_cases.astype(int)
 
     print(df.tail())
@@ -62,6 +62,12 @@ def process_data_historical(
 
     na_counts = df.isna().sum()
     print(na_counts)
+
+    df = df[df.date<pd.to_datetime("2024-03-04")]
+
+    max_date_str = df['date'].max().strftime('%Y-%m-%d')
+    min_date_str = df['date'].min().strftime('%Y-%m-%d')
+    print(f"date range historical data: {min_date_str} to {max_date_str}")
 
     df.to_pickle(output_filepath)
     print(f"latest data saved to: {output_filepath}")

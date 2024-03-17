@@ -6,7 +6,7 @@ import os
 
 from src.data.request_historical import get_historical_data
 from src.data.request_latest_week import get_latest_data
-from src.data.process_latest import process_data
+from src.data.process_latest import process_latest_data
 from src.data.process_historical import process_data_historical
 from src.models.train_model_prod import train_prod_model
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--process_data",
+        "--process_latest_data",
         help="process data",
         action="store_true"
     )
@@ -72,8 +72,8 @@ if __name__ == "__main__":
                 output_dir="data/raw/latest"
                 )
             
-        if args.process_data:
-            process_data(
+        if args.process_latest_data:
+            process_latest_data(
                 input_filepath = "data/raw/latest/df_NNDSS_10_2024.pkl",
                 output_filepath = "data/interim/df_NNDSS_latest.pkl"
                 )

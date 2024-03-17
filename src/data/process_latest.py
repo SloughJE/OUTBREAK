@@ -4,7 +4,7 @@ import pandas as pd
 from src.data.data_utils import year_week_to_date
 
 
-def process_data(
+def process_latest_data(
         input_filepath = "data/raw/latest/df_NNDSS_10_2024.pkl",
         output_filepath = "data/interim/df_NNDSS_latest.pkl"
         ):
@@ -26,7 +26,7 @@ def process_data(
     df['new_cases'] = df.groupby('item_id')['new_cases'].transform(lambda x: x.ffill().bfill().fillna(0))
     df['new_cases'] = df.new_cases.astype(int)
 
-    df = df[['item_id','year','week','date','label','new_cases']]
+    df = df[['item_id','year','week','date','label','state','new_cases']]
 
     print(df.head())
     
