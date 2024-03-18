@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-app
+
+Globals:
+  Function:
+    Timeout: 300
+    MemorySize: 128
+    LoggingConfig:
+      LogFormat: JSON
+
+Resources:
+  FetchLatestNNDSSdataFunctionRole:  # Define IAM role for the function
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaBasicExecution
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
+  FetchLatestNNDSSdataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: fetch_latest_data/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Role: !GetAtt FetchLatestNNDSSdataFunctionRole.Arn  # Explicitly specify the role
+      Events:
+        ScheduleEvent:
+          Type: Schedule
+          Properties:
+            Schedule: rate(7 days)
+
+Outputs:
+  FetchLatestNNDSSdataFunction:
+    Description: Lambda Function ARN
+    Value: !GetAtt FetchLatestNNDSSdataFunction.Arn
+  FetchLatestNNDSSdataFunctionRole:
+    Description: IAM Role ARN
+    Value: !GetAtt FetchLatestNNDSSdataFunctionRole.Arn
