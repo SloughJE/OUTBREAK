@@ -23,8 +23,8 @@ def process_latest_data(
     df.sort_values(['item_id', 'date'], inplace=True)
 
     # fill 0 for NA
-    df['new_cases'] = df.groupby('item_id')['new_cases'].transform(lambda x: x.ffill().bfill().fillna(0))
-    df['new_cases'] = df.new_cases.astype(int)
+    #df['new_cases'] = df.groupby('item_id')['new_cases'].transform(lambda x: x.ffill().bfill().fillna(0))
+    df['new_cases'] = df.new_cases.astype(float)
 
     df = df[['item_id','year','week','date','label','state','new_cases']]
 
