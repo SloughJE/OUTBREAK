@@ -56,7 +56,7 @@ def fill_weekly_gaps(df):
     df_merged = pd.merge(all_combinations_df, df, on=['item_id', 'year', 'week'], how='left', indicator=True)
     
     # Carry forward the last observed 'new_cases', but only within the bounds of existing data for each item_id
-    df_merged['new_cases'] = df_merged.groupby('item_id')['new_cases'].ffill().bfill()
+    #df_merged['new_cases'] = df_merged.groupby('item_id')['new_cases'].ffill().bfill()
 
     # Mark filled values for new_cases
     df_merged['filled_value'] = df_merged['_merge'] == 'left_only'
