@@ -1,8 +1,9 @@
-import os
 import json
 import requests
 import boto3
 from botocore.exceptions import NoCredentialsError, ClientError
+from io import BytesIO
+import pandas as pd
 
 
 def lambda_handler(event, context):
@@ -43,19 +44,29 @@ def lambda_handler(event, context):
             
             if week_data_response.status_code == 200:
                 latest_week_data = week_data_response.json()
-                
-                # Upload raw JSON to S3
+
+                # Convert JSON to DataFrame
+                df = pd.DataFrame(latest_week_data)
+
+                # Convert DataFrame to Parquet and upload to S3
                 try:
-                    s3_client = boto3.client('s3')
-                    file_key = f"latest/df_latest_{latest_year}_{latest_week}.json"
-                    s3_client.put_object(Body=json.dumps(latest_week_data), Bucket=bucket_name, Key=file_key, ContentType='application/json')
-                    print(f"Raw data for the most recent week of year {latest_year}, week {latest_week} saved to S3")
+                    s3_resource = boto3.resource('s3')
+                    file_key = f"latest/df_latest_{latest_year}_{latest_week}.parquet"
+                    
+                    # Use a buffer for the Parquet file
+                    buffer = BytesIO()
+                    df.to_parquet(buffer, index=False)
+                    
+                    # Reset buffer position to the start
+                    buffer.seek(0)
+                    s3_resource.Object(bucket_name, file_key).put(Body=buffer.getvalue())
+                    print(f"Parquet file for the most recent week of year {latest_year}, week {latest_week} saved to S3")
                 except NoCredentialsError:
                     print("Credentials not available")
-                    
+
                 return {
                     'statusCode': 200,
-                    'body': json.dumps(f"Raw data for the most recent week of year {latest_year}, week {latest_week} saved to S3")
+                    'body': json.dumps(f"Parquet file for the most recent week of year {latest_year}, week {latest_week} saved to S3")
                 }
             else:
                 print(f"Failed to fetch data for the latest week: {week_data_response.status_code}")
