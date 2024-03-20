@@ -5,6 +5,7 @@ from botocore.exceptions import NoCredentialsError, ClientError
 from io import BytesIO
 import pandas as pd
 
+from data_processing import align_data_schema
 
 def lambda_handler(event, context):
 
@@ -24,9 +25,9 @@ def lambda_handler(event, context):
     # Retrieve the API token
     secret = get_secret()
     nndss_app_token = secret['NNDSS_APP_TOKEN']
-    
+    limit = 50000  # num max rows for api request
     bucket_name = "nndss"
-    
+    bucket_folder = "weekly"
     base_url = "https://data.cdc.gov/resource/x9gk-5huc.json"
     columns = 'states,year,week,label,m1'
     
@@ -39,7 +40,8 @@ def lambda_handler(event, context):
             latest_year = latest_record[0]['year']
             latest_week = latest_record[0]['week']
             
-            week_data_query_url = f"{base_url}?$$app_token={nndss_app_token}&$select={columns}&$where=year='{latest_year}' AND week='{latest_week}' AND location1 IS NOT NULL AND label NOT LIKE '%25Probable%25'"
+
+            week_data_query_url = f"{base_url}?$$app_token={nndss_app_token}&$select={columns}&$where=year='{latest_year}' AND week='{latest_week}' AND location1 IS NOT NULL AND label NOT LIKE '%25Probable%25'&$limit={limit}"            
             week_data_response = requests.get(week_data_query_url)
             
             if week_data_response.status_code == 200:
@@ -47,11 +49,11 @@ def lambda_handler(event, context):
 
                 # Convert JSON to DataFrame
                 df = pd.DataFrame(latest_week_data)
-
+                df = align_data_schema(df)
                 # Convert DataFrame to Parquet and upload to S3
                 try:
                     s3_resource = boto3.resource('s3')
-                    file_key = f"latest/df_latest_{latest_year}_{latest_week}.parquet"
+                    file_key = f"{bucket_folder}/df_latest_{latest_year}_{latest_week}.parquet"
                     
                     # Use a buffer for the Parquet file
                     buffer = BytesIO()

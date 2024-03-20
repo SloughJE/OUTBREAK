@@ -88,7 +88,7 @@ if __name__ == "__main__":
         if args.process_historical_data:
             process_data_historical(
                 input_filepath = "data/raw/historical/df_NNDSS_historical.pkl",
-                output_filepath = "data/interim/df_NNDSS_historical.pkl"
+                output_filepath = "data/interim/df_NNDSS_historical.parquet"
                 )
             
         if args.train_prod_model:
@@ -98,9 +98,9 @@ if __name__ == "__main__":
             
         if args.upload_data_s3:
             upload_file_to_s3(
-                local_file_path="data/results/df_preds_2024-03-04.pkl", 
+                local_file_path="data/interim/df_NNDSS_historical.parquet", 
                 bucket_name = "nndss", 
-                object_key = "predictions/df_preds_2024-03-04.pkl"
+                object_key = "historical/df_historical.parquet"
                   )
             
             
