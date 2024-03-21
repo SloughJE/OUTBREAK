@@ -50,10 +50,11 @@ def lambda_handler(event, context):
                 # Convert JSON to DataFrame
                 df = pd.DataFrame(latest_week_data)
                 df = align_data_schema(df)
+                file_date = df.date.max().strftime('%Y-%m-%d')
                 # Convert DataFrame to Parquet and upload to S3
                 try:
                     s3_resource = boto3.resource('s3')
-                    file_key = f"{bucket_folder}/df_latest_{latest_year}_{latest_week}.parquet"
+                    file_key = f"{bucket_folder}/weekly_actuals_{file_date}.parquet"
                     
                     # Use a buffer for the Parquet file
                     buffer = BytesIO()

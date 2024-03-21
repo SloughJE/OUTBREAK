@@ -35,7 +35,7 @@ def process_data_historical(
       'GEORGIA_Chlamydia trachomatis infection', 'GEORGIA_Gonorrhea',
       'IDAHO_Chlamydia trachomatis infection',
       'ILLINOIS_Chlamydia trachomatis infection',]
-   df = df[df.item_id.isin(item_ids)]
+   #df = df[df.item_id.isin(item_ids)]
    ###########
 
    df.sort_values(['item_id', 'date'], inplace=True)
