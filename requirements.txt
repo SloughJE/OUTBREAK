@@ -3,9 +3,9 @@ numpy
 pandas
 matplotlib
 seaborn
-scikit-learn
 pyaml
 boto3
 python-dotenv
 gluonts[torch]
 plotly
+pyarrow
