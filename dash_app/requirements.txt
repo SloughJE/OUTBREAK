@@ -1,0 +1,8 @@
+jupyter
+numpy
+pandas
+matplotlib
+boto3
+python-dotenv
+plotly
+pyarrow
