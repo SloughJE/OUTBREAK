@@ -18,6 +18,12 @@ df_preds = pd.read_parquet("data/predictions.parquet")
 df_historical = pd.read_parquet("data/historical.parquet")
 df_preds = df_preds.rename(columns={'prediction_for_date': 'date'})
 
+item_ids_all_na = df_historical.groupby('item_id').filter(lambda x: x['new_cases'].isna().all())['item_id'].unique()
+
+df_historical = df_historical[~df_historical.item_id.isin(item_ids_all_na)]
+df_preds = df_preds[~df_preds.item_id.isin(item_ids_all_na)]
+df_latest = df_latest[df_latest.new_cases.notna()]
+
 df_latest['state'] = df_latest['item_id'].str.split('_').str[0]
 df_preds['state'] = df_preds['item_id'].str.split('_').str[0]
 df_preds['label'] = df_preds['item_id'].str.split('_').str[1]
@@ -25,6 +31,9 @@ df_preds['label'] = df_preds['item_id'].str.split('_').str[1]
 df_historical = df_historical.sort_values(['date', 'item_id'])
 df_preds = df_preds.sort_values(['date', 'item_id'])
 df_latest = df_latest.sort_values(['date', 'item_id'])
+#print(df_historical[df_historical.item_id=='ARIZONA_Anthrax'])
+#print(df_latest[df_latest.item_id=='ARIZONA_Anthrax'])
+
 
 df_outbreak = pd.merge(df_preds, df_latest, on=['item_id', 'date', 'state', 'label'])
 df_outbreak['potential_outbreak'] = df_outbreak['new_cases'] > df_outbreak['pred_upper']
@@ -46,10 +55,10 @@ app.layout = html.Div([
     dcc.Checklist(
         id='show_outbreaks_toggle',
         options=[
-            {'label': 'Show Outbreaks Only', 'value': 'SHOW_OUTBREAKS'},
+            {'label': ' Show Outbreaks Only', 'value': 'SHOW_OUTBREAKS'},
         ],
         value=[],
-        labelStyle={'display': 'block', 'color': 'white'},
+        labelStyle={'display': 'block', 'color': 'white', 'fontSize': 20},  
         style={'textAlign': 'center', 'margin': '20px'}
     ),
     dcc.Dropdown(
@@ -69,7 +78,7 @@ def update_state_options(toggle_values):
     if 'SHOW_OUTBREAKS' in toggle_values:
         states = df_outbreak[df_outbreak['potential_outbreak'] == True]['state'].unique()
     else:
-        states = df_historical['state'].unique()
+        states = sorted(list(set(df_historical['state']) | set(df_preds['state']) | set(df_latest['state'])))
     
     return [{'label': state, 'value': state} for state in states]
 
@@ -80,12 +89,27 @@ def update_state_options(toggle_values):
 )
 def set_item_options(selected_state, toggle_values):
     if 'SHOW_OUTBREAKS' in toggle_values and selected_state:
+        # Filter df_outbreak for the selected state and where potential_outbreak is True
         df_filtered = df_outbreak[(df_outbreak['state'] == selected_state) & (df_outbreak['potential_outbreak'] == True)]
+        # Use the filtered DataFrame to get the unique labels
+        labels_set = set(df_filtered['label'].unique())
     else:
-        df_filtered = df_historical[df_historical['state'] == selected_state]
-    
-    labels = df_filtered['label'].unique() if selected_state else []
+        # Filtering is only necessary if a selected_state is provided
+        if selected_state:
+            df_historical_filtered = df_historical[df_historical['state'] == selected_state]
+            df_preds_filtered = df_preds[df_preds['state'] == selected_state]
+            df_latest_filtered = df_latest[df_latest['state'] == selected_state]
+            
+            # Combine unique 'label' values from the filtered DataFrames using sets
+            labels_set = set(df_historical_filtered['label'].unique()) | \
+                         set(df_preds_filtered['label'].unique()) | \
+                         set(df_latest_filtered['label'].unique())
+        else:
+            labels_set = set()
+
+    labels = sorted(list(labels_set))
     return [{'label': i, 'value': i} for i in labels]
+
 
 @app.callback(
     Output('outbreak_graph', 'figure'),

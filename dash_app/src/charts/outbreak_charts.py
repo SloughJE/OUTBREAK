@@ -9,15 +9,21 @@ def plot_outbreak(df_historical_filtered, df_latest_filtered, df_preds_filtered,
     
     # Initialize pred_upper with a default value
     pred_upper = None
-    
-    # Filter datasets for the selected item_id
-    #df_historical_filtered = df_historical_chart[df_historical_chart['item_id'] == selected_item_id]
-    #df_latest_filtered = df_latest_chart[df_latest_chart['item_id'] == selected_item_id]
-    #df_preds_filtered = df_preds_chart[df_preds_chart['item_id'] == selected_item_id]
 
     # Plot historical data if available
     if not df_historical_filtered.empty:
-        fig.add_trace(go.Scatter(x=df_historical_filtered['date'], y=df_historical_filtered['new_cases'], mode='lines', name='Historical', line=dict(color='skyblue')))
+        fig.add_trace(go.Scatter(
+            x=df_historical_filtered['date'], 
+            y=df_historical_filtered['new_cases'], 
+            mode='lines+markers',  # Use both lines and markers
+            name='Historical',
+            line=dict(color='skyblue'),
+            marker=dict(  # Customize marker appearance
+                color='skyblue',  # Marker color
+                size=5,  # Marker size
+                #symbol='dash'  # A line-like symbol; 'line-ns-open' is one of the closest options
+            )
+        ))
 
     # Plot prediction data if available
     if not df_preds_filtered.empty:

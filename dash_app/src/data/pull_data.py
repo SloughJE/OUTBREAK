@@ -27,6 +27,20 @@ def pull_data():
     
     print(f"querying predictions for date: {max_date}")
     
+    """sql_query = 
+    SELECT item_id, year, week, date, label, new_cases
+    FROM weekly
+    WHERE date < TIMESTAMP '2024-03-11'
+    AND item_id IN (
+        SELECT item_id
+        FROM weekly
+        WHERE new_cases IS NOT NULL
+        AND date < TIMESTAMP '2024-03-11'
+        GROUP BY item_id
+    )
+    """
+    
+
     query_predictions = f"SELECT * FROM cdc_nndss.predictions WHERE prediction_for_date = TIMESTAMP '{max_date}'"
     df_predictions = pd.read_sql(query_predictions, conn)
     # Split df_weekly into df_historical and df_latest
@@ -36,7 +50,9 @@ def pull_data():
     df_historical.to_parquet(f"dash_app/data/historical.parquet")
     df_predictions.to_parquet(f"dash_app/data/predictions.parquet")
     df_latest.to_parquet(f"dash_app/data/latest.parquet")
+    print("Latest data:")
     print(df_latest.head(2))
+    print("Prediction data:")
     print(df_predictions.head(2))
 
     print(f"data saved to dash_app/data/")

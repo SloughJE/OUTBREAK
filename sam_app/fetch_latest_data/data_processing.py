@@ -9,7 +9,7 @@ def align_data_schema(df):
     df.rename(columns={'states': 'state'}, inplace=True)  # Renaming 'states' to 'state'
     df['item_id'] = df['state'] + '_' + df['label']  # Using the renamed 'state' column
     df['date'] = pd.to_datetime(df['year'].astype(str) + df['week'].astype(str) + '-1', format='%Y%W-%w')
-    df['new_cases'] = pd.to_numeric(df['m1'], errors='coerce').fillna(0)
+    df['new_cases'] = pd.to_numeric(df['m1'], errors='coerce')
     df['week'] = df.week.astype(int)
     df['year'] = df.year.astype(int)
     # Ensure the DataFrame has only the expected columns, in the correct order

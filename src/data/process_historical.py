@@ -40,7 +40,7 @@ def process_data_historical(
 
    df.sort_values(['item_id', 'date'], inplace=True)
 
-   # fill 0 for NA
+   # fill 0 for NA NOOOOO.
    #df['new_cases'] = df.groupby('item_id')['new_cases'].transform(lambda x: x.ffill().bfill().fillna(0))
    df['new_cases'] = df['new_cases'].astype(float)
 
@@ -69,7 +69,7 @@ def process_data_historical(
 
 
 
-   df = df[df.date<pd.to_datetime("2024-03-04")]
+   #df = df[df.date<pd.to_datetime("2024-03-04")]
 
    max_date_str = df['date'].max().strftime('%Y-%m-%d')
    min_date_str = df['date'].min().strftime('%Y-%m-%d')
@@ -91,6 +91,7 @@ def process_data_historical(
    #print(df[(df.item_id==selected_item_id) & (df.filled_value==True)])
    #df.to_pickle(output_filepath)
    
+   df = df.drop(columns="filled_value")
 
    df.to_parquet(output_filepath, index=False, engine='pyarrow')
    import pyarrow.parquet as pq

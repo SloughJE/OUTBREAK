@@ -106,7 +106,7 @@ if __name__ == "__main__":
             
         if args.upload_data_s3:
             upload_file_to_s3(
-                local_file_path="data/interim/df_NNDSS_historical_mod.parquet", 
+                local_file_path="data/interim/df_NNDSS_historical.parquet", 
                 bucket_name = "nndss", 
                 object_key = "weekly/df_historical.parquet"
                   )
