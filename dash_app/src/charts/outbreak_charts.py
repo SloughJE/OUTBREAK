@@ -46,7 +46,7 @@ def plot_outbreak(df_historical_filtered, df_latest_filtered, df_preds_filtered,
         outbreak_date = df_latest_filtered['date'].iloc[0]
         outbreak_cases = df_latest_filtered['new_cases'].iloc[0]
         fig.add_trace(go.Scatter(x=[outbreak_date], y=[outbreak_cases], mode='markers+text', 
-            name='Potential Outbreak', marker=dict(color='yellow', size=15, symbol='x', line=dict(color='#B22222', width=2)), text="Potential Outbreak", textposition="top center"))
+            name='Potential Outbreak', marker=dict(color='black', size=15, symbol='x', line=dict(color='#B22222', width=2)), text="Potential Outbreak", textposition="top center"))
     else:
         fig.add_trace(go.Scatter(x=[None], y=[None], mode='markers+text', name='Potential Outbreak',
                          marker=dict(color='#DAA520', size=15, symbol='x', line=dict(color='#800000', width=2)),
