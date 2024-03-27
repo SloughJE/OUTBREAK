@@ -3,7 +3,8 @@ from dash import html, dcc
 import dash_bootstrap_components as dbc
 
 
-outbreak_uncertainty_level_explanation = """• Corresponds to the model "prediction interval"
+outbreak_uncertainty_level_explanation = """• Indicates how certain we want to be in identifying a "potential outbreak"
+• Corresponds to the model prediction interval
 • The model forecasts by predicting distributions of values for the future time period, reflecting the probable range of outcome values.
 • If the actual value for the current week is greater than the upper prediction interval value from last week's prediction, we label it as an "outbreak".
 • A higher "Outbreak Model Certainty Level" yields a higher threshold value, and is therefore less like to identify a new value as an "outbreak".

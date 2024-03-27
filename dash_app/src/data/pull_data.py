@@ -20,25 +20,19 @@ conn = connect(aws_access_key_id=os.getenv('aws_dash_access_key'),
 
 def pull_data():
 
-    query = "SELECT * FROM cdc_nndss.weekly"
+    query = """SELECT * FROM (
+    SELECT item_id, year, week, date, state, label, new_cases, filled_with_0
+    FROM cdc_nndss.historical
+    UNION ALL
+    SELECT item_id, year, week, date, state, label, new_cases, NULL AS filled_with_0
+    FROM cdc_nndss.weekly
+    ) AS combined_data 
+    """
 
     df_weekly = pd.read_sql(query, conn)
     max_date = df_weekly['date'].max()
     
     print(f"querying predictions for date: {max_date}")
-    
-    """sql_query = 
-    SELECT item_id, year, week, date, label, new_cases
-    FROM weekly
-    WHERE date < TIMESTAMP '2024-03-11'
-    AND item_id IN (
-        SELECT item_id
-        FROM weekly
-        WHERE new_cases IS NOT NULL
-        AND date < TIMESTAMP '2024-03-11'
-        GROUP BY item_id
-    )
-    """
     
 
     query_predictions = f"SELECT * FROM cdc_nndss.predictions WHERE prediction_for_date = TIMESTAMP '{max_date}'"

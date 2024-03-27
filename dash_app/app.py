@@ -25,18 +25,16 @@ df_latest = pd.read_parquet("data/latest.parquet")
 df_preds = pd.read_parquet("data/predictions.parquet")
 df_historical = pd.read_parquet("data/historical.parquet")
 df_preds = df_preds.rename(columns={'prediction_for_date': 'date'})
+df_latest['new_cases'] = df_latest.new_cases.fillna(0)
 
 df_preds['label'] = df_preds['item_id'].str.split('_').str[1]
-num_diseases_tracked = len(set(df_historical['label'].unique()) | \
-                         set(df_preds['label'].unique()) | \
-                         set(df_latest['label'].unique()))
+num_diseases_tracked = len(df_latest['label'].unique())
 
-item_ids_all_na = df_historical.groupby('item_id').filter(lambda x: x['new_cases'].isna().all())['item_id'].unique()
+#item_ids_all_na = df_historical.groupby('item_id').filter(lambda x: x['new_cases'].isna().all())['item_id'].unique()
 
-df_historical = df_historical[~df_historical.item_id.isin(item_ids_all_na)]
-df_preds = df_preds[~df_preds.item_id.isin(item_ids_all_na)]
-print(df_preds[df_preds.item_id=='KENTUCKY_Shigellosis'])
-df_latest = df_latest[df_latest.new_cases.notna()]
+#df_historical = df_historical[~df_historical.item_id.isin(item_ids_all_na)]
+#df_preds = df_preds[~df_preds.item_id.isin(item_ids_all_na)]
+#print(df_preds[df_preds.item_id=='KENTUCKY_Shigellosis'])
 
 df_latest['state'] = df_latest['item_id'].str.split('_').str[0]
 df_preds['state'] = df_preds['item_id'].str.split('_').str[0]
@@ -46,6 +44,10 @@ df_preds = df_preds.sort_values(['date', 'item_id'])
 df_latest = df_latest.sort_values(['date', 'item_id'])
 #print(df_historical[df_historical.item_id=='ARIZONA_Anthrax'])
 #print(df_latest[df_latest.item_id=='ARIZONA_Anthrax'])
+#df_latest = df_latest.drop(columns='fill_type')
+#fill_type_df = df_historical[['item_id', 'fill_type']].drop_duplicates()
+#df_latest = df_latest.merge(fill_type_df, on='item_id', how='left')
+#df_latest.loc[df_latest['fill_type'] == 'fill with 0', 'new_cases'] = 0
 
 
 #df_outbreak = pd.merge(df_preds, df_latest, on=['item_id', 'date', 'state', 'label'])
@@ -190,10 +192,9 @@ def update_kpi(selected_state, selected_label, selected_interval):
         html.H2(f"Current Week: {current_week}"),
         html.H2(f"Outbreak Detection Interval: {selected_interval:.1f}%"),
         html.H3(f"Diseases Tracked: {num_diseases_tracked}"),
-        html.H3(f"Disease Outbreaks: {num_outbreaks_per_disease}"),
-        html.H3(f"State-Specific Outbreaks: {num_outbreaks_per_state_and_disease}"),
-        html.H3(f"States with Outbreaks: {num_states_with_outbreak}")
-
+        html.H3(f"Potential Outbreaks: {num_outbreaks_per_disease}"),
+        html.H3(f"States with Potential Outbreaks: {num_states_with_outbreak}"),
+        html.H3(f"State-Specific Potential Outbreaks: {num_outbreaks_per_state_and_disease}")
         #html.H3(f"Most Outbreaks State: {top_state}")
     ]
     
