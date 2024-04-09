@@ -101,7 +101,19 @@ if __name__ == "__main__":
             
         if args.train_prod_model:
             train_prod_model(
-                input_filepath = "data/interim/df_NNDSS_historical.pkl"
+                input_filepath = "data/interim/df_NNDSS_historical.parquet",
+                prediction_for_dates=[
+                    #'2024-01-01',
+                    '2024-01-08']
+                    #'2024-01-15',
+                    #'2024-01-22',
+                    #'2024-01-29',
+                    #'2024-02-05',
+                    #'2024-02-12',
+                    #'2024-02-19',
+                    #'2024-02-26',
+                    #'2024-03-04',]
+                    #'2024-03-11']
                 )
             
         if args.upload_data_s3:
