@@ -21,11 +21,11 @@ def details_tab_layout():
 
         html.Div([
                 html.H2(
-                    "Disease History with Potential Outbreak for Latest Week",
+                    "Disease History with Latest Week Potential Outbreak",
                     style={
                         'color': 'white',
                         'textAlign': 'center',
-                        'fontSize': '40px',
+                        'font-size': '3vw',
                         'margin-top': '40px',
                     }
                 )

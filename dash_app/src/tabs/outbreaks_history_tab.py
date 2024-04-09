@@ -31,7 +31,7 @@ def outbreaks_history_tab_layout():
                     style={
                         'color': 'white',
                         'textAlign': 'center',
-                        'fontSize': '40px',
+                        'font-size': '3vw',
                         'margin-top': '40px',
                     }
                 )
