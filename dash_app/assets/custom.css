@@ -1,0 +1,357 @@
+/* Define the primary color variables */
+:root {
+    --primary-color: #F08080; /* Coral Pink for active and hover state border */
+    --hover-color: #C06070; /* Darker variant for hover states */
+    --inactive-color: #333; /* Color for inactive tabs */
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    color: white;
+}
+
+.Select-input input {
+    color: white;
+}
+
+/* Apply flexbox to the control to align items in a row */
+.dropdown-input .Select-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Adjust as needed */
+}
+/* Ensure the value and arrow zone are sized appropriately */
+.dropdown-input .Select-value, .dropdown-input .Select-arrow-zone {
+    flex: 1; /* Allows both to grow and take available space */
+}
+/* You might need to adjust padding and margin of elements inside the dropdown for alignment */
+.dropdown-input .Select-value {
+    padding-right: 10px; /* Ensure padding doesn't push content to the next line */
+}
+
+/* input box */
+.dropdown-input .Select-control {
+    background-color: var(--bs-body-bg) !important;
+    border: none !important;
+  }
+  
+  /* changes the text color of input box */
+  .dropdown-input .Select-value-label {
+    color: var(--bs-body-color) !important;
+    border: none !important;
+
+  }
+  
+  .dropdown-input .Select input {
+    color: var(--bs-body-color);
+    border: none !important;
+  }
+  .dropdown-input .Select-control:focus {
+    outline: none;
+  }
+  /* dropdown menu options */
+  .dropdown-input .VirtualizedSelectOption {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+  }
+  
+  /* dropdown menu hover effect */
+  .dropdown-input .VirtualizedSelectFocusedOption {
+    background-color: rgba(100, 100, 100, 0.2);
+    color: black;
+    border: none !important;
+
+  }
+
+/* border on focus - default is blue
+ * shadow box around input box.  default is blue
+ */
+ .dropdown-input .is-focused:not(.is-open) > .Select-control {
+    border-color: var(--bs-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.2);
+    border: none !important;
+
+  }
+  
+  /* primary  this colors the input box text and x  of multi */
+  .dropdown-input .Select--multi .Select-value {
+    color: var(--bs-body-color);
+    background-color: rgba(var(--bs-primary-rgb), 0.2);
+    border-color: none !important;
+    border: none !important;
+
+  }
+
+/* Target the dropdown's container when it is focused */
+.dropdown-input .Select-control:focus {
+    outline: none !important;  /* Remove focus outline */
+    box-shadow: none !important;  /* Remove focus shadow if any */
+  }
+  
+  /* You can also target the value container directly */
+  .dropdown-input .Select-value:focus {
+    outline: none !important;
+    border-color: none !important; /* Or any color you want */
+
+  }
+  
+  /* And if the dropdown menu itself is showing the border */
+  .dropdown-input .Select-menu-outer:focus, 
+  .dropdown-input .Select-menu:focus {
+    outline: none !important;
+  }
+  .dropdown-input .Select-control:focus, .dropdown-input .Select-control--is-focused {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  
+  .dropdown-input .Select.is-focused:not(.is-open) > .Select-control {
+    border-color: #303030 !important;
+    box-shadow: none !important;
+  }
+
+  element:focus {
+    outline: none !important;
+  }
+
+
+.Select--single > .Select-control,
+.Select--multi .Select-control,
+.Select--single > .Select-control:focus,
+.Select--multi .Select-control:focus {
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+  }
+
+  .dropdown-input  .Select--single > .Select-control,
+  .dropdown-input .Select--multi .Select-control,
+  .dropdown-input  .Select--single > .Select-control:focus,
+  .dropdown-input  .Select--multi .Select-control:focus {
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+  }
+
+  
+  
+
+/* Make the dropdown arrow bolder and change its color */
+.dropdown-input .Select-arrow {
+    border-color: rgb(203, 24, 29) transparent transparent !important; /* Adjust the arrow color */
+    border-width: 10px 10px 5px !important; /* Make the arrow bolder */
+  }
+  
+  .Select-menu-outer {
+    width: 70% !important; /* Adjust this value as needed */
+  }
+  
+  /* Change the color of the selected value text */
+  .dropdown-input .Select-value-label {
+    color: rgb(203, 24, 29) !important; /* Change the selected value color */
+  }
+  
+  /* Optionally, if you also want to change the color of the placeholder text */
+  .dropdown-input .Select-placeholder {
+    color: rgb(203, 24, 29) !important;
+  }
+  
+.detail-dropdown .Select--single > .Select-control,
+.detail-dropdown .Select--multi .Select-control,
+.detail-dropdown .Select--single > .Select-control:focus,
+.detail-dropdown .Select--multi .Select-control:focus {
+      border: rgb(203, 24, 29) !important;
+      outline: rgb(203, 24, 29) !important;
+      box-shadow: rgb(203, 24, 29) !important;
+  }
+  
+  
+/* DETAIL DROPDOWN */
+
+
+/* input box */
+.detail-dropdown .Select-control {
+    background-color: var(--bs-body-bg) !important;
+  }
+  
+  /* changes the text color of input box */
+  .detail-dropdown .Select-value-label {
+    color: var(--bs-body-color) !important;
+
+  }
+  
+  .detail-dropdown .Select input {
+    color: var(--bs-body-color);
+  }
+ 
+  /* dropdown menu options */
+  .detail-dropdown .VirtualizedSelectOption {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+  }
+  
+  /* dropdown menu hover effect */
+  .detail-dropdown .VirtualizedSelectFocusedOption {
+    background-color: rgba(100, 100, 100, 0.2);
+    color: black;
+  }
+
+/* border on focus - default is blue
+ * shadow box around input box.  default is blue
+ */
+ .detail-dropdown .is-focused:not(.is-open) > .Select-control {
+    border-color: var(--bs-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.2);
+
+  }
+
+  
+/* DATA TABLE */
+
+
+/* Apply to all DataTable components */
+.dash-table-container .dash-spreadsheet {
+    font-family: 'Arial', sans-serif;
+    color: white;
+}
+
+
+/* Apply specifically to the table cells */
+.dash-spreadsheet td, .dash-spreadsheet th {
+    font-family: 'Arial', sans-serif;
+}
+
+/* Custom button styling */
+.custom-button {
+    display: flex; /* Use flexbox */
+    align-items: center; /* Center vertically */
+    font-size: 1.5rem;
+    padding: 15px 30px;
+    margin-top: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: var(--primary-color);
+    border: none;
+    color: white;
+    border-radius: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+}
+
+.custom-button:hover,
+.custom-button:focus {
+    background-color: var(--hover-color);
+    outline: none;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.custom-button:hover {
+    transform: translateY(-1px);
+}
+
+.radio-button-style {
+    display: block;  /* Block display for the entire group */
+    margin: auto;
+}
+
+.radio-button-style .form-check-inline .custom-control-input {
+    margin-right: 5px;  /* Space between radio button and label */
+}
+
+.monetary-basis-heading {
+    text-align: center;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.radio-button-instruction {
+    text-align: center;
+    color: #f0ad4e;
+    font-size: 0.9em;
+}
+
+.custom-tooltip .tooltip-inner {
+    font-size: 16px; 
+    max-width: 800px;
+    text-align: left;
+}
+
+
+
+/* Tab styling to match the nav bar */
+.custom-tab {
+    padding: 10px 20px !important;  /* Reduced top and bottom padding */
+    background-color: var(--inactive-color) !important; /* Inactive tab background color */
+    color: white !important; /* Text color for all states */
+    border: none !important; /* Remove default borders */
+    cursor: pointer; /* Cursor for clickable items */
+    font-size: 1.5vw; /* Match the nav link font size */
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* Smooth transition for background, color, and border color change */
+    border-bottom: 3px solid transparent; /* Transparent border for a uniform height */
+    display: flex;
+    align-items: center !important;
+    justify-content: center;
+}
+
+.custom-tab:hover, .custom-tab:focus {
+    background-color: var(--hover-color) !important; /* Hover background color */
+    color: white; /* Text color remains white on hover */
+    border-bottom: 3px solid var(--primary-color) !important; /* Border color changes to Coral Pink on hover */
+}
+
+/* Active tab styling */
+.custom-tab-active {
+    background-color: var(--primary-color) !important; /* Active tab background color */
+    color: white !important; /* Active tab text color remains white */
+    border-bottom: 3px solid var(--hover-color) !important; /* Underline effect for active tab with Darker variant color */
+    display: flex;
+ 
+}
+
+/* Container for the tabs to mimic the nav bar layout */
+.tab-container {
+    display: flex;
+    justify-content: start; /* Align tabs to the start of the container */
+    background-color: var(--inactive-color) !important; /* Container background color to match the nav bar */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important; /* Optional: Adds a shadow for depth */
+}
+
+/* assets/style.css */
+
+.markdown-content h2 {
+    font-size: 2.5rem;  /* Adjust size to match h4 or as needed */
+}
+
+.markdown-content p, .markdown-content ul, .markdown-content ol {
+    line-height: 1; /* Adjust line spacing as needed */
+}
+
+/* Custom button styling */
+.custom-button-ai {
+    display: flex; /* Use flexbox */
+    align-items: center; /* Center vertically */
+    font-size: 2rem;
+    padding: 15px 30px;
+    margin-top: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: var(--primary-color);
+    border: none;
+    color: white;
+    border-radius: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+}
+
+.custom-button-ai:hover,
+.custom-button-ai:focus {
+    background-color: var(--hover-color);
+    outline: none;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.custom-button-ai:hover {
+    transform: translateY(-1px);
+}
