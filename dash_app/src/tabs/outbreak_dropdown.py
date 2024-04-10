@@ -2,7 +2,6 @@ import dash
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
-# Assuming label_and_info and uncertainty_level_tooltip are defined or imported here
 
 def get_dropdown_menu(label_and_info, uncertainty_level_tooltip,id_dropdown):
     return dbc.Row([
@@ -11,8 +10,8 @@ def get_dropdown_menu(label_and_info, uncertainty_level_tooltip,id_dropdown):
                     [
                         html.Div([
                             html.Div([
-                                label_and_info,  # This should include your H2 text
-                                uncertainty_level_tooltip,  # Tooltip component
+                                label_and_info, 
+                                uncertainty_level_tooltip,  
                             ], style={'display': 'inline-block', 'marginRight': '5px', 'verticalAlign': 'middle'}),
                             html.Div(
                                 dcc.Dropdown(
@@ -25,7 +24,7 @@ def get_dropdown_menu(label_and_info, uncertainty_level_tooltip,id_dropdown):
                                         {'label': '99%', 'value': 99},
                                         {'label': '99.9%', 'value': 99.9},
                                     ],
-                                    value=99,  # Default value
+                                    value=99,  
                                     clearable=False,
                                     className='dropdown-input',
                                 ),

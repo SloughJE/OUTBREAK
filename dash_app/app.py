@@ -26,12 +26,20 @@ app.title = "Outbreak Dashboard"
 
 
 ###################################################
-df_latest = pd.read_parquet("data/latest.parquet")
-df_preds_all = load_preds("data")
+df_historical = pd.read_parquet("data/big_params/df_NNDSS_historical.parquet")
+df_preds_all = load_preds("data/big_params")
+#################################################
+
+df_historical['date'] = pd.to_datetime(df_historical.date.dt.date)
+max_hist = df_historical.date.max()
+df_latest = df_historical[df_historical.date==max_hist]
+df_historical = df_historical[df_historical.date<max_hist]
+
+df_preds_all['date'] = pd.to_datetime(df_preds_all.date.dt.date)
+
 min_date_preds = df_preds_all.date.min()
 
 df_preds = df_preds_all[df_preds_all.date==df_preds_all.date.max()]
-df_historical = pd.read_parquet("data/historical.parquet")
 
 df_latest['new_cases'] = df_latest.new_cases.fillna(0)
 df_preds_all = pd.merge(pd.concat([df_historical,df_latest]),df_preds_all,on=['item_id','date'], how='outer')

@@ -16,11 +16,16 @@ database_name = 'cdc_nndss'
 # Fetch AWS credentials from environment variables
 aws_access_key_id = os.getenv('aws_dash_access_key')
 aws_secret_access_key = os.getenv('aws_dash_secret_key')
-
-# Construct the SQLAlchemy connection string for PyAthena
+# query from local
 conn_str = (
     f"awsathena+rest://"
     f"{aws_access_key_id}:{aws_secret_access_key}@athena.{region_name}.amazonaws.com:443/"
+    f"{database_name}?s3_staging_dir={s3_staging_dir}"
+)
+
+# query from EC2 with Athena acces
+conn_str = (
+    f"awsathena+rest://@athena.{region_name}.amazonaws.com:443/"
     f"{database_name}?s3_staging_dir={s3_staging_dir}"
 )
 
