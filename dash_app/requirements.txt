@@ -1,10 +1,7 @@
 numpy
 pandas
-matplotlib
-boto3
-python-dotenv
 plotly
 pyarrow
 dash
 dash_bootstrap_components
-pyathena
+sqlalchemy
