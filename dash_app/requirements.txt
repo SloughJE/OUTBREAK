@@ -5,3 +5,4 @@ pyarrow
 dash
 dash_bootstrap_components
 sqlalchemy
+gunicorn
