@@ -9,7 +9,7 @@ from src.data.request_latest_week import get_latest_data
 from src.data.process_latest import process_latest_data
 from src.data.process_historical import process_data_historical
 from src.models.train_model_prod import train_prod_model
-from src.data.upload_s3 import upload_file_to_s3
+from src.data.upload_s3 import upload_file_to_s3, upload_files_in_folder_to_s3
 
 from dash_app.src.data.pull_data import pull_data
 
@@ -54,6 +54,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--upload_data_s3",
         help="upload a dataset to s3 bucket",
+        action="store_true"
+    )
+
+    parser.add_argument(
+        "--upload_folder_data_s3",
+        help="upload all files from folder to s3 bucket",
         action="store_true"
     )
 
@@ -123,6 +129,13 @@ if __name__ == "__main__":
                 local_file_path="dash_app/data/cl_1/df_NNDSS_historical.parquet", 
                 bucket_name = "nndss", 
                 object_key = "weekly/df_historical.parquet"
+                  )
+            
+        if args.upload_folder_data_s3:
+            upload_files_in_folder_to_s3(
+                local_folder="data/results/final/", 
+                bucket_name = "nndss", 
+                object_key_prefix = "predictions/"
                   )
             
         if args.pull_dash_app_data:

@@ -26,8 +26,8 @@ app.title = "Outbreak Dashboard"
 
 
 ###################################################
-df_historical = pd.read_parquet("data/big_params/df_NNDSS_historical.parquet")
-df_preds_all = load_preds("data/big_params")
+df_historical = pd.read_parquet("data/df_historical.parquet")
+df_preds_all =  pd.read_parquet("data/df_predictions.parquet")
 #################################################
 
 df_historical['date'] = pd.to_datetime(df_historical.date.dt.date)

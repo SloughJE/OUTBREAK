@@ -1,1 +1,16 @@
-test_size: 0.3
+train_prod_model:
+  input_filepath: "data/interim/df_NNDSS_historical.pkl"
+  prediction_length: 3
+  PandasDataset:
+    target: "new_cases"
+    item_id: "item_id"
+    timestamp: "date"
+    freq: "W"
+  DeepAREstimator:
+    prediction_length: 3
+    freq: "W"
+    distr_output: "NegativeBinomialOutput"
+    trainer_kwargs:
+      max_epochs: 5
+  output:
+    predictions_file: "data/results/df_preds.pkl"
