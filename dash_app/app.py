@@ -5,7 +5,6 @@ import plotly.graph_objects as go
 import dash_bootstrap_components as dbc
 import pandas as pd
 
-from src.data.pull_data import pull_data
 from src.tabs.history_tab_helper import plot_outbreak
 
 from src.tabs.summary_tab_helper import (
