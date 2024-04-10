@@ -1,0 +1,7 @@
+numpy
+pandas
+plotly
+pyarrow
+dash
+dash_bootstrap_components
+sqlalchemy

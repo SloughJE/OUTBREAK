@@ -63,3 +63,45 @@ def fill_weekly_gaps(df):
     df_merged.drop(columns=['_merge'], inplace=True)
 
     return df_merged
+
+def fill_missing_values_by_filltype(df):
+
+    print("filling missing values strategically")
+    print("creating sparsity metrics")
+    sparsity_metrics = df.groupby(['item_id']).agg(
+        sparsity=('new_cases', lambda x: x.isna().mean()),
+        mean=('new_cases', 'mean')).reset_index()
+
+    def assign_fill_type(row):
+
+        sparsity_threshold = 0.5
+        mean_threshold = 20
+        
+        if pd.isna(row['mean']):
+            return "fill with 0"
+        if row['sparsity'] < sparsity_threshold:
+            return "no change"
+        elif row['sparsity'] >= sparsity_threshold and row['mean'] < mean_threshold:
+            return "fill with 0"
+        elif row['sparsity'] >= sparsity_threshold and row['mean'] >= mean_threshold:
+            return "linearly interpolate"
+
+    # Apply the function to each row to determine the fill type
+    sparsity_metrics['fill_type'] = sparsity_metrics.apply(assign_fill_type, axis=1)
+    df = df.merge(sparsity_metrics[['item_id', 'fill_type']], on='item_id', how='left')
+    def apply_fill_strategy(group):
+        fill_type = group['fill_type'].iloc[0]  
+        if fill_type == 'fill with 0':
+            group['new_cases_filled'] = group['new_cases'].fillna(0)
+        elif fill_type == 'linearly interpolate':
+            group['new_cases_filled'] = group['new_cases'].interpolate().round() # NO DECIMALS FOR DEEP AR NEGATIVE BINOMIAL
+        else:
+            group['new_cases_filled'] = group['new_cases']
+        return group
+    df = df.groupby('item_id').apply(apply_fill_strategy)
+    print("data filled with 0 or linear interpolation, depending on sparsity and mean")
+
+    df = df[['item_id','year','week','state','date','label','new_cases_filled','fill_type']]
+    df = df.rename(columns={'new_cases_filled':'new_cases'})
+
+    return df

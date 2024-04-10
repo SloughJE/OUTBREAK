@@ -17,7 +17,7 @@ def get_historical_data(nndss_app_token,
     while True:
 
         # location1 is not null gets only states / territories (not regions or country total)
-        query_url = f"{base_url}?$$app_token={nndss_app_token}&$select={columns}&$where=location1 IS NOT NULL AND label NOT LIKE '%25Probable%25'&$limit={limit}&$offset={offset}"
+        query_url = f"{base_url}?$$app_token={nndss_app_token}&$select={columns}&$where=location1 IS NOT NULL &$limit={limit}&$offset={offset}"
 
         response = requests.get(query_url)
         
@@ -40,13 +40,13 @@ def get_historical_data(nndss_app_token,
     print(f"Total rows fetched: {len(df)}")
     print(df.head())
 
-    filepath_out = f"{output_dir}/df_NNDSS_historical.pkl"
+    filepath_out = f"{output_dir}/df_NNDSS_historical.parquet"
     
     if not os.path.exists(output_dir):
         print(f"creating output dir: {output_dir}")
         os.makedirs(output_dir)
     
-    df.to_pickle(filepath_out)
+    df.to_parquet(filepath_out)
     print(f"historical data saved to: {filepath_out}")
 
 

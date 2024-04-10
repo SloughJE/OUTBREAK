@@ -41,7 +41,7 @@ def lambda_handler(event, context):
             latest_week = latest_record[0]['week']
             
 
-            week_data_query_url = f"{base_url}?$$app_token={nndss_app_token}&$select={columns}&$where=year='{latest_year}' AND week='{latest_week}' AND location1 IS NOT NULL AND label NOT LIKE '%25Probable%25'&$limit={limit}"            
+            week_data_query_url = f"{base_url}?$$app_token={nndss_app_token}&$select={columns}&$where=year='{latest_year}' AND week='{latest_week}' AND location1 IS NOT NULL&$limit={limit}"            
             week_data_response = requests.get(week_data_query_url)
             
             if week_data_response.status_code == 200:

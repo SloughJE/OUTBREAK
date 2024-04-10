@@ -9,3 +9,7 @@ python-dotenv
 gluonts[torch]
 plotly
 pyarrow
+s3fs
+dash
+dash_bootstrap_components
+pyathena
