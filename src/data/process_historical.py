@@ -7,11 +7,11 @@ from sam_app.fetch_latest_data.data_processing import align_data_schema
 
 
 def process_data_historical(
-        input_filepath = "data/raw/historical/df_NNDSS_historical.pkl",
+        input_filepath = "data/raw/historical/df_NNDSS_historical.parquet",
         output_filepath = "data/interim/df_NNDSS_historical.parquet"
         ):
 
-   df = pd.read_pickle(input_filepath)
+   df = pd.read_parquet(input_filepath)
 
    #df.columns = ['state','year','week','label','new_cases']
 
@@ -69,7 +69,7 @@ def process_data_historical(
 
 
 
-   df = df[df.date<pd.to_datetime("2024-03-11")]
+   # df = df[df.date<pd.to_datetime("2024-03-11")]
 
    max_date_str = df['date'].max().strftime('%Y-%m-%d')
    min_date_str = df['date'].min().strftime('%Y-%m-%d')

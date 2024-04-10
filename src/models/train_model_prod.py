@@ -13,6 +13,7 @@ def train_prod_model(
         ):
     
     prediction_length = 1
+    context_length = 2
 
     df = pd.read_parquet(input_filepath)
     df['label'] = df['label'].astype('category')
@@ -44,14 +45,31 @@ def train_prod_model(
 
         num_static_cat = 1  # Number of static categorical features
         cardinality = [len(df_mod['label'].unique())]  # Unique values of 'label'
-                                                    
+
+        #estimator = DeepAREstimator(
+        #    prediction_length=prediction_length,
+        #    context_length = 2,
+        #    freq="W",
+        #    num_layers=3,  # Increase the number of layers
+        #    hidden_size=50,  # Increase the number of RNN cells per layer
+        #    dropout_rate=0.15,
+        #    patience = 10,
+        #    num_parallel_samples = 200,
+        #    num_feat_static_cat=num_static_cat,
+        #    cardinality=cardinality,
+        #    distr_output=NegativeBinomialOutput(),
+        #    trainer_kwargs={"max_epochs": 100,
+        #            }
+        #)
+
         estimator = DeepAREstimator(
             prediction_length=prediction_length,
+            context_length = context_length,
             freq="W",
             num_feat_static_cat=num_static_cat,
             cardinality=cardinality,
             distr_output=NegativeBinomialOutput(),
-            trainer_kwargs={"max_epochs": 25}
+            trainer_kwargs={"max_epochs": 50}
         )
 
         predictor = estimator.train(model_ds)
@@ -98,6 +116,6 @@ def train_prod_model(
         all_preds_df = pd.concat(all_preds, ignore_index=True)
         print("prediction dataset:")
         print(all_preds_df.head(1))
-        output_filepath = f"data/results/weekly_predictions_{start_date.strftime('%Y-%m-%d')}.parquet"
+        output_filepath = f"data/results/final/weekly_predictions_{start_date.strftime('%Y-%m-%d')}.parquet"
         all_preds_df.to_parquet(output_filepath)
         print(f"predictions for {start_date.strftime('%Y-%m-%d')} saved to {output_filepath}")

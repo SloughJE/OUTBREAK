@@ -40,13 +40,13 @@ def get_historical_data(nndss_app_token,
     print(f"Total rows fetched: {len(df)}")
     print(df.head())
 
-    filepath_out = f"{output_dir}/df_NNDSS_historical.pkl"
+    filepath_out = f"{output_dir}/df_NNDSS_historical.parquet"
     
     if not os.path.exists(output_dir):
         print(f"creating output dir: {output_dir}")
         os.makedirs(output_dir)
     
-    df.to_pickle(filepath_out)
+    df.to_parquet(filepath_out)
     print(f"historical data saved to: {filepath_out}")
 
 
