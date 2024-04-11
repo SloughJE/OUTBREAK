@@ -63,7 +63,7 @@ def outbreaks_history_tab_layout():
                 ], style={
                  'alignItems': 'center', 'justifyContent': 'center', 'padding': '5px',
                     'border': '1px solid #ccc', 'borderRadius': '15px','margin': '20px','marginBottom':'10px',
-                    'box-shadow': '0 2px 4px rgba(0,0,0,0.1)'}
+                    'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'}
             ),
             dcc.Checklist(
                 id='show_cumulative_toggle',

@@ -86,7 +86,7 @@ def get_dropdown_menu(id_suffix, label_text, tooltip_text, id_dropdown):
                     ], style={
                         'display': 'inline-flex', 'alignItems': 'center', 'justifyContent': 'center', 
                         'border': '1px solid #ccc', 'borderRadius': '15px', 'marginRight': '0px',
-                        'paddingTop': '7px','paddingBottom': '7px','paddingRight':'0px','paddingLeft':'40px', 'box-shadow': '0 2px 4px rgba(0,0,0,0.1)'
+                        'paddingTop': '7px','paddingBottom': '7px','paddingRight':'0px','paddingLeft':'40px', 'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
                     }),
                 ],
                 style={'textAlign': 'left', 'color': 'white', 'fontSize': '24px', 'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center', 'height': '100px'}
@@ -130,7 +130,7 @@ def get_dropdown_menu(label_and_info, uncertainty_level_tooltip,id_dropdown):
                         ], style={
                             'display': 'inline-flex', 'alignItems': 'center', 'justifyContent': 'center', 
                             'border': '1px solid #ccc', 'borderRadius': '15px', 'marginRight': '0px',
-                            'paddingTop': '7px','paddingBottom': '7px','paddingRight':'0px','paddingLeft':'40px', 'box-shadow': '0 2px 4px rgba(0,0,0,0.1)'
+                            'paddingTop': '7px','paddingBottom': '7px','paddingRight':'0px','paddingLeft':'40px', 'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
                         }),
                     ],
                     style={'textAlign': 'left', 'color': 'white', 'fontSize': '24px', 'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center', 'height': '100px'}
