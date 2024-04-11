@@ -20,7 +20,7 @@ from src.tabs.outbreaks_history_tab_helper import agg_outbreak_counts, plot_time
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc.icons.BOOTSTRAP])
-#server = app.server # Expose the Flask server for Gunicorn
+server = app.server # Expose the Flask server for Gunicorn
 
 app.title = "Outbreak Dashboard"
 
