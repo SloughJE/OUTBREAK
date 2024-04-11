@@ -28,7 +28,7 @@ def summary_tab_layout():
                         'color': 'white',
                         'textAlign': 'center',
                         'fontSize': '3vw',
-                        'marginToptop': '40px',
+                        'marginTop': '40px',
                     }
                 )
             ]),
