@@ -437,6 +437,6 @@ def synchronize_dropdowns(tab1_value, tab2_value, tab3_value):
         value = tab3_value
     return value, value, value
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
     #app.run_server(debug=False, host='0.0.0.0', port=8050)
-    app.run_server(debug=True, port=8087)
+    #app.run_server(debug=True, port=8080)
