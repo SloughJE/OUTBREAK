@@ -32,7 +32,7 @@ def get_tooltip_with_icon(id_suffix, tooltip_text):
     """
     info_icon_id = f"outbreak-uncertainty-tooltip-target-{id_suffix}"
     info_icon = html.I(className="bi bi-info-circle", id=info_icon_id, 
-                       style={'cursor': 'pointer', 'font-size': '22px', 'marginLeft': '10px', 'textAlign': 'left',})
+                       style={'cursor': 'pointer', 'fontSize': '22px', 'marginLeft': '10px', 'textAlign': 'left',})
     
     tooltip = dbc.Tooltip(tooltip_text, target=info_icon_id, placement="right", className='custom-tooltip',    
                            style={'white-space': 'pre-line'})
@@ -85,7 +85,7 @@ def get_dropdown_menu(id_suffix, label_text, tooltip_text, id_dropdown):
                         ),
                     ], style={
                         'display': 'inline-flex', 'alignItems': 'center', 'justifyContent': 'center', 
-                        'border': '1px solid #ccc', 'border-radius': '15px', 'marginRight': '0px',
+                        'border': '1px solid #ccc', 'borderRadius': '15px', 'marginRight': '0px',
                         'paddingTop': '7px','paddingBottom': '7px','paddingRight':'0px','paddingLeft':'40px', 'box-shadow': '0 2px 4px rgba(0,0,0,0.1)'
                     }),
                 ],
@@ -129,7 +129,7 @@ def get_dropdown_menu(label_and_info, uncertainty_level_tooltip,id_dropdown):
                             ),
                         ], style={
                             'display': 'inline-flex', 'alignItems': 'center', 'justifyContent': 'center', 
-                            'border': '1px solid #ccc', 'border-radius': '15px', 'marginRight': '0px',
+                            'border': '1px solid #ccc', 'borderRadius': '15px', 'marginRight': '0px',
                             'paddingTop': '7px','paddingBottom': '7px','paddingRight':'0px','paddingLeft':'40px', 'box-shadow': '0 2px 4px rgba(0,0,0,0.1)'
                         }),
                     ],

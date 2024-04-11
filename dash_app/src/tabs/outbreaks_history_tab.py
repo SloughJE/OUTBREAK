@@ -14,8 +14,8 @@ available_states = ['ALABAMA', 'ALASKA', 'AMERICAN SAMOA', 'ARIZONA', 'ARKANSAS'
 common_div_style = {
     'backgroundColor': 'black', 
     'padding': '10px', 
-    'border-radius': '5px',
-    'margin-bottom': '20px'  
+    'borderRadius': '5px',
+    'marginBottom': '20px'  
 }
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc.icons.BOOTSTRAP])
@@ -31,7 +31,7 @@ def outbreaks_history_tab_layout():
                         'color': 'white',
                         'textAlign': 'center',
                         'font-size': '3vw',
-                        'margin-top': '40px',
+                        'marginTop': '40px',
                     }
                 )
             ]),
@@ -62,7 +62,7 @@ def outbreaks_history_tab_layout():
             #    ), 
                 ], style={
                  'alignItems': 'center', 'justifyContent': 'center', 'padding': '5px',
-                    'border': '1px solid #ccc', 'border-radius': '15px','margin': '20px','marginBottom':'10px',
+                    'border': '1px solid #ccc', 'borderRadius': '15px','margin': '20px','marginBottom':'10px',
                     'box-shadow': '0 2px 4px rgba(0,0,0,0.1)'}
             ),
             dcc.Checklist(

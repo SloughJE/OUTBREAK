@@ -20,13 +20,13 @@ from src.tabs.outbreaks_history_tab_helper import agg_outbreak_counts, plot_time
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc.icons.BOOTSTRAP])
-server = app.server # Expose the Flask server for Gunicorn
+#server = app.server # Expose the Flask server for Gunicorn
 
 app.title = "Outbreak Dashboard"
 
 cols_wanted = ['item_id', 'state', 'date', 'label',	'new_cases']
 ###################################################
-date_filter_hist = [('date', '>=', pd.to_datetime('2023-01-01'))]
+date_filter_hist = [('date', '>=', pd.to_datetime('2024-01-01'))]
 date_filter_preds = [('date', '>=', pd.to_datetime('2024-03-01'))]
 
 df_historical = pd.read_parquet("data/df_historical.parquet", columns=cols_wanted, filters=date_filter_hist)
@@ -71,23 +71,23 @@ app.layout = dbc.Container([
     html.Div(children=[
         html.H1("OUTBREAK!", style={
         'color': 'black',  
-        'font-size': '6vw',
+        'fontSize': '6vw',
         'textAlign': 'center',
-        'margin-top': '20px',
-        'text-shadow': '''
+        'marginTop': '20px',
+        'textShadow': '''
             0 0 5px #B22222, 
             0 0 10px #B22222, 
             0 0 15px #B22222, 
             0 0 20px #B22222, 
             0 0 25px #B22222, 
             0 0 30px #B22222''',  
-        'font-weight': 'bold',
-        'background-color': '#300',  
+        'fontWeight': 'bold',
+        'backgroundColor': '#300',  
         'display': 'inline-block',  
         'padding': '10px',  
-        'border-radius': '50px' 
+        'borderRadius': '50px' 
             }),
-        ], style={'textAlign': 'center', 'width': '100%', 'margin-top': '0px','background-color':'black'}),
+        ], style={'textAlign': 'center', 'width': '100%', 'marginTop': '0px','backgroundColor':'black'}),
 
     dcc.Tabs(id="tabs", value='tab-1', className='tab-container', children=[
         dcc.Tab(label='Latest Week Summary', value='tab-1', className='custom-tab', selected_className='custom-tab-active', children=summary_tab_layout()),
@@ -190,7 +190,7 @@ def update_kpi(selected_interval, analysis_type):
                     'width': '70%',  
                     'margin': '0 auto',  
                     'padding': '0px',
-                    'margin-top': '0px',
+                    'marginTop': '0px',
                     'overflowX': 'auto', 
                 },
                 style_data_conditional=[
@@ -231,7 +231,7 @@ def update_kpi(selected_interval, analysis_type):
                     }
                 ]
             )
-        ], style={'margin-bottom': '20px'})
+        ], style={'marginBottom': '20px'})
 
     df_outbreak_all = get_outbreaks_all(df_preds_all, selected_interval)
     sankey_chart, ongoing_outbreaks, resolved_outbreaks_week_2 = create_sankey_chart(df_outbreak_all)
@@ -258,11 +258,11 @@ def update_kpi(selected_interval, analysis_type):
                 'width': '70%',  
                 'margin': '0 auto',  
                 'padding': '0px',
-                'margin-top': '0px',
+                'marginTop': '0px',
                 'overflowX': 'auto', 
             },
         )
-    ], style={'margin-bottom': '20px'})
+    ], style={'marginBottom': '20px'})
     
     kpi_content = [
         html.H2(f"Latest Week: {current_week}"),
@@ -437,6 +437,6 @@ def synchronize_dropdowns(tab1_value, tab2_value, tab3_value):
         value = tab3_value
     return value, value, value
 
-#if __name__ == '__main__':
+if __name__ == '__main__':
     #app.run_server(debug=False, host='0.0.0.0', port=8050)
-    #app.run_server(debug=True, port=8080)
+    app.run_server(debug=True, port=8080)

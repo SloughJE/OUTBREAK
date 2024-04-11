@@ -7,8 +7,8 @@ from src.tabs.outbreak_dropdown import get_dropdown_menu, outbreak_uncertainty_l
 common_div_style = {
     'backgroundColor': 'black', 
     'padding': '10px', 
-    'border-radius': '5px',
-    'margin-bottom': '20px'  
+    'borderRadius': '5px',
+    'marginBottom': '20px'  
 }
 
 
@@ -27,8 +27,8 @@ def summary_tab_layout():
                     style={
                         'color': 'white',
                         'textAlign': 'center',
-                        'font-size': '3vw',
-                        'margin-top': '40px',
+                        'fontSize': '3vw',
+                        'marginToptop': '40px',
                     }
                 )
             ]),
@@ -63,21 +63,21 @@ def summary_tab_layout():
                 dbc.Row([
                     dbc.Col(
                         html.Div([  
-                            dcc.Graph(id='us-map', style={**common_div_style, 'width': '100%', 'display': 'block', 'margin-bottom': '0px', 'margin-left': 'auto', 'margin-right': 'auto'}),
-                            html.Div(id='territories-table', style={'color': 'white', 'padding': '0px', 'margin-top': '0px'})
+                            dcc.Graph(id='us-map', style={**common_div_style, 'width': '100%', 'display': 'block', 'marginBottom': '0px', 'margin-left': 'auto', 'margin-right': 'auto'}),
+                            html.Div(id='territories-table', style={'color': 'white', 'padding': '0px', 'marginTop': '0px'})
                         ], style={**common_div_style}),  
                         width=6
                     ),
 
                     dbc.Col(
                         html.Div([  
-                            dcc.Graph(id='sankey-chart', style={**common_div_style, 'width': '100%', 'display': 'block', 'margin-bottom': '0px', 'margin-left': 'auto', 'margin-right': 'auto'}),
-                            html.Div(id='ongoing-outbreaks-table', style={'color': 'white', 'padding': '0px', 'margin-top': '0px'})                             
+                            dcc.Graph(id='sankey-chart', style={**common_div_style, 'width': '100%', 'display': 'block', 'marginBottom': '0px', 'margin-left': 'auto', 'margin-right': 'auto'}),
+                            html.Div(id='ongoing-outbreaks-table', style={'color': 'white', 'padding': '0px', 'marginTop': '0px'})                             
                         ], style={**common_div_style}),  
                         width=6
                     )
                 ], align="stretch", style={'color': '#7FDBFF'}),
-            ], style={'background-color': 'black'}),
+            ], style={'backgroundColor': 'black'}),
 
             dbc.Row(
                 [
@@ -85,7 +85,7 @@ def summary_tab_layout():
                         html.H2("Potential Outbreak Disease Counts:",
                                 style={'color': 'white', 'textAlign': 'center','marginBottom':'0px','paddingTop':'20px','fontSize':'2em'}),
                         html.H4("pathogen, affected bodily system, and transmission type",
-                                style={'color': 'white', 'textAlign': 'center','margin-bottom':'15px','fontSize':'1.5em'}),
+                                style={'color': 'white', 'textAlign': 'center','marginBottom':'15px','fontSize':'1.5em'}),
                         html.Div(
                             dcc.RadioItems(
                                 id='analysis-toggle',
@@ -110,7 +110,7 @@ def summary_tab_layout():
                     ]), width=12)
                 ],
                 justify="center",
-                style={'margin-bottom': '10px'}
+                style={'marginBottom': '10px'}
                 ),
             dbc.Row([
                 dbc.Col(dcc.Graph(id='pathogen-chart', style={**common_div_style}), width=4),
@@ -118,7 +118,7 @@ def summary_tab_layout():
                 dbc.Col(dcc.Graph(id='transmission-chart', style={**common_div_style}), width=4),
             ], align="stretch", style={'color': '#7FDBFF'})
 
-        ], style={'color': '#7FDBFF', 'padding-bottom': '20px'})
+        ], style={'color': '#7FDBFF', 'paddingBottom': '20px'})
 
     ], fluid=True)
 
