@@ -2,8 +2,7 @@ import dash
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
-from src.tabs.summary_tab_helper import label_and_info, uncertainty_level_tooltip
-from src.tabs.outbreak_dropdown import get_dropdown_menu
+from src.tabs.outbreak_dropdown import get_dropdown_menu, outbreak_uncertainty_level_explanation
 
 
 available_states = ['ALABAMA', 'ALASKA', 'AMERICAN SAMOA', 'ARIZONA', 'ARKANSAS', 'CALIFORNIA', 'COLORADO', 'CONNECTICUT', 'DELAWARE', 'DISTRICT OF COLUMBIA', 
@@ -38,8 +37,13 @@ def outbreaks_history_tab_layout():
             ]),
 
         html.Div([
-
-            get_dropdown_menu(label_and_info, uncertainty_level_tooltip,'interval_dropdown_outbreak'),
+            get_dropdown_menu(
+                id_suffix="tab3",
+                label_text="Outbreak Model Certainty Level",
+                tooltip_text=outbreak_uncertainty_level_explanation,
+                id_dropdown="interval_dropdown_outbreak"
+            ),
+            #get_dropdown_menu(label_and_info, uncertainty_level_tooltip,'interval_dropdown_outbreak'),
 
             html.Div([  
                 dcc.Dropdown(

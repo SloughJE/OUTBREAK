@@ -20,6 +20,7 @@ from src.tabs.outbreaks_history_tab_helper import agg_outbreak_counts, plot_time
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc.icons.BOOTSTRAP])
+server = app.server # Expose the Flask server for Gunicorn
 
 app.title = "Outbreak Dashboard"
 
@@ -34,13 +35,13 @@ df_historical['date'] = pd.to_datetime(df_historical.date.dt.date)
 max_hist = df_historical.date.max()
 df_preds_all = pd.merge(df_historical,df_preds_all,on=['item_id','date'], how='inner')
 
-df_latest = df_historical[df_historical.date==max_hist]
+df_latest = df_historical[df_historical.date==max_hist].copy()
 df_historical = df_historical[df_historical.date<max_hist]
 
 df_preds_all['date'] = pd.to_datetime(df_preds_all.date.dt.date)
 
 min_date_preds = df_preds_all.date.min()
-df_preds = df_preds_all[df_preds_all.date==df_preds_all.date.max()]
+df_preds = df_preds_all[df_preds_all.date==df_preds_all.date.max()].copy()
 
 #df_preds_all['label'] = df_preds_all['item_id'].str.split('_').str[1]
 #df_preds_all['state'] = df_preds_all['item_id'].str.split('_').str[0]
@@ -434,6 +435,6 @@ def synchronize_dropdowns(tab1_value, tab2_value, tab3_value):
         value = tab3_value
     return value, value, value
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
     #app.run_server(debug=False, host='0.0.0.0', port=8050)
-    app.run_server(debug=True, port=8080)
+    #app.run_server(debug=True, port=8080)

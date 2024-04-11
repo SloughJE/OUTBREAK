@@ -2,8 +2,7 @@ import dash
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
-from src.tabs.summary_tab_helper import label_and_info, uncertainty_level_tooltip
-from src.tabs.outbreak_dropdown import get_dropdown_menu
+from src.tabs.outbreak_dropdown import get_dropdown_menu, outbreak_uncertainty_level_explanation
 
 
 common_div_style = {
@@ -32,8 +31,13 @@ def details_tab_layout():
             ]),
 
         html.Div([
-
-            get_dropdown_menu(label_and_info, uncertainty_level_tooltip,'interval_dropdown_detail'),
+            get_dropdown_menu(
+                id_suffix="tab2",
+                label_text="Outbreak Model Certainty Level",
+                tooltip_text=outbreak_uncertainty_level_explanation,
+                id_dropdown="interval_dropdown_detail"
+            ),
+            #get_dropdown_menu(label_and_info, uncertainty_level_tooltip,'interval_dropdown_detail'),
 
             dcc.Checklist(
                 id='show_outbreaks_toggle',

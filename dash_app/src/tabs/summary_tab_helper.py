@@ -17,33 +17,6 @@ outbreak_uncertainty_level_explanation = """• Indicates how certain we want to
 """
 
 
-info_icon = html.I(className="bi bi-info-circle", id="outbreak-uncertainty-tooltip-target", 
-                   style={
-                       'cursor': 'pointer', 
-                        'font-size': '22px', 
-                        'marginLeft': '10px',
-                        'textAlign': 'left',
-                        })
-
-label_and_info = html.H2(
-    [info_icon, " Outbreak Model Certainty Level:"],
-    style={
-        'color': 'white',
-        'textAlign': 'center',
-        'fontSize': '24px',
-        'marginRight': '0px',
-        'marginBottom': '3px',
-    }
-)
-uncertainty_level_tooltip = dbc.Tooltip(
-    outbreak_uncertainty_level_explanation,
-    target="outbreak-uncertainty-tooltip-target",
-    placement="right",
-    className='custom-tooltip',    
-    style={'white-space': 'pre-line'}
-)
-
-
 def filter_prediction_interval(df, interval_percentage):
     """
     Filters the DataFrame for a specific prediction interval, retrieving the corresponding
