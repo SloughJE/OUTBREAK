@@ -26,9 +26,11 @@ app.title = "Outbreak Dashboard"
 
 cols_wanted = ['item_id', 'state', 'date', 'label',	'new_cases']
 ###################################################
+date_filter_hist = [('date', '>=', pd.to_datetime('2023-01-01'))]
+date_filter_preds = [('date', '>=', pd.to_datetime('2024-03-01'))]
 
-df_historical = pd.read_parquet("data/df_historical.parquet", columns=cols_wanted)
-df_preds_all =  pd.read_parquet("data/df_predictions.parquet")
+df_historical = pd.read_parquet("data/df_historical.parquet", columns=cols_wanted, filters=date_filter_hist)
+df_preds_all =  pd.read_parquet("data/df_predictions.parquet", filters=date_filter_preds)
 #################################################
 
 df_historical['date'] = pd.to_datetime(df_historical.date.dt.date)
