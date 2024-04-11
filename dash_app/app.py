@@ -20,7 +20,7 @@ from src.tabs.outbreaks_history_tab_helper import agg_outbreak_counts, plot_time
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc.icons.BOOTSTRAP])
-#server = app.server # Expose the Flask server for Gunicorn
+server = app.server # Expose the Flask server for Gunicorn
 
 app.title = "Outbreak Dashboard"
 
@@ -437,6 +437,6 @@ def synchronize_dropdowns(tab1_value, tab2_value, tab3_value):
         value = tab3_value
     return value, value, value
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
     #app.run_server(debug=False, host='0.0.0.0', port=8050)
-    app.run_server(debug=True, port=8080)
+    #app.run_server(debug=True, port=8080)
