@@ -23,29 +23,29 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc.icons.BOO
 
 app.title = "Outbreak Dashboard"
 
-
+cols_wanted = ['item_id', 'state', 'date', 'label',	'new_cases']
 ###################################################
-df_historical = pd.read_parquet("data/df_historical.parquet")
+
+df_historical = pd.read_parquet("data/df_historical.parquet", columns=cols_wanted)
 df_preds_all =  pd.read_parquet("data/df_predictions.parquet")
 #################################################
 
 df_historical['date'] = pd.to_datetime(df_historical.date.dt.date)
 max_hist = df_historical.date.max()
+df_preds_all = pd.merge(df_historical,df_preds_all,on=['item_id','date'], how='inner')
+
 df_latest = df_historical[df_historical.date==max_hist]
 df_historical = df_historical[df_historical.date<max_hist]
 
 df_preds_all['date'] = pd.to_datetime(df_preds_all.date.dt.date)
 
 min_date_preds = df_preds_all.date.min()
-
 df_preds = df_preds_all[df_preds_all.date==df_preds_all.date.max()]
 
-df_latest['new_cases'] = df_latest.new_cases.fillna(0)
-df_preds_all = pd.merge(pd.concat([df_historical,df_latest]),df_preds_all,on=['item_id','date'], how='outer')
-df_preds_all['label'] = df_preds_all['item_id'].str.split('_').str[1]
-df_preds_all['state'] = df_preds_all['item_id'].str.split('_').str[0]
-df_preds_all = df_preds_all.fillna(0)
-available_states = list(sorted(df_preds_all.state.unique()))
+#df_preds_all['label'] = df_preds_all['item_id'].str.split('_').str[1]
+#df_preds_all['state'] = df_preds_all['item_id'].str.split('_').str[0]
+#df_preds_all = df_preds_all.fillna(0)
+available_states = list(sorted(df_historical.state.unique()))
 
 num_diseases_tracked = len(df_latest['label'].unique())
 
@@ -56,7 +56,6 @@ df_preds['label'] = df_preds['item_id'].str.split('_').str[1]
 df_historical = df_historical.sort_values(['date', 'item_id'])
 df_preds = df_preds.sort_values(['date', 'item_id'])
 df_preds_all = df_preds_all.sort_values(['date', 'item_id'])
-df_outbreak_history = df_preds_all[df_preds_all.date>=min_date_preds]
 
 df_latest = df_latest.sort_values(['date', 'item_id'])
 
@@ -105,7 +104,7 @@ app.layout = dbc.Container([
 )
 def update_state_options(toggle_values, selected_interval):
 
-    df_outbreak = get_outbreaks(df_preds, df_latest, chosen_interval=selected_interval)
+    df_outbreak = get_outbreaks(df_preds, chosen_interval=selected_interval)
     
     if 'SHOW_OUTBREAKS' in toggle_values:
         states = df_outbreak[df_outbreak['potential_outbreak'] == True]['state'].unique()
@@ -123,7 +122,7 @@ def update_state_options(toggle_values, selected_interval):
 )
 def set_item_options(selected_state, toggle_values, selected_interval):
 
-    df_outbreak = get_outbreaks(df_preds, df_latest, chosen_interval=selected_interval)
+    df_outbreak = get_outbreaks(df_preds, chosen_interval=selected_interval)
 
     if 'SHOW_OUTBREAKS' in toggle_values and selected_state:
         df_filtered = df_outbreak[(df_outbreak['state'] == selected_state) & (df_outbreak['potential_outbreak'] == True)]
@@ -159,7 +158,7 @@ def set_item_options(selected_state, toggle_values, selected_interval):
 )
 def update_kpi(selected_interval, analysis_type):
     
-    df_outbreak = get_outbreaks(df_preds, df_latest, chosen_interval=selected_interval)
+    df_outbreak = get_outbreaks(df_preds, chosen_interval=selected_interval)
 
     current_week = df_latest['date'].max().strftime('%Y-%m-%d')
     num_outbreaks_per_state_and_disease = df_outbreak['potential_outbreak'].sum()
@@ -333,7 +332,7 @@ def update_graph(selected_state, label_dropdown, selected_interval):
 
     if selected_state and label_dropdown and selected_interval is not None:
 
-        df_outbreak = get_outbreaks(df_preds, df_latest, chosen_interval=selected_interval)
+        df_outbreak = get_outbreaks(df_preds, chosen_interval=selected_interval)
 
         df_historical_filtered = df_historical[(df_historical['state'] == selected_state) & (df_historical['label'] == label_dropdown)]
         df_latest_filtered = df_outbreak[(df_outbreak['state'] == selected_state) & (df_outbreak['label'] == label_dropdown) & (df_outbreak.new_cases.notna())]
@@ -388,9 +387,9 @@ def update_outbreak_history_graph(selected_states, show_cumulative_toggle, selec
     
 
     if selected_states:
-        df_outbreak_history_filt = df_outbreak_history[df_outbreak_history.state.isin(selected_states)]
+        df_outbreak_history_filt = df_preds_all[df_preds_all.state.isin(selected_states)]
     else:
-        df_outbreak_history_filt = df_outbreak_history
+        df_outbreak_history_filt = df_preds_all
     
     df_outbreak_history_filt = get_outbreaks_all(df_outbreak_history_filt, selected_interval)
     df_outbreak_history_filt = df_outbreak_history_filt[['item_id','state','label','date','potential_outbreak','potential_outbreak_past_week','Potential_Outbreak_Resolved']]

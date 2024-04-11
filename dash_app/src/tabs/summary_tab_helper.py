@@ -72,10 +72,11 @@ def identify_outbreaks(df_pred_wide, df_latest):
     df_outbreak['potential_outbreak'] = df_outbreak['new_cases'] > df_outbreak['pred_upper']
     return df_outbreak
 
-def get_outbreaks(df_preds, df_latest, chosen_interval=99):
+def get_outbreaks(df_preds, chosen_interval=99):
 
-    filtered_df = filter_prediction_interval_all_outbreaks(df_preds, chosen_interval)
-    df_outbreak = pd.merge(df_latest, filtered_df,on=['item_id','date','label','state'])
+    df_outbreak = filter_prediction_interval_all_outbreaks(df_preds, chosen_interval)
+    #df_outbreak = pd.merge(df_latest, filtered_df,on=['item_id','date','label','state'])
+    #print(df_preds.columns)
     df_outbreak['potential_outbreak'] = df_outbreak['new_cases'] > df_outbreak['pred_upper']
 
     return df_outbreak
