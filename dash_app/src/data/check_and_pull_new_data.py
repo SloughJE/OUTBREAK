@@ -64,8 +64,8 @@ def check_and_fetch_new_data(max_date_historical, max_date_preds, engine):
     return df_new_weekly, df_new_predictions
 
 
-def get_max_dates(filepath_historical="/home/ec2-user/dash_app/NNDSS/dash_app/data/historical.parquet",
-                  filepath_predictions="/home/ec2-user/dash_app/NNDSS/dash_app/data/predictions.parquet"):
+def get_max_dates(filepath_historical="/home/ec2-user/dash_app/NNDSS/dash_app/data/df_historical.parquet",
+                  filepath_predictions="/home/ec2-user/dash_app/NNDSS/dash_app/data/df_predictions.parquet"):
 
     df_historical = pd.read_parquet(filepath_historical, columns=['date'])
     df_preds_all = pd.read_parquet(filepath_predictions, columns=['date'])
@@ -77,8 +77,8 @@ def get_max_dates(filepath_historical="/home/ec2-user/dash_app/NNDSS/dash_app/da
 
 
 def check_and_save_new_data(engine,
-                            filepath_historical="/home/ec2-user/dash_app/NNDSS/dash_app/data/historical.parquet",
-                            filepath_predictions="/home/ec2-user/dash_app/NNDSS/dash_app/data/predictions.parquet"):
+                            filepath_historical="/home/ec2-user/dash_app/NNDSS/dash_app/data/df_historical.parquet",
+                            filepath_predictions="/home/ec2-user/dash_app/NNDSS/dash_app/data/df_predictions.parquet"):
 
     max_date_historical, max_date_preds = get_max_dates(filepath_historical, filepath_predictions)
 
@@ -102,6 +102,6 @@ def check_and_save_new_data(engine,
 
 
 check_and_save_new_data(engine,
-    filepath_historical="/home/ec2-user/dash_app/NNDSS/dash_app/data/historical.parquet",
-    filepath_predictions="/home/ec2-user/dash_app/NNDSS/dash_app/data/predictions.parquet"
+    filepath_historical="/home/ec2-user/dash_app/NNDSS/dash_app/data/df_historical.parquet",
+    filepath_predictions="/home/ec2-user/dash_app/NNDSS/dash_app/data/df_predictions.parquet"
     )
