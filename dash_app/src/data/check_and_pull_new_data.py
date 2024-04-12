@@ -1,12 +1,12 @@
 import pandas as pd
-from dotenv import load_dotenv
-import os
+#from dotenv import load_dotenv
+#import os
 import pandas as pd
 from sqlalchemy import create_engine
 
 
 # Load environment variables from .env file
-load_dotenv()
+#load_dotenv()
 
 # Connection settings
 region_name = 'us-east-2'
@@ -14,14 +14,14 @@ s3_staging_dir = 's3://nndss/query_results/'
 database_name = 'cdc_nndss'
 
 # Fetch AWS credentials from environment variables
-aws_access_key_id = os.getenv('aws_dash_access_key')
-aws_secret_access_key = os.getenv('aws_dash_secret_key')
+#aws_access_key_id = os.getenv('aws_dash_access_key')
+#aws_secret_access_key = os.getenv('aws_dash_secret_key')
 # query from local
-conn_str = (
-    f"awsathena+rest://"
-    f"{aws_access_key_id}:{aws_secret_access_key}@athena.{region_name}.amazonaws.com:443/"
-    f"{database_name}?s3_staging_dir={s3_staging_dir}"
-)
+#conn_str = (
+#    f"awsathena+rest://"
+#    f"{aws_access_key_id}:{aws_secret_access_key}@athena.{region_name}.amazonaws.com:443/"
+#    f"{database_name}?s3_staging_dir={s3_staging_dir}"
+#)
 
 # query from EC2 with Athena acces
 conn_str = (
@@ -102,6 +102,6 @@ def check_and_save_new_data(engine,
 
 
 check_and_save_new_data(engine,
-    filepath_historical = "../dash_app/data/historical.parquet", 
-    filepath_predictions = "../dash_app/data/predictions.parquet"
+    filepath_historical = "dash_app/data/historical.parquet", 
+    filepath_predictions = "dash_app/data/predictions.parquet"
     )
