@@ -80,6 +80,7 @@ def check_and_save_new_data(engine,
                             filepath_historical="/home/ec2-user/dash_app/NNDSS/dash_app/data/df_historical.parquet",
                             filepath_predictions="/home/ec2-user/dash_app/NNDSS/dash_app/data/df_predictions.parquet"):
 
+    print(f"Current timestamp: {pd.Timestamp.now()}")
     max_date_historical, max_date_preds = get_max_dates(filepath_historical, filepath_predictions)
 
     df_new_weekly, df_new_predictions = check_and_fetch_new_data(max_date_historical, max_date_preds, engine)
