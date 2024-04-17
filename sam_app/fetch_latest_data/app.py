@@ -1,154 +1,179 @@
 import json
 import requests
 import boto3
-from botocore.exceptions import NoCredentialsError, ClientError
-from io import BytesIO
+import os
+import time
 import pandas as pd
+from io import BytesIO
+from botocore.exceptions import ClientError
 
-from data_processing import align_data_schema, process_dataframe_deepar
+from data_processing import align_data_schema, process_dataframe_deepar, read_all_parquets_from_s3
+from model_and_predictions import trigger_sagemaker_training, create_batch_transform_job, create_sagemaker_model, check_transform_job_completion
+
+
+def get_secret():
+    secret_name = "CDC_NNDSS_API"
+    region_name = "us-east-2"
+    session = boto3.session.Session()
+    client = session.client(service_name='secretsmanager', region_name=region_name)
+    try:
+        response = client.get_secret_value(SecretId=secret_name)
+        return json.loads(response['SecretString'])
+    except ClientError as e:
+        raise e
+
+def get_latest_file_from_s3(bucket, folder):
+    s3 = boto3.client('s3')
+    paginator = s3.get_paginator('list_objects_v2')
+    latest_file = None
+    latest_date = None
+    for page in paginator.paginate(Bucket=bucket, Prefix=folder):
+        for obj in page.get('Contents', []):
+            if obj['Key'].endswith('.parquet') and (not latest_date or obj['LastModified'] > latest_date):
+                latest_date = obj['LastModified']
+                latest_file = obj['Key']
+    return latest_file
+
+def get_latest_data_from_parquet(bucket, file_key):
+    s3_resource = boto3.resource('s3')
+    obj = s3_resource.Object(bucket_name=bucket, key=file_key)
+    df = pd.read_parquet(BytesIO(obj.get()["Body"].read()))
+    latest_year = df['year'].max()
+    latest_week = df[df['year'] == latest_year]['week'].max()
+    return latest_year, latest_week
+
+def fetch_api_data(url):
+    response = requests.get(url)
+    if response.status_code != 200:
+        return None, f"Failed to fetch data: {response.status_code}"
+    return response.json(), None
+
+
+def wait_for_training_completion(sagemaker_client, training_job_name):
+    while True:
+        response = sagemaker_client.describe_training_job(TrainingJobName=training_job_name)
+        status = response['TrainingJobStatus']
+        if status == 'Completed':
+            print("Training job completed successfully.")
+            break
+        elif status == 'Failed':
+            print("Training job failed.")
+            print("Reason:", response['FailureReason'])
+            break
+        else:
+            print("Training job still in progress...")
+            time.sleep(60)  # wait for 60 seconds before checking again
+    return response
+
 
 def lambda_handler(event, context):
+    try:
+        secret = get_secret()
+    except ClientError as e:
+        return {'statusCode': 500, 'body': json.dumps("Failed to retrieve secret: " + str(e))}
 
-    def get_secret():
-        secret_name = "CDC_NNDSS_API"
-        region_name = "us-east-2"
-
-        session = boto3.session.Session()
-        client = session.client(service_name='secretsmanager', region_name=region_name)
-
-        try:
-            get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-        except ClientError as e:
-            raise e
-        return json.loads(get_secret_value_response['SecretString'])
-    
-
-    def get_latest_file_from_s3(bucket, folder):
-        s3 = boto3.client('s3')
-        paginator = s3.get_paginator('list_objects_v2')
-        page_iterator = paginator.paginate(Bucket=bucket, Prefix=folder)
-        latest_file = None
-        latest_date = None
-        for page in page_iterator:
-            if "Contents" in page:
-                for obj in page['Contents']:
-                    file_key = obj['Key']
-                    # Check if the object is a file (not a folder)
-                    if file_key.endswith('.parquet'):
-                        file_date = obj['LastModified']
-                        if not latest_date or file_date > latest_date:
-                            latest_date = file_date
-                            latest_file = file_key
-
-        return latest_file
-
-
-
-    def get_latest_data_from_parquet(bucket, file_key):
-        s3_resource = boto3.resource('s3')
-        obj = s3_resource.Object(bucket_name=bucket, key=file_key)
-        buffer = BytesIO(obj.get()["Body"].read())
-        df = pd.read_parquet(buffer)
-        latest_year = df['year'].max()
-        latest_week = df[df['year'] == latest_year]['week'].max()
-        return latest_year, latest_week
-
-
-    # Retrieve the API token
-    secret = get_secret()
     nndss_app_token = secret['NNDSS_APP_TOKEN']
-    limit = 50000  # num max rows for api request
     bucket_name = "nndss"
     bucket_folder = "weekly"
     base_url = "https://data.cdc.gov/resource/x9gk-5huc.json"
-    columns = 'states,year,week,label,m1'
-    
-    # Get the latest data file from S3
+    limit = 50000
+
     latest_file_key = get_latest_file_from_s3(bucket_name, bucket_folder)
-    print(f"latest_file_key: {latest_file_key}")
+    if not latest_file_key:
+        return {'statusCode': 500, 'body': json.dumps('Failed to fetch latest file from S3')}
 
-    if latest_file_key:
-        latest_year, latest_week = get_latest_data_from_parquet(bucket_name, latest_file_key)
-        print(f"latest week and year in s3: week {latest_week}, {latest_year}")
-        week_data_response = None
+    latest_year, latest_week = get_latest_data_from_parquet(bucket_name, latest_file_key)
+    query_url = f"{base_url}?$$app_token={nndss_app_token}&$select=year,week&$where=location1 IS NOT NULL&$order=year DESC, week DESC&$limit=1"
+    latest_record, error = fetch_api_data(query_url)
+    if error:
+        return {'statusCode': 500, 'body': json.dumps(error)}
 
-        # Get the latest data date from the API
-        query_url = f"{base_url}?$$app_token={nndss_app_token}&$select=year,week&$where=location1 IS NOT NULL&$order=year DESC, week DESC&$limit=1"
-        response = requests.get(query_url)
+    if not latest_record:
+        return {'statusCode': 200, 'body': json.dumps("No recent data found.")}
 
-        if response.status_code == 200:
-            latest_record = response.json()
-            if latest_record:
-                api_latest_year = int(latest_record[0]['year'])
-                api_latest_week = int(latest_record[0]['week'])
+    api_latest_year = int(latest_record[0]['year'])
+    api_latest_week = int(latest_record[0]['week'])
 
-                # Only proceed if the API data is newer than the S3 data
-                if (api_latest_year > latest_year) or (api_latest_year == latest_year and api_latest_week > latest_week):
-                    week_data_query_url = f"{base_url}?$$app_token={nndss_app_token}&$select=year,week,states,label,m1&$where=year='{api_latest_year}' AND week='{api_latest_week}' AND location1 IS NOT NULL&$limit={limit}"
-                    week_data_response = requests.get(week_data_query_url)
-                    if week_data_response.status_code == 200:
-                        latest_week_data = week_data_response.json()
+    if (api_latest_year > latest_year) or (api_latest_year == latest_year and api_latest_week > latest_week):
+        week_data_query_url = f"{base_url}?$$app_token={nndss_app_token}&$select=year,week,states,label,m1&$where=year='{api_latest_year}' AND week='{api_latest_week}' AND location1 IS NOT NULL&$limit={limit}"
+        latest_week_data, error = fetch_api_data(week_data_query_url)
+        if error:
+            return {'statusCode': 500, 'body': json.dumps(error)}
 
-                        # Convert JSON to DataFrame
-                        df = pd.DataFrame(latest_week_data)
-                        df = align_data_schema(df)
-                        file_date = df.date.max().strftime('%Y-%m-%d')
-                        # Convert DataFrame to Parquet and upload to S3
-                        try:
-                            s3 = boto3.client('s3')
-                            file_key = f"{bucket_folder}/weekly_actuals_{file_date}.parquet"
-                            
-                            # Use a buffer for the Parquet file
-                            buffer = BytesIO()
-                            df.to_parquet(buffer, index=False)
-                            buffer.seek(0)
-                            s3.put_object(Bucket=bucket_name, Key=file_key, Body=buffer.getvalue())
-                            print(f"Parquet file for the most recent week of year {latest_year}, week {latest_week} saved to S3")
+        # Convert JSON to DataFrame
+        df = pd.DataFrame(latest_week_data)
+        df = align_data_schema(df)
+        file_date = df.date.max().strftime('%Y-%m-%d')
+        # Convert DataFrame to Parquet and upload to S3
+        s3 = boto3.client('s3')
+        file_key = f"{bucket_folder}/weekly_actuals_{file_date}.parquet"
+        
+        # Use a buffer for the Parquet file
+        buffer = BytesIO()
+        df.to_parquet(buffer, index=False)
+        buffer.seek(0)
+        s3.put_object(Bucket=bucket_name, Key=file_key, Body=buffer.getvalue())
+        print(f"Parquet file for the most recent week of year {api_latest_year}, week {api_latest_week} saved to S3")
 
-                            # now we create the DeepAR training data with this new data included
-                            print("creating DeepAR input data ")
-                            json_lines_str, mapping_str, label_to_int_str = process_dataframe_deepar(df)
-                            transformed_key = 'deepar_input_data/deepar_dataset.jsonl'
-                            s3.put_object(Bucket=bucket_name, Key=transformed_key, Body=json_lines_str)
-                            print("Data processed and saved to 'deepar_input_data/deepar_dataset.jsonl'")
-                            mapping_key = 'deepar_input_data/time_series_mapping_with_labels.json'
-                            s3.put_object(Bucket=bucket_name, Key=mapping_key, Body=mapping_str)
-                            print(f"Mapping file saved to s3://{bucket_name}/{mapping_key}")
-                            label_to_int_key = 'deepar_input_data/label_to_int_mapping.json'
-                            s3.put_object(Bucket=bucket_name, Key=label_to_int_key, Body=label_to_int_str)
-                            print(f"Label-to-int mapping file saved to s3://{bucket_name}/{label_to_int_key}")
+        # now we create the DeepAR training data with this new data included
+        print("creating DeepAR input data ")
+        s3_client = boto3.client('s3')
+        df = read_all_parquets_from_s3(s3_client, bucket_name, bucket_folder)
+        print("df heads and tails")
+        print(df.head(2))
+        print(df.tail(2))
+        json_lines_str, mapping_str, label_to_int_str, cardinality = process_dataframe_deepar(df)
+        transformed_key = 'deepar_input_data/deepar_dataset.jsonl'
+        s3.put_object(Bucket=bucket_name, Key=transformed_key, Body=json_lines_str)
+        print("Data processed and saved to 'deepar_input_data/deepar_dataset.jsonl'")
+        mapping_key = 'deepar_input_data/time_series_mapping_with_labels.json'
+        s3.put_object(Bucket=bucket_name, Key=mapping_key, Body=mapping_str)
+        print(f"Mapping file saved to s3://{bucket_name}/{mapping_key}")
+        label_to_int_key = 'deepar_input_data/label_to_int_mapping.json'
+        s3.put_object(Bucket=bucket_name, Key=label_to_int_key, Body=label_to_int_str)
+        print(f"Label-to-int mapping file saved to s3://{bucket_name}/{label_to_int_key}")
 
-                            return {
-                            'statusCode': 200,
-                            'body': json.dumps(f"New weekly data pulled for week {latest_week} {latest_year} and saved to {file_key}. DeepAR input data created and saved to {bucket_name}")
-                            }
-                        except NoCredentialsError:
-                            return {
-                                'statusCode': 500,
-                                'body': json.dumps("Credentials not available")
-                            }
-                    else:
-                        return {
-                            'statusCode': 500,
-                            'body': json.dumps(f"Failed to fetch data for the latest week: {week_data_response.status_code}")
-                        }
-                else:
-                    return {
-                        'statusCode': 200,
-                        'body': json.dumps("No recent data found.")
-                    }
+        try:
+            print("setting up Sagemaker training job")
+            # now we're going to train the DeepAR model using Sagemaker sdk (boto3 sdk)
+            # Client for SageMaker
+            sagemaker_client = boto3.client('sagemaker')
+            role = os.environ['SAGEMAKER_ROLE_ARN']
+            
+            print(f"Starting the SageMaker training job with role: {role}")
+            training_job_name = trigger_sagemaker_training(sagemaker_client, bucket_name, transformed_key, role, cardinality)
+            if training_job_name:
+                wait_for_training_completion(sagemaker_client, training_job_name)
             else:
-                return {
-                    'statusCode': 200,
-                    'body': json.dumps("No recent data found.")
-                }
-        else:
+                print("Failed to start the training job.")
+
+            # Create the SageMaker model
+            print("creating sagemaker 'model'")
+            model_name = create_sagemaker_model(sagemaker_client, training_job_name, role)
+            
+            # Define locations for the batch transform input and output
+            input_data_location = f's3://{bucket_name}/{transformed_key}'
+            output_data_location = f's3://{bucket_name}/predictions/'
+            
+            # Start the batch transform job using the created model
+            print("creating batch transform job to make predictions from model")
+            create_batch_transform_job(sagemaker_client, model_name, input_data_location, output_data_location, role)
+            # Start the batch transform job
+            transform_job_name = create_batch_transform_job(sagemaker_client, model_name, input_data_location, output_data_location, role)
+
+            # Optional: Wait for the batch transform job to complete (use if you want to process results in the same Lambda execution)
+            check_transform_job_completion(sagemaker_client, transform_job_name)
+            print("Prediction made!")
+
+            return {
+                'statusCode': 200,
+                'body': json.dumps("New data pulled and saved. DeepAR model input data, training, model creation, and prediction jobs have been successfully completed.")
+            }
+        except Exception as e:
+            print(f"An error occurred trying to train the model: {str(e)}")
             return {
                 'statusCode': 500,
-                'body': json.dumps(f"Failed to fetch the latest data: {response.status_code}")
+                'body': json.dumps(f"An error occurred: {str(e)}")
             }
-
-    return {
-        'statusCode': 500,
-        'body': json.dumps('Failed to fetch or save the latest data')
-    }
+    else:
+        return {'statusCode': 200, 'body': json.dumps("Data is up to date.")}

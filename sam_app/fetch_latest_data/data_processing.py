@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import json
+from io import BytesIO
+
 
 def align_data_schema(df):
     """
@@ -82,4 +84,28 @@ def process_dataframe_deepar(df):
     time_series_mapping_json = json.dumps(time_series_mapping)
     label_to_int_json = json.dumps(label_to_int)
 
-    return json_lines_str, time_series_mapping_json, label_to_int_json
+    return json_lines_str, time_series_mapping_json, label_to_int_json, cardinality
+
+
+def read_all_parquets_from_s3(s3_client, bucket_name, prefix):
+    
+    response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+    all_dfs = []
+
+    for obj in response.get('Contents', []):
+        key = obj['Key']
+        if key.endswith('.parquet'):
+            # Corrected parameter names in the get_object call
+            obj_response = s3_client.get_object(Bucket=bucket_name, Key=key)
+            buffer = BytesIO(obj_response['Body'].read())
+            df = pd.read_parquet(buffer)
+            expected_columns = ['item_id', 'year', 'week', 'state', 'date', 'label', 'new_cases']
+            df = df[expected_columns]
+            all_dfs.append(df)
+
+    # Concatenate all dataframes into one
+    if all_dfs:
+        full_df = pd.concat(all_dfs, ignore_index=True)
+        return full_df
+    else:
+        return pd.DataFrame()

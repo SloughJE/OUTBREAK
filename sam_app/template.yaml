@@ -5,8 +5,8 @@ Description: >
 
 Globals:
   Function:
-    Timeout: 300
-    MemorySize: 512
+    Timeout: 900
+    MemorySize: 1024
     LoggingConfig:
       LogFormat: JSON
 
@@ -32,6 +32,7 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: arn:aws:logs:*:*:*
+
   FetchLatestNNDSSdataFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -40,7 +41,10 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
-      Role: !GetAtt FetchLatestNNDSSdataFunctionRole.Arn  # Explicitly specify the role
+      Role: !GetAtt FetchLatestNNDSSdataFunctionRole.Arn
+      Environment:  # Adding environment variables
+        Variables:
+            SAGEMAKER_ROLE_ARN: arn:aws:iam::047290901679:role/sagemaker-deepar-deployment # copy from IAM role for this
       Events:
         ScheduleEvent:
           Type: Schedule
