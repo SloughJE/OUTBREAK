@@ -145,6 +145,6 @@ if __name__ == "__main__":
             
         if args.combine_save_weekly_preds:
             combine_weekly_preds_for_dash_app(
-                directory_path = "data", 
+                directory_path = "data/results/final/", 
                 output_filepath = "dash_app/data/df_predictions.parquet"
                 )    
