@@ -10,8 +10,7 @@ from src.data.process_latest import process_latest_data
 from src.data.process_historical import process_data_historical
 from src.models.train_model_prod import train_prod_model
 from src.data.upload_s3 import upload_file_to_s3, upload_files_in_folder_to_s3
-
-from dash_app.src.data.pull_data import pull_data
+from src.data.combine_weekly_preds import combine_weekly_preds_for_dash_app
 
 # Load environment variables from .env file
 load_dotenv()
@@ -69,6 +68,11 @@ if __name__ == "__main__":
         action="store_true"
     )
 
+    parser.add_argument(
+        "--combine_save_weekly_preds",
+        help="combines weekly preds into one df and saves",
+        action="store_true"
+    )
 
     args = parser.parse_args()
 
@@ -121,7 +125,8 @@ if __name__ == "__main__":
                     '2024-03-04',
                     '2024-03-11',
                     '2024-03-18',
-                    '2024-03-25']
+                    '2024-03-25',
+                    '2024-04-01']
                 )
             
         if args.upload_data_s3:
@@ -138,6 +143,8 @@ if __name__ == "__main__":
                 object_key_prefix = "predictions/"
                   )
             
-        if args.pull_dash_app_data:
-            pull_data()
-            
+        if args.combine_save_weekly_preds:
+            combine_weekly_preds_for_dash_app(
+                directory_path = "data", 
+                output_filepath = "dash_app/data/df_predictions.parquet"
+                )    

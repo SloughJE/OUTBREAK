@@ -32,6 +32,13 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: arn:aws:logs:*:*:*
+        - PolicyName: LambdaInvokePermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: "arn:aws:lambda:*:*:function:*"
 
   FetchLatestNNDSSdataFunction:
     Type: AWS::Serverless::Function
@@ -42,14 +49,28 @@ Resources:
       Architectures:
         - x86_64
       Role: !GetAtt FetchLatestNNDSSdataFunctionRole.Arn
-      Environment:  # Adding environment variables
+      Environment:
         Variables:
-            SAGEMAKER_ROLE_ARN: arn:aws:iam::047290901679:role/sagemaker-deepar-deployment # copy from IAM role for this
+          SAGEMAKER_ROLE_ARN: arn:aws:iam::047290901679:role/sagemaker-deepar-deployment
       Events:
         ScheduleEvent:
           Type: Schedule
           Properties:
-            Schedule: rate(7 days)
+            Schedule: cron(0 1 ? * MON,WED,FRI *)
+
+
+  PredictionsLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: predictions/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Role: !GetAtt FetchLatestNNDSSdataFunctionRole.Arn
+      Environment:
+        Variables:
+          SAGEMAKER_ROLE_ARN: arn:aws:iam::047290901679:role/sagemaker-deepar-deployment
 
 Outputs:
   FetchLatestNNDSSdataFunction:
@@ -58,3 +79,6 @@ Outputs:
   FetchLatestNNDSSdataFunctionRole:
     Description: IAM Role ARN
     Value: !GetAtt FetchLatestNNDSSdataFunctionRole.Arn
+  PredictionsLambdaFunction:
+    Description: Lambda Function ARN for Predictions
+    Value: !GetAtt PredictionsLambdaFunction.Arn

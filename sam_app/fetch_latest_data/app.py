@@ -8,7 +8,7 @@ from io import BytesIO
 from botocore.exceptions import ClientError
 
 from data_processing import align_data_schema, process_dataframe_deepar, read_all_parquets_from_s3
-from model_and_predictions import trigger_sagemaker_training, create_batch_transform_job, create_sagemaker_model, check_transform_job_completion
+from model_training import trigger_sagemaker_training
 
 
 def get_secret():
@@ -62,7 +62,7 @@ def wait_for_training_completion(sagemaker_client, training_job_name):
             break
         else:
             print("Training job still in progress...")
-            time.sleep(60)  # wait for 60 seconds before checking again
+            time.sleep(20)  # wait for 60 seconds before checking again
     return response
 
 
@@ -134,43 +134,42 @@ def lambda_handler(event, context):
         print(f"Label-to-int mapping file saved to s3://{bucket_name}/{label_to_int_key}")
 
         try:
-            print("setting up Sagemaker training job")
-            # now we're going to train the DeepAR model using Sagemaker sdk (boto3 sdk)
+            print("Setting up SageMaker training job")
             # Client for SageMaker
             sagemaker_client = boto3.client('sagemaker')
             role = os.environ['SAGEMAKER_ROLE_ARN']
             
             print(f"Starting the SageMaker training job with role: {role}")
             training_job_name = trigger_sagemaker_training(sagemaker_client, bucket_name, transformed_key, role, cardinality)
+            
             if training_job_name:
                 wait_for_training_completion(sagemaker_client, training_job_name)
+                 # Now invoke the second Lambda for predictions without waiting for it to finish
+                lambda_client = boto3.client('lambda')
+                payload = {
+                    'training_job_name': training_job_name,
+                }
+                lambda_client.invoke(
+                    FunctionName='arn:aws:lambda:us-east-2:047290901679:function:NNDSSDataFetcher-PredictionsLambdaFunction-jHBncip3gtsy',
+                    InvocationType='Event',  # Asynchronous invocation (don't wait for 2nd lambda to finsh)
+                    Payload=json.dumps(payload)
+                )
+                print("Prediction lambda invoked!")
+
             else:
                 print("Failed to start the training job.")
-
-            # Create the SageMaker model
-            print("creating sagemaker 'model'")
-            model_name = create_sagemaker_model(sagemaker_client, training_job_name, role)
-            
-            # Define locations for the batch transform input and output
-            input_data_location = f's3://{bucket_name}/{transformed_key}'
-            output_data_location = f's3://{bucket_name}/predictions/'
-            
-            # Start the batch transform job using the created model
-            print("creating batch transform job to make predictions from model")
-            create_batch_transform_job(sagemaker_client, model_name, input_data_location, output_data_location, role)
-            # Start the batch transform job
-            transform_job_name = create_batch_transform_job(sagemaker_client, model_name, input_data_location, output_data_location, role)
-
-            # Optional: Wait for the batch transform job to complete (use if you want to process results in the same Lambda execution)
-            check_transform_job_completion(sagemaker_client, transform_job_name)
-            print("Prediction made!")
-
+                return {
+                    'statusCode': 400,
+                    'body': json.dumps("Training job could not be initiated.")
+                }
+          
             return {
                 'statusCode': 200,
-                'body': json.dumps("New data pulled and saved. DeepAR model input data, training, model creation, and prediction jobs have been successfully completed.")
+                'body': json.dumps("New data pulled and saved. DeepAR model input data created and new model trained successfully.")
             }
+        
         except Exception as e:
-            print(f"An error occurred trying to train the model: {str(e)}")
+            print(f"An error occurred trying to train the model : {str(e)}")
             return {
                 'statusCode': 500,
                 'body': json.dumps(f"An error occurred: {str(e)}")

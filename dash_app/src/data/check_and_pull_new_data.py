@@ -60,6 +60,7 @@ def check_and_fetch_new_data(max_date_historical, max_date_preds, engine):
     # Execute the queries and fetch results into pandas DataFrames using the engine
     df_new_weekly = pd.read_sql(query_weekly_new_data, engine)
     df_new_predictions = pd.read_sql(query_predictions_new_data, engine)
+    df_new_predictions.rename(columns={"prediction_for_date":"date"},inplace=True)
 
     return df_new_weekly, df_new_predictions
 
