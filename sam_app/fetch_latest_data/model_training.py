@@ -21,9 +21,9 @@ def get_deepar_container_uri(region_name):
 # https://docs.aws.amazon.com/sagemaker/latest/dg-ecr-paths/sagemaker-algo-docker-registry-paths.html
 
 def trigger_sagemaker_training(client, bucket, data_key, role, cardinality):
+
     region = boto3.Session().region_name
-    # role = 'arn:aws:iam::your-account-id:role/service-role/YourSageMakerRole'  
-    
+
     container = get_deepar_container_uri(region)
     print("Container URI for DeepAR:", container)
     # Setting up the training job name with a timestamp
@@ -70,7 +70,7 @@ def trigger_sagemaker_training(client, bucket, data_key, role, cardinality):
         "HyperParameters": {
             "time_freq": 'W',
             "epochs": '47', 
-            "early_stopping_patience": '10',
+            "early_stopping_patience": '20',
             "mini_batch_size": '64',
             "learning_rate": '0.005',
             "context_length": '2',
