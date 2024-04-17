@@ -72,7 +72,7 @@ def trigger_sagemaker_training(client, bucket, data_key, role, cardinality):
             "epochs": '47', 
             "early_stopping_patience": '20',
             "mini_batch_size": '64',
-            "learning_rate": '0.005',
+            "learning_rate": '0.001',
             "context_length": '2',
             "prediction_length": '1',
             "num_cells": "40",

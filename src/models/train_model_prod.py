@@ -69,8 +69,6 @@ def train_prod_model(
             num_feat_static_cat=num_static_cat,
             cardinality=cardinality,
             distr_output=NegativeBinomialOutput(),
-            batch_size=64,
-            lr=0.005,
             trainer_kwargs={"max_epochs": 47}
         )
 
