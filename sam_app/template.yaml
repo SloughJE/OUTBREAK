@@ -56,8 +56,7 @@ Resources:
         ScheduleEvent:
           Type: Schedule
           Properties:
-            Schedule: cron(0 1 ? * MON,WED,FRI *)
-
+            Schedule: cron(0 23 ? * MON,WED,FRI *)
 
   PredictionsLambdaFunction:
     Type: AWS::Serverless::Function
