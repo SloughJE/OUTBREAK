@@ -80,16 +80,18 @@ def lambda_handler(event, context):
 
     latest_file_key = get_latest_file_from_s3(bucket_name, bucket_folder)
     if not latest_file_key:
+        print('Failed to fetch latest file from S3')
         return {'statusCode': 500, 'body': json.dumps('Failed to fetch latest file from S3')}
 
     latest_year, latest_week = get_latest_data_from_parquet(bucket_name, latest_file_key)
     query_url = f"{base_url}?$$app_token={nndss_app_token}&$select=year,week&$where=location1 IS NOT NULL&$order=year DESC, week DESC&$limit=1"
     latest_record, error = fetch_api_data(query_url)
     if error:
+        print(f"Error: {error}")
         return {'statusCode': 500, 'body': json.dumps(error)}
 
     if not latest_record:
-        print("No new data found")
+        print("No latest record in s3 found")
         return {'statusCode': 200, 'body': json.dumps("No recent data found.")}
 
     api_latest_year = int(latest_record[0]['year'])
@@ -176,4 +178,6 @@ def lambda_handler(event, context):
                 'body': json.dumps(f"An error occurred: {str(e)}")
             }
     else:
+        print("S3 Data is up to date.")
+
         return {'statusCode': 200, 'body': json.dumps("Data is up to date.")}
