@@ -82,7 +82,7 @@ def summary_tab_layout():
             dbc.Row(
                 [
                     dbc.Col(html.Div([
-                        html.H2("Potential Outbreak Disease Counts:",
+                        html.H2("Potential Outbreak Type Counts:",
                                 style={'color': 'white', 'textAlign': 'center','marginBottom':'0px','paddingTop':'20px','fontSize':'2em'}),
                         html.H4("pathogen, affected bodily system, and transmission type",
                                 style={'color': 'white', 'textAlign': 'center','marginBottom':'15px','fontSize':'1.5em'}),
