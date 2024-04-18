@@ -89,6 +89,7 @@ def lambda_handler(event, context):
         return {'statusCode': 500, 'body': json.dumps(error)}
 
     if not latest_record:
+        print("No new data found")
         return {'statusCode': 200, 'body': json.dumps("No recent data found.")}
 
     api_latest_year = int(latest_record[0]['year'])
