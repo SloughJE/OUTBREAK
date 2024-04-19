@@ -51,7 +51,7 @@ def details_tab_layout():
             html.Div([  
                 dcc.Dropdown(
                     id='state_dropdown',
-                    placeholder='Select State',  
+                    placeholder='Select a State',  
                     style={'fontSize': '18px', 'textAlign': 'left', 'fontWeight': 'bold'},
                     className='detail-dropdown', 
                 ),

@@ -154,7 +154,7 @@ def create_us_map(df_outbreak):
     ))
 
     fig.update_layout(
-        title_text=f"Potential Outbreaks by State: {date_wanted.strftime('%Y-%m-%d')}",
+        title_text=f"Potential Outbreaks by State", #: {date_wanted.strftime('%Y-%m-%d')}",
         title_x=0.5,  
         title_y=0.97,  
         geo_scope='usa',
@@ -266,10 +266,11 @@ def create_sankey_chart(df_outbreak):
 
     fig.update_layout(
      title=dict(
-        text=f"Outbreak Resolutions<br>previous week to current week",
+        text=f"Ongoing Potential Outbreaks<br>previous week to current week",
         font=dict(size=24, color='white', family="Arial, bold"),
+        
         x=0.5,  
-        y=0.9,  
+        y=0.95,  
         xanchor='center',  
         yanchor='top'      
     ),
@@ -279,7 +280,10 @@ def create_sankey_chart(df_outbreak):
         #margin=dict(l=20, r=20, t=40, b=20), 
     )
     ongoing_outbreaks_table = week_2_data[(week_2_data.Potential_Outbreak_Resolved==False)][['state','label','new_cases']]
-    ongoing_outbreaks_table = ongoing_outbreaks_table.sort_values('new_cases',ascending=False)
-    ongoing_outbreaks_table.columns = ['US State / Territory','Disease','New Cases']
-    
+    ongoing_outbreaks_table = pd.merge(week_1_data[['state','label','new_cases']], ongoing_outbreaks_table, 
+                                            on=['state','label'], how='inner',suffixes=['_previous','_latest'])
+    ongoing_outbreaks_table = ongoing_outbreaks_table.sort_values('new_cases_latest',ascending=False)
+    #print(ongoing_outbreaks_table.head())
+    #print(ongoing_outbreaks_table_test.head(3))
+    ongoing_outbreaks_table.columns = ['US State / Territory','Disease','Previous Week','Latest Week']
     return fig, ongoing_outbreaks_table, resolved_outbreaks_week_2
