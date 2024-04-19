@@ -73,7 +73,7 @@ def outbreaks_type_counts_tab_layout():
                 dbc.Col(html.Div([
                     #html.H2("Potential Outbreak Type Counts:",
                     #        style={'color': 'white', 'textAlign': 'center','marginBottom':'0px','paddingTop':'20px','fontSize':'2em'}),
-                    html.H3("Pathogen, Affected bodily system, and Transmission Type",
+                    html.H3("Pathogen, Affected Bodily System, and Transmission Type",
                             style={'color': 'white', 'textAlign': 'center','marginBottom':'15px','paddingTop':'20px','fontSize':'1.75em'}),
                     html.Div(
                         dcc.RadioItems(
