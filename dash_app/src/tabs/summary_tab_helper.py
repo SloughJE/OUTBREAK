@@ -270,7 +270,7 @@ def create_sankey_chart(df_outbreak):
         font=dict(size=24, color='white', family="Arial, bold"),
         
         x=0.5,  
-        y=0.95,  
+        y=0.94,  
         xanchor='center',  
         yanchor='top'      
     ),

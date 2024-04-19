@@ -103,7 +103,7 @@ app.layout = dbc.Container([
 
     dcc.Tabs(id="tabs", value='tab-1', className='tab-container', children=[
         dcc.Tab(label='Latest Week Summary', value='tab-1', className='custom-tab', selected_className='custom-tab-active', children=summary_tab_layout()),
-        dcc.Tab(label='Latest Week Outbreaks Profile', value='tab-4', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_type_counts_tab_layout()),
+        dcc.Tab(label='Outbreak Disease Profiles', value='tab-4', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_type_counts_tab_layout()),
         dcc.Tab(label='Disease History', value='tab-2', className='custom-tab', selected_className='custom-tab-active', children=details_tab_layout()),
         dcc.Tab(label='Outbreak History', value='tab-3', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_history_tab_layout()),
         #dcc.Tab(label='Info', value='tab-5', className='custom-tab', selected_className='custom-tab-active',children=ai_patient_view_tab_layout()),
@@ -481,6 +481,8 @@ def update_outbreak_history_graph(selected_states, show_cumulative_toggle, selec
     Output('pathogen-chart', 'figure'),
     Output('bodily-chart', 'figure'),
     Output('transmission-chart', 'figure'),
+    Output('outbreak-table', 'children'),
+
     ],
     [
     Input('interval_dropdown_type', 'value'),
@@ -503,11 +505,10 @@ def update_type_counts(selected_interval, analysis_type, states_selected):
     num_states_with_outbreak = len(df_outbreak[df_outbreak['potential_outbreak'] == True]['state'].unique())
 
     
-    df_outbreak = is_outbreak_resolved(df_outbreak)
-
+    #df_outbreak = is_outbreak_resolved(df_outbreak)
     #df_outbreak_all = get_outbreaks_all(df_preds_all, selected_interval)
 
-    df_outbreak = df_outbreak[['item_id','date','state','label','potential_outbreak']]
+    df_outbreak = df_outbreak[['item_id','date','state','label','new_cases','potential_outbreak','pred_upper']]
     df_outbreak = add_disease_info(df_outbreak)
 
     if analysis_type == 'all':
@@ -533,7 +534,45 @@ def update_type_counts(selected_interval, analysis_type, states_selected):
         transmission_type_chart = bar_chart_counts(unique_outbreak_counts_transmission, "Transmission Type", "purple", note_text)
 
 
-    return pathogen_chart, bodily_system_chart, transmission_type_chart
+    df_out_table = df_outbreak[df_outbreak.potential_outbreak==True][['state','label','category','body_system','transmission','new_cases']]
+    #print(df_out_table.head())
+    df_out_table['body_system'] = df_out_table['body_system'].apply(lambda x: ', '.join(x))
+    df_out_table['transmission'] = df_out_table['transmission'].apply(lambda x: ', '.join(x))
+    df_out_table.columns = ['State / Territory','Disease','Pathogen', 'Affected System', 'Transmission', 'Cases']
+    df_out_table['Cases'] = df_out_table.Cases.astype(int)
+
+    table_title = "Potential Outbreaks Details"
+    table_content_outbreaks = html.Div([
+        html.H3(table_title, style={'textAlign': 'center', 'color': 'white'}),
+        dash_table.DataTable(
+                id='table',
+                columns=[{'id': c, 'name': c} for c in df_out_table.columns],
+                data=df_out_table.to_dict('records'),
+                style_table={'overflowX': 'auto', 'minWdith':'100%'},
+                # Enable sorting
+                sort_action='native',
+                # Optional features
+                filter_action='native',  # Enables filtering of data by user
+                page_action='native',    # Enables data pagination
+                page_size=15,             # Number of rows visible per page
+
+            style_header={'backgroundColor': 'rgb(50, 50, 50)', 'color': 'white', 'fontWeight': 'bold', 'border': '1px solid white',
+                          'whiteSpace': 'normal','height':'3em'},
+            style_cell={'backgroundColor': 'rgb(0, 0, 0)', 'color': 'white', 'border': '1px solid grey', 'paddingRight': '5px',
+                    'whiteSpace': 'normal',
+                    'height': 'auto'},
+            style_filter={ 'fontWeight': 'bold','fontSize':'20px'},
+            style_cell_conditional=[
+                {'if': {'column_id': 'State / Territory'}, 'width': '11.5%'},
+                {'if': {'column_id': 'Disease'}, 'width': '42.5%'},  # Wide column for variable content
+                {'if': {'column_id': 'Pathogen'}, 'width': '7%'},
+                {'if': {'column_id': 'Affected System'}, 'width': '17%'},
+                {'if': {'column_id': 'Transmission'}, 'width': '17%'},
+                {'if': {'column_id': 'Cases'}, 'width': '5%'}
+            ],)
+        ])
+
+    return pathogen_chart, bodily_system_chart, transmission_type_chart, table_content_outbreaks
 
 ################################
 @app.callback(

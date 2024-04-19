@@ -26,7 +26,7 @@ def outbreaks_type_counts_tab_layout():
 
         html.Div([
                 html.H2(
-                    "Latest Week Potential Outbreaks Profile",
+                    "Latest Week Potential Outbreak Disease Profiles",
                     style={
                         'color': 'white',
                         'textAlign': 'center',
@@ -43,7 +43,6 @@ def outbreaks_type_counts_tab_layout():
                 tooltip_text=outbreak_uncertainty_level_explanation,
                 id_dropdown="interval_dropdown_type"
             ),
-            #get_dropdown_menu(label_and_info, uncertainty_level_tooltip,'interval_dropdown_outbreak'),
 
             html.Div([  
                 dcc.Dropdown(
@@ -74,7 +73,7 @@ def outbreaks_type_counts_tab_layout():
                     #html.H2("Potential Outbreak Type Counts:",
                     #        style={'color': 'white', 'textAlign': 'center','marginBottom':'0px','paddingTop':'20px','fontSize':'2em'}),
                     html.H3("Pathogen, Affected Bodily System, and Transmission Type",
-                            style={'color': 'white', 'textAlign': 'center','marginBottom':'15px','paddingTop':'20px','fontSize':'1.75em'}),
+                            style={'color': 'white', 'textAlign': 'center','marginBottom':'15px','paddingTop':'10px','fontSize':'1.75em'}),
                     html.Div(
                         dcc.RadioItems(
                             id='analysis-toggle',
@@ -105,8 +104,9 @@ def outbreaks_type_counts_tab_layout():
                 dbc.Col(dcc.Graph(id='pathogen-chart', style={**common_div_style}), width=4),
                 dbc.Col(dcc.Graph(id='bodily-chart', style={**common_div_style}), width=4),
                 dbc.Col(dcc.Graph(id='transmission-chart', style={**common_div_style}), width=4),
-            ], align="stretch", style={'color': '#7FDBFF'})
+            ], align="stretch", style={'color': '#7FDBFF'}),
 
+            html.Div(id='outbreak-table', style={'color': 'white', 'padding': '0px','paddingBottom':'20px', 'marginTop': '0px'})
 
         ]),
     
