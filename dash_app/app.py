@@ -103,9 +103,9 @@ app.layout = dbc.Container([
 
     dcc.Tabs(id="tabs", value='tab-1', className='tab-container', children=[
         dcc.Tab(label='Latest Week Summary', value='tab-1', className='custom-tab', selected_className='custom-tab-active', children=summary_tab_layout()),
+        dcc.Tab(label='Latest Week Outbreaks Profile', value='tab-4', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_type_counts_tab_layout()),
         dcc.Tab(label='Disease History', value='tab-2', className='custom-tab', selected_className='custom-tab-active', children=details_tab_layout()),
         dcc.Tab(label='Outbreak History', value='tab-3', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_history_tab_layout()),
-        dcc.Tab(label='Outbreak Type Counts', value='tab-4', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_type_counts_tab_layout()),
         #dcc.Tab(label='Info', value='tab-5', className='custom-tab', selected_className='custom-tab-active',children=ai_patient_view_tab_layout()),
     ], style={'position': 'sticky', 'top': '0', 'zIndex': '1000'}),
         
@@ -319,7 +319,7 @@ def update_kpi(selected_interval):
         ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
         
         html.Div([
-            html.Div("Potential Outbreaks by Unique Disease:", style={'textAlign': 'right', 'width': '530px'}),
+            html.Div("Potential Outbreaks by Disease:", style={'textAlign': 'right', 'width': '530px'}),
             html.Div(f"{num_outbreaks_per_disease}", style={'textAlign': 'right', 'width': '50px'})
         ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
         
@@ -331,16 +331,17 @@ def update_kpi(selected_interval):
 
     # Right column metrics
     right_column_metrics = [
+
         html.Div([
-            html.Div("Resolved Potential Outbreaks:", style={'textAlign': 'right', 'width': '530px'}),
-            html.Div(f"{resolved_outbreaks_week_2}", style={'textAlign': 'right', 'width': '50px'})
-        ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
-        
-        html.Div([
-            html.Div("Ongoing Potential Outbreaks:", style={'textAlign': 'right', 'width': '530px'}),
+            html.Div("Ongoing Potential Outbreaks by State and Disease:", style={'textAlign': 'right', 'width': '530px'}),
             html.Div(f"{len(ongoing_outbreaks)}", style={'textAlign': 'right', 'width': '50px'})
         ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
 
+        html.Div([
+            html.Div("Ongoing Potential Outbreaks by Disease:", style={'textAlign': 'right', 'width': '530px'}),
+            html.Div(f"{len(ongoing_outbreaks['Disease'].unique())}", style={'textAlign': 'right', 'width': '50px'})
+        ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
+        
         html.Div([
             html.Div("States with Ongoing Potential Outbreaks:", style={'textAlign': 'right', 'width': '530px'}),
             html.Div(f"{len(ongoing_outbreaks['US State / Territory'].unique())}", style={'textAlign': 'right', 'width': '50px'})

@@ -50,8 +50,8 @@ def summary_tab_layout():
                     ], align="stretch", style={'color': 'white', 'backgroundColor': 'black'})
                 ], style={
                     'color': 'white',
-                    'fontSize': '26px',
-                    'maxWidth': '1400px',
+                    'fontSize': '22px',
+                    #'maxWidth': '1400px',
                     'margin': '0 auto',
                     'display': 'flex',
                     'flexDirection': 'column',

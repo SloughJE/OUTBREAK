@@ -32,9 +32,9 @@ def plot_outbreak(df_historical_filtered, df_latest_filtered, df_preds_filtered,
         
         
         #fig.add_trace(go.Scatter(x=[pred_date], y=[pred_mean], mode='markers', name='Model Mean', marker=dict(color='#FF6347', size=12)))
-        fig.add_trace(go.Scatter(x=[pred_date], y=[pred_median], mode='markers', name='Model Median', marker=dict(color='#a50a0a', size=8)))
-        fig.add_trace(go.Scatter(x=[pred_date], y=[pred_median], mode='lines', name='Model Certainty Interval', 
-            error_y=dict(type='data', symmetric=False, array=[pred_upper - pred_median], arrayminus=[pred_median - pred_lower]), marker=dict(color='#a50a0a', size=12)))
+        fig.add_trace(go.Scatter(x=[pred_date], y=[pred_median], mode='markers', name='Model Median', marker=dict(color='rgb(222, 45, 38)', size=13)))
+        fig.add_trace(go.Scatter(x=[pred_date], y=[pred_median], mode='lines', name='Model Certainty Interval', line=dict(width=3),
+            error_y=dict(type='data', thickness=3, symmetric=False, array=[pred_upper - pred_median], arrayminus=[pred_median - pred_lower]), marker=dict(color='rgb(222, 45, 38)', size=13)))
 
     # Handle potential outbreak
     if pred_upper is not None and not df_latest_filtered.empty and df_latest_filtered['new_cases'].iloc[0] > pred_upper:

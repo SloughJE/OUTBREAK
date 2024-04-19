@@ -52,26 +52,33 @@ def details_tab_layout():
                 dcc.Dropdown(
                     id='state_dropdown',
                     placeholder='Select a State',  
-                    style={'fontSize': '18px', 'textAlign': 'left', 'fontWeight': 'bold'},
+                    style={'fontSize': '18px', 'textAlign': 'left', 'fontWeight': 'bold', 'width':'100%'},
                     className='detail-dropdown', 
                 ),
                 dcc.Dropdown(
                     id='label_dropdown',
                     placeholder='Select a Disease',  
-                    style={'fontSize': '18px', 'textAlign': 'left', 'fontWeight': 'bold'},
+                    style={'fontSize': '18px', 'textAlign': 'left', 'fontWeight': 'bold', 'width':'100%'},
                     className='detail-dropdown',  
                 ), 
                 ], style={
-                 'alignItems': 'center', 'justifyContent': 'center', 'padding': '5px',
-                    'border': '1px solid #ccc', 'borderRadius': '15px','margin': '20px','marginBottom':'10px',
+                    'width': '80%',
+                    #'display': 'flex',  
+                    'justifyContent': 'center',  # Centers the dropdown horizontally
+                    'alignItems': 'center',  # Align items vertically, not needed here but useful for other layouts
+                    'padding': '5px',
+                    'border': '1px solid #ccc',
+                    'borderRadius': '15px',
+                    'margin': '20px auto',  # Auto margin for horizontal centering, and 20px vertical margin
                     'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
-                }),
+                }
+                ),
             dcc.Graph(id='outbreak_graph',style={**common_div_style}),
             
 
         ]),
         html.Div(id='disease_info_display',
                      style={**common_div_style,'padding': '20px'}),
-    ])
+    ],fluid=True)
 
     return layout

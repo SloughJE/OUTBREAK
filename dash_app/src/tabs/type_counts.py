@@ -13,7 +13,7 @@ available_states = ['ALABAMA', 'ALASKA', 'AMERICAN SAMOA', 'ARIZONA', 'ARKANSAS'
 
 common_div_style = {
     'backgroundColor': 'black', 
-    'padding': '10px', 
+    'padding': '0px', 
     'borderRadius': '5px',
     'marginBottom': '20px'  
 }
@@ -26,7 +26,7 @@ def outbreaks_type_counts_tab_layout():
 
         html.Div([
                 html.H2(
-                    "Potential Outbreaks Type Counts",
+                    "Latest Week Potential Outbreaks Profile",
                     style={
                         'color': 'white',
                         'textAlign': 'center',
@@ -49,35 +49,25 @@ def outbreaks_type_counts_tab_layout():
                 dcc.Dropdown(
                     id='state_dropdown_outbreak_type_counts',
                     placeholder='Select State or States', 
-                    style={'fontSize': '18px', 'textAlign': 'left', 'fontWeight': 'bold'},
+                    style={'fontSize': '18px', 'textAlign': 'left', 'fontWeight': 'bold', 'width':'100%'},
                     multi=True, 
                     options=[{'label': state, 'value': state} for state in available_states],
                     className='detail-dropdown',  
                 ),
-            #    dcc.Dropdown(
-            #        id='label_dropdown',
-            #        placeholder='Select Disease',  # Set the placeholder text
-            #        style={'fontSize': '18px', 'textAlign': 'left', 'fontWeight': 'bold'},
-            #        className='detail-dropdown',  # Use this class for further CSS customizations
-            #    ), 
+
                 ], style={
-                 'alignItems': 'center', 'justifyContent': 'center', 'padding': '5px',
-                    'border': '1px solid #ccc', 'borderRadius': '15px','margin': '20px','marginBottom':'10px',
-                    'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'}
+                    'width': '60%',
+                    'display': 'flex',  
+                    'justifyContent': 'center',  # Centers the dropdown horizontally
+                    'alignItems': 'center',  # Align items vertically, not needed here but useful for other layouts
+                    'padding': '5px',
+                    'border': '1px solid #ccc',
+                    'borderRadius': '15px',
+                    'margin': '20px auto',  # Auto margin for horizontal centering, and 20px vertical margin
+                    'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
+                }
             ),
-            #dcc.Checklist(
-            #    id='show_cumulative_toggle',
-            #    options=[
-            #        {'label': ' Cumulative Counts', 'value': 'cumulative'},
-            #    ],
-            #    value=[],
-            #    labelStyle={'display': 'block', 'color': 'white', 'fontSize': 20},  
-            #    style={'textAlign': 'center', 'marginBottom': '20px'}
-            #),
 
-
-            #dcc.Graph(id='outbreak_history_potential_resolved',style={**common_div_style}),
-            #dcc.Graph(id='outbreak_history_ongoing',style={**common_div_style}),
             dbc.Row(
                 [
                 dbc.Col(html.Div([
@@ -120,6 +110,6 @@ def outbreaks_type_counts_tab_layout():
 
         ]),
     
-    ])
+    ],fluid=True)
 
     return layout
