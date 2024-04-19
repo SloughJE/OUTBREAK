@@ -49,7 +49,7 @@ def outbreaks_history_tab_layout():
                 dcc.Dropdown(
                     id='state_dropdown_outbreak_history',
                     placeholder='Select State or States', 
-                    style={'fontSize': '18px', 'textAlign': 'left', 'fontWeight': 'bold'},
+                    style={'fontSize': '18px', 'textAlign': 'left', 'fontWeight': 'bold','width':'100%'},
                     multi=True, 
                     options=[{'label': state, 'value': state} for state in available_states],
                     className='detail-dropdown',  
@@ -61,9 +61,16 @@ def outbreaks_history_tab_layout():
             #        className='detail-dropdown',  # Use this class for further CSS customizations
             #    ), 
                 ], style={
-                 'alignItems': 'center', 'justifyContent': 'center', 'padding': '5px',
-                    'border': '1px solid #ccc', 'borderRadius': '15px','margin': '20px','marginBottom':'10px',
-                    'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'}
+                    'width': '60%',
+                    'display': 'flex',  
+                    'justifyContent': 'center',  # Centers the dropdown horizontally
+                    'alignItems': 'center',  # Align items vertically, not needed here but useful for other layouts
+                    'padding': '5px',
+                    'border': '1px solid #ccc',
+                    'borderRadius': '15px',
+                    'margin': '20px auto',  # Auto margin for horizontal centering, and 20px vertical margin
+                    'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
+                }
             ),
             dcc.Checklist(
                 id='show_cumulative_toggle',
@@ -83,6 +90,6 @@ def outbreaks_history_tab_layout():
 
         ]),
     
-    ])
+    ],fluid=True)
 
     return layout
