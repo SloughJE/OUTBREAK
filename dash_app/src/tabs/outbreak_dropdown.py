@@ -33,7 +33,7 @@ def get_tooltip_with_icon(id_suffix, tooltip_text):
     - A tuple containing the info icon and the tooltip components.
     """
     info_icon_id = f"outbreak-uncertainty-tooltip-target-{id_suffix}"
-    info_icon = html.I(className="bi bi-info-circle", id=info_icon_id, 
+    info_icon = html.I(className="bi bi-info-circle icon-size", id=info_icon_id, 
                        style={'cursor': 'pointer', 'fontSize': '22px', 'marginLeft': '10px', 'textAlign': 'left',})
     
     tooltip = dbc.Tooltip(tooltip_text, target=info_icon_id, placement="right", className="custom-tooltip",
@@ -58,7 +58,7 @@ def get_dropdown_menu(id_suffix, label_text, tooltip_text, id_dropdown):
     """
     info_icon, tooltip = get_tooltip_with_icon(id_suffix, tooltip_text)
     
-    label_and_info = html.H2([info_icon, f" {label_text}:"], style={
+    label_and_info = html.H2([info_icon, f" {label_text}:"], className='dropdown-label-text', style={
         'color': 'white', 'textAlign': 'center', 'fontSize': '22px', 'marginRight': '0px', 'marginBottom': '3px',
     })
     
