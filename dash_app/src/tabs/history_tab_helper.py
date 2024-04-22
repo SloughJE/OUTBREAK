@@ -57,6 +57,10 @@ def plot_outbreak(df_historical_filtered, df_latest_filtered, df_preds_filtered,
                                  line=dict(color='red'), visible='legendonly'))
 
     # Update layout
-    fig.update_layout(title=f"{selected_state}: {selected_label}", xaxis_title="", yaxis_title="Cases")
+    fig.update_layout(title=f"{selected_state}: {selected_label}", 
+                title_font=dict(size=22, color='white', family="Arial, sans-serif"),  
+                xaxis_title="", yaxis_title="Cases",
+                paper_bgcolor='black',
+                plot_bgcolor='black')
 
     return fig

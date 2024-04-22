@@ -13,8 +13,8 @@ available_states = ['ALABAMA', 'ALASKA', 'AMERICAN SAMOA', 'ARIZONA', 'ARKANSAS'
 
 common_div_style = {
     'backgroundColor': 'black', 
-    'padding': '0px', 
-    'borderRadius': '5px',
+    'padding': '10px', 
+    'borderRadius': '10px',
     'marginBottom': '20px'  
 }
 
@@ -26,11 +26,11 @@ def outbreaks_type_counts_tab_layout():
 
         html.Div([
                 html.H2(
-                    "Latest Week Potential Outbreak Disease Profiles",
+                    "Latest Week Potential Outbreaks Profiles",
                     style={
                         'color': 'white',
                         'textAlign': 'center',
-                        'font-size': '3vw',
+                        'font-size': '44px',
                         'marginTop': '40px',
                     }
                 )
@@ -57,12 +57,12 @@ def outbreaks_type_counts_tab_layout():
                 ], style={
                     'width': '60%',
                     'display': 'flex',  
-                    'justifyContent': 'center',  # Centers the dropdown horizontally
-                    'alignItems': 'center',  # Align items vertically, not needed here but useful for other layouts
+                    'justifyContent': 'center',  
+                    'alignItems': 'center', 
                     'padding': '5px',
                     'border': '1px solid #ccc',
                     'borderRadius': '15px',
-                    'margin': '20px auto',  # Auto margin for horizontal centering, and 20px vertical margin
+                    'margin': '20px auto',  
                     'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
                 }
             ),
@@ -73,7 +73,7 @@ def outbreaks_type_counts_tab_layout():
                     #html.H2("Potential Outbreak Type Counts:",
                     #        style={'color': 'white', 'textAlign': 'center','marginBottom':'0px','paddingTop':'20px','fontSize':'2em'}),
                     html.H3("Pathogen, Affected Bodily System, and Transmission Type",
-                            style={'color': 'white', 'textAlign': 'center','marginBottom':'15px','paddingTop':'10px','fontSize':'1.75em'}),
+                            style={'color': 'white', 'textAlign': 'center','marginBottom':'15px','paddingTop':'10px','fontSize':'26px'}),
                     html.Div(
                         dcc.RadioItems(
                             id='analysis-toggle',
@@ -81,18 +81,18 @@ def outbreaks_type_counts_tab_layout():
                                 {'label': ' Count per State and Disease', 'value': 'all'},
                                 {'label': ' Count per Unique Disease Only', 'value': 'unique'}
                             ],
-                            value='all',  # Default value
-                            labelStyle={'display': 'block'},  # Arrange radio items vertically
-                            style={'fontSize': '20px', 'marginBottom': '0px', 'marginTop': '0px', 'textAlign': 'left', 'color': 'white'}
+                            value='all', 
+                            labelStyle={'display': 'block'},  
+                            style={'fontSize': '22px', 'marginBottom': '0px', 'marginTop': '0px', 'textAlign': 'left', 'color': 'white'}
                         ), style={
                                 'width': 'fit-content',
                                 'margin': 'auto',
                                 'backgroundColor': 'black',
-                                'paddingTop': '5px',  # Adjust the top padding
-                                'paddingBottom': '5px',  # Adjust the bottom padding
-                                'paddingRight': '10px',  # Keep the right padding as it was
-                                'paddingLeft': '10px',  # Keep the left padding as it was
-                                'borderRadius': '15px'
+                                'paddingTop': '5px',  
+                                'paddingBottom': '5px',  
+                                'paddingRight': '10px',  
+                                'paddingLeft': '10px',  
+                                'borderRadius': '10px'
                             }),
 
                     ]), width=12)
@@ -101,9 +101,9 @@ def outbreaks_type_counts_tab_layout():
                 style={'marginBottom': '10px'}
                 ),
             dbc.Row([
-                dbc.Col(dcc.Graph(id='pathogen-chart', style={**common_div_style}), width=4),
-                dbc.Col(dcc.Graph(id='bodily-chart', style={**common_div_style}), width=4),
-                dbc.Col(dcc.Graph(id='transmission-chart', style={**common_div_style}), width=4),
+                dbc.Col(dcc.Graph(id='pathogen-chart', style={**common_div_style}), xs=12, lg=4),
+                dbc.Col(dcc.Graph(id='bodily-chart', style={**common_div_style}), xs=12, lg=4),
+                dbc.Col(dcc.Graph(id='transmission-chart', style={**common_div_style}), xs=12, lg=4),
             ], align="stretch", style={'color': '#7FDBFF'}),
 
             html.Div(id='outbreak-table', style={'color': 'white', 'padding': '0px','paddingBottom':'20px', 'marginTop': '0px'})

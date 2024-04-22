@@ -76,51 +76,57 @@ def update_data(n):
 
 #######################################################
 
-app.layout = dbc.Container([
+app.layout = html.Div([ 
+
 
     dcc.Store(id='shared-dropdown-value'),
 
-    html.Div(children=[
-        html.H1("OUTBREAK!", style={
-        'color': 'black',  
-        'fontSize': '6vw',
-        'textAlign': 'center',
-        'marginTop': '20px',
-        'textShadow': '''
-            0 0 5px #B22222, 
+    html.Div([
+        html.Div(children=[
+            html.H1("OUTBREAK!", style={
+            'color': 'black',  
+            'fontSize': '70px',
+            'textAlign': 'center',
+            'marginTop': '20px',
+            'textShadow': '''
+             0 0 5px #B22222, 
             0 0 10px #B22222, 
             0 0 15px #B22222, 
             0 0 20px #B22222, 
             0 0 25px #B22222, 
             0 0 30px #B22222''',  
-        'fontWeight': 'bold',
-        'backgroundColor': '#300',  
-        'display': 'inline-block',  
-        'padding': '10px',  
-        'borderRadius': '50px' 
-            }),
-        ], style={'textAlign': 'center', 'width': '100%', 'marginTop': '0px','backgroundColor':'black'}),
+            'fontWeight': 'bold',
+            'backgroundColor': 'black',  
+            'display': 'inline-block',  
+            'padding': '10px',  
+            'borderRadius': '50px' 
+                }),
+            ], style={'textAlign': 'center', 'width': '100%', 'marginTop': '0px','backgroundColor':'black'}),
 
-    dcc.Tabs(id="tabs", value='tab-1', className='tab-container', children=[
-        dcc.Tab(label='Latest Week Summary', value='tab-1', className='custom-tab', selected_className='custom-tab-active', children=summary_tab_layout()),
-        dcc.Tab(label='Outbreak Disease Profiles', value='tab-4', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_type_counts_tab_layout()),
-        dcc.Tab(label='Disease History', value='tab-2', className='custom-tab', selected_className='custom-tab-active', children=details_tab_layout()),
-        dcc.Tab(label='Outbreak History', value='tab-3', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_history_tab_layout()),
-        #dcc.Tab(label='Info', value='tab-5', className='custom-tab', selected_className='custom-tab-active',children=ai_patient_view_tab_layout()),
-    ], style={'position': 'sticky', 'top': '0', 'zIndex': '1000'}),
-        
+        dcc.Tabs(id="tabs", value='tab-1', className='tab-container', children=[
+            dcc.Tab(label='Latest Week Summary', value='tab-1', className='custom-tab', selected_className='custom-tab-active', children=summary_tab_layout()),
+            dcc.Tab(label='Outbreaks Profiles', value='tab-4', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_type_counts_tab_layout()),
+            dcc.Tab(label='Disease History', value='tab-2', className='custom-tab', selected_className='custom-tab-active', children=details_tab_layout()),
+            dcc.Tab(label='Outbreaks History', value='tab-3', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_history_tab_layout()),
+            #dcc.Tab(label='Info', value='tab-5', className='custom-tab', selected_className='custom-tab-active',children=ai_patient_view_tab_layout()),
+        ], style={'position': 'sticky', 'top': '0', 'zIndex': '1000','width': '100%', 'display': 'block'}),
+    ], className='full-width'),
     
-    html.Div(id='tabs-content'),
+    dbc.Container([
+        html.Div(id='tabs-content'),
 
-    html.Div(id='hidden-div', style={'display': 'none'}),
-    dcc.Interval(
-        id='interval-component',
-        interval=12*3600*1000,  # every 12 hours
-        n_intervals=0
-    )
-    
-    ], fluid=True)
+        html.Div(id='hidden-div', style={'display': 'none'}),
+        dcc.Interval(
+            id='interval-component',
+            interval=12*3600*1000,  # every 12 hours
+            n_intervals=0
+        )
+        ], fluid=True)
+    ], style={'width': '100%'})
 
+##############################
+##### CALLBACKS###############
+##############################
 @app.callback(
     Output('state_dropdown', 'options'),
     [Input('show_outbreaks_toggle', 'value'),
@@ -195,7 +201,7 @@ def update_kpi(selected_interval):
     map_content, df_territories = create_us_map(df_outbreak)
 
     table_content = html.Div([
-            html.H3("US Territories Potential Outbreaks", style={'textAlign': 'center', 'color': 'white'}),
+            html.H3("US Territories Potential Outbreaks", style={'textAlign': 'center', 'color': 'white','fontSize':'22px'}),
             dash_table.DataTable(
                 columns=[{"name": i, "id": i} for i in df_territories.columns],
                 data=df_territories.to_dict('records'),
@@ -273,7 +279,7 @@ def update_kpi(selected_interval):
         table_title = "Ongoing Outbreak Cases"
         
     table_content_ongoing_outbreaks = html.Div([
-        html.H3(table_title, style={'textAlign': 'center', 'color': 'white'}),
+        html.H3(table_title, style={'textAlign': 'center', 'color': 'white','fontSize':'22px'}),
         dash_table.DataTable(
             columns=[{"name": i, "id": i} for i in ongoing_outbreaks.columns],
             data=ongoing_outbreaks.to_dict('records'),
@@ -308,44 +314,44 @@ def update_kpi(selected_interval):
     ], style={'marginBottom': '20px'})
     
     kpi_content = [
-        html.H2(f"Latest Week: {current_week}"),
-        html.H3(f"Outbreak Model Certainty Level: {selected_interval:.1f}%"),
+        html.H2(f"Latest Week: {current_week}",style={'fontSize':'26px'}),
+        #html.H3(f"Outbreak Model Certainty Level: {selected_interval:.1f}%",style={'fontSize':'22px'}),
     ]
     # Left column metrics
     left_column_metrics = [
         html.Div([
-            html.Div("Potential Outbreaks by State and Disease:", style={'textAlign': 'right', 'width': '530px'}),
-            html.Div(f"{num_outbreaks_per_state_and_disease}", style={'textAlign': 'right', 'width': '50px'})
-        ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
+            html.Div("Potential Outbreaks by State and Disease:", className='metric-label'),
+            html.Div(f"{num_outbreaks_per_state_and_disease}", className='metric-value')
+        ],className='metric-row'),
         
         html.Div([
-            html.Div("Potential Outbreaks by Disease:", style={'textAlign': 'right', 'width': '530px'}),
-            html.Div(f"{num_outbreaks_per_disease}", style={'textAlign': 'right', 'width': '50px'})
-        ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
+            html.Div("Potential Outbreaks by Disease:", className='metric-label'),
+            html.Div(f"{num_outbreaks_per_disease}", className='metric-value')
+        ],className='metric-row'),
         
         html.Div([
-            html.Div("States with Potential Outbreaks:", style={'textAlign': 'right', 'width': '530px'}),
-            html.Div(f"{num_states_with_outbreak}", style={'textAlign': 'right', 'width': '50px'})
-        ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
+            html.Div("States with Potential Outbreaks:", className='metric-label'),
+            html.Div(f"{num_states_with_outbreak}", className='metric-value')
+        ],className='metric-row'),
     ]
 
     # Right column metrics
     right_column_metrics = [
 
         html.Div([
-            html.Div("Ongoing Potential Outbreaks by State and Disease:", style={'textAlign': 'right', 'width': '530px'}),
-            html.Div(f"{len(ongoing_outbreaks)}", style={'textAlign': 'right', 'width': '50px'})
-        ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
+            html.Div("Ongoing Potential Outbreaks by State and Disease:", className='metric-label'),
+            html.Div(f"{len(ongoing_outbreaks)}", className='metric-value')
+        ],className='metric-row'),
 
         html.Div([
-            html.Div("Ongoing Potential Outbreaks by Disease:", style={'textAlign': 'right', 'width': '530px'}),
-            html.Div(f"{len(ongoing_outbreaks['Disease'].unique())}", style={'textAlign': 'right', 'width': '50px'})
-        ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
+            html.Div("Ongoing Potential Outbreaks by Disease:", className='metric-label'),
+            html.Div(f"{len(ongoing_outbreaks['Disease'].unique())}", className='metric-value')
+        ],className='metric-row'),
         
         html.Div([
-            html.Div("States with Ongoing Potential Outbreaks:", style={'textAlign': 'right', 'width': '530px'}),
-            html.Div(f"{len(ongoing_outbreaks['US State / Territory'].unique())}", style={'textAlign': 'right', 'width': '50px'})
-        ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
+            html.Div("States with Ongoing Potential Outbreaks:", className='metric-label'),
+            html.Div(f"{len(ongoing_outbreaks['US State / Territory'].unique())}", className='metric-value')
+        ],className='metric-row'),
     ]
 
     # df_outbreak = df_outbreak[['item_id','date','state','label','potential_outbreak']]
@@ -417,12 +423,12 @@ def update_graph(selected_state, label_dropdown, selected_interval):
             transmission_type_content = html.H4(f"Transmission Type: {', '.join(details.get('transmission', ['N/A']))}", style={'color': '#7FDBFF'})
 
         disease_html =  [
-            html.H2("Disease Information"),
+            html.H2("Disease Information",style={'fontSize':'26px'}),
             html.H4(label_dropdown,style={'color': '#7FDBFF'}),
-            html.H4(f"Group: {details.get('group', 'Unknown Group')}",style={'color': '#7FDBFF'}),  
-            html.H4(f"Pathogen: {details.get('category', 'N/A')}",style={'color': '#7FDBFF'}),
-            html.H4(f"Affected Bodily System: {', '.join(details.get('body_system', ['N/A']))}",style={'color': '#7FDBFF'}),
-            html.Div(transmission_type_content, style={'display': 'flex', 'align-items': 'center'})
+            html.H4(f"Group: {details.get('group', 'Unknown Group')}",style={'color': '#7FDBFF','fontSize':'22px'}),  
+            html.H4(f"Pathogen: {details.get('category', 'N/A')}",style={'color': '#7FDBFF','fontSize':'22px'}),
+            html.H4(f"Affected Bodily System: {', '.join(details.get('body_system', ['N/A']))}",style={'color': '#7FDBFF','fontSize':'22px'}),
+            html.Div(transmission_type_content, style={'display': 'flex', 'align-items': 'center','fontSize':'22px'})
 
         ]
     else:
@@ -543,7 +549,7 @@ def update_type_counts(selected_interval, analysis_type, states_selected):
 
     table_title = "Potential Outbreaks Details"
     table_content_outbreaks = html.Div([
-        html.H3(table_title, style={'textAlign': 'center', 'color': 'white'}),
+        html.H3(table_title, style={'textAlign': 'center', 'color': 'white','fontSize':'26px'}),
         dash_table.DataTable(
                 id='table',
                 columns=[{'id': c, 'name': c} for c in df_out_table.columns],

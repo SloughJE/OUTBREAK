@@ -7,7 +7,7 @@ from src.tabs.outbreak_dropdown import get_dropdown_menu, outbreak_uncertainty_l
 common_div_style = {
     'backgroundColor': 'black', 
     'padding': '10px', 
-    'borderRadius': '5px',
+    'borderRadius': '10px',
     'marginBottom': '20px'  
 }
 
@@ -27,7 +27,7 @@ def summary_tab_layout():
                     style={
                         'color': 'white',
                         'textAlign': 'center',
-                        'fontSize': '3vw',
+                        'fontSize': '44px',
                         'marginTop': '40px',
                     }
                 )
@@ -41,25 +41,29 @@ def summary_tab_layout():
             ),
             #get_dropdown_menu(label_and_info, uncertainty_level_tooltip,'interval_dropdown'),
             html.Div([
-                html.Div(id='outbreak_kpi', style={**common_div_style, 'width': '700px','color': 'white', 'textAlign': 'center'}),
+                html.Div(id='outbreak_kpi', style={'justifyContent': 'center','display': 'flex', 'flexDirection': 'column', 
+                                                   'alignItems': 'center', 'paddingTop': '19px','paddingBottom': '15px','paddingLeft': '40px','paddingRight': '40px',
+                                                   'borderRadius': '10px', 'color': 'white', 'backgroundColor': 'black'}),
 
                 html.Div([
                     dbc.Row([
-                        dbc.Col(html.Div(id='left_column_metrics', style=common_div_style), width=6),
-                        dbc.Col(html.Div(id='right_column_metrics', style=common_div_style), width=6)
-                    ], align="stretch", style={'color': 'white', 'backgroundColor': 'black'})
+                        dbc.Col(html.Div(id='left_column_metrics', className='responsive-text', style={**common_div_style}), 
+                                xs=12,  
+                                lg=6),  
+                        dbc.Col(html.Div(id='right_column_metrics', className='responsive-text', style={**common_div_style}),
+                                xs=12,  
+                                lg=6), 
+                    ], align="stretch", style={'color': 'white', 'backgroundColor': 'black','borderRadius': '10px'})
                 ], style={
                     'color': 'white',
-                    'fontSize': '22px',
-                    #'maxWidth': '1400px',
-                    'margin': '0 auto',
+                    'margin': '20px auto 0',
                     'display': 'flex',
                     'flexDirection': 'column',
-                    'alignItems': 'center'
+                    'alignItems': 'center', 'padding': '0 10px','borderRadius': '10px',
                 }),
 
             ], 
-            style={ 'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center', 'justifyContent': 'center','paddingBottom':'20px'}
+            style={ 'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center', 'justifyContent': 'center','paddingBottom':'20px','borderRadius': '10px'}
             ),
 
             html.Div([
@@ -69,7 +73,7 @@ def summary_tab_layout():
                             dcc.Graph(id='us-map', style={**common_div_style, 'width': '100%', 'display': 'block', 'marginBottom': '0px', 'margin-left': 'auto', 'margin-right': 'auto'}),
                             html.Div(id='territories-table', style={'color': 'white', 'padding': '0px', 'marginTop': '0px'})
                         ], style={**common_div_style}),  
-                        width=6
+                        xs=12, lg=6
                     ),
 
                     dbc.Col(
@@ -77,12 +81,12 @@ def summary_tab_layout():
                             dcc.Graph(id='sankey-chart', style={**common_div_style, 'width': '100%', 'display': 'block', 'marginBottom': '0px', 'margin-left': 'auto', 'margin-right': 'auto'}),
                             html.Div(id='ongoing-outbreaks-table', style={'color': 'white', 'padding': '0px', 'marginTop': '0px'})                             
                         ], style={**common_div_style}),  
-                        width=6
+                        xs=12, lg=6
                     )
-                ], align="stretch", style={'color': '#7FDBFF'}),
-            ], style={'backgroundColor': 'black'}),
+                ], align="stretch", style={'color': '#7FDBFF','borderRadius': '10px'}),
+            ], style={'backgroundColor': 'black','borderRadius': '10px'}),
 
-         ], style={'color': '#7FDBFF', 'paddingBottom': '20px'})
+         ], style={'color': '#7FDBFF', 'paddingBottom': '20px','borderRadius': '10px'})
 
     ], fluid=True)
 

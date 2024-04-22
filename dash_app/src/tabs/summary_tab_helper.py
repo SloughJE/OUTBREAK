@@ -171,7 +171,7 @@ def create_us_map(df_outbreak):
         #width=600, 
         #height=400,
         margin=dict(l=0, r=0, b=10,t=20),
-        title_font=dict(size=24, color='white', family="Arial, sans-serif"),  
+        title_font=dict(size=22, color='white', family="Arial, sans-serif"),  
     )
 
 
@@ -267,7 +267,7 @@ def create_sankey_chart(df_outbreak):
     fig.update_layout(
      title=dict(
         text=f"Ongoing Potential Outbreaks<br>previous week to current week",
-        font=dict(size=24, color='white', family="Arial, bold"),
+        font=dict(size=22, color='white', family="Arial, bold"),
         
         x=0.5,  
         y=0.94,  

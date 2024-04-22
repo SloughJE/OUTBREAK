@@ -14,7 +14,7 @@ available_states = ['ALABAMA', 'ALASKA', 'AMERICAN SAMOA', 'ARIZONA', 'ARKANSAS'
 common_div_style = {
     'backgroundColor': 'black', 
     'padding': '10px', 
-    'borderRadius': '5px',
+    'borderRadius': '10px',
     'marginBottom': '20px'  
 }
 
@@ -30,7 +30,7 @@ def outbreaks_history_tab_layout():
                     style={
                         'color': 'white',
                         'textAlign': 'center',
-                        'font-size': '3vw',
+                        'font-size': '44px',
                         'marginTop': '40px',
                     }
                 )
@@ -78,13 +78,13 @@ def outbreaks_history_tab_layout():
                     {'label': ' Cumulative Counts', 'value': 'cumulative'},
                 ],
                 value=[],
-                labelStyle={'display': 'block', 'color': 'white', 'fontSize': 20},  
+                labelStyle={'display': 'block', 'color': 'white', 'fontSize': 22},  
                 style={'textAlign': 'center', 'marginBottom': '20px'}
             ),
 
 
-            dcc.Graph(id='outbreak_history_potential_resolved',style={**common_div_style}),
-            dcc.Graph(id='outbreak_history_ongoing',style={**common_div_style}),
+            dcc.Graph(id='outbreak_history_potential_resolved',style={**common_div_style,'padding': '20px'},responsive=True),
+            dcc.Graph(id='outbreak_history_ongoing',style={**common_div_style,'padding': '20px'},responsive=True),
     
 
 
