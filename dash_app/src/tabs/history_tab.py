@@ -24,7 +24,7 @@ def details_tab_layout():
                     style={
                         'color': 'white',
                         'textAlign': 'center',
-                        'fontSize': '44px',
+                        'fontSize': 'clamp(30px, 8vw, 44px)',
                         'marginTop': '40px',
                     }
                 )

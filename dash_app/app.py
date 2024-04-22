@@ -85,7 +85,7 @@ app.layout = html.Div([
         html.Div(children=[
             html.H1("OUTBREAK!", style={
             'color': 'black',  
-            'fontSize': '70px',
+            'fontSize': 'clamp(56px, 8vw, 100px)',
             'textAlign': 'center',
             'marginTop': '20px',
             'textShadow': '''

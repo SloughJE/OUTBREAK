@@ -30,7 +30,7 @@ def outbreaks_type_counts_tab_layout():
                     style={
                         'color': 'white',
                         'textAlign': 'center',
-                        'font-size': '44px',
+                        'fontSize': 'clamp(30px, 8vw, 44px)',
                         'marginTop': '40px',
                     }
                 )
