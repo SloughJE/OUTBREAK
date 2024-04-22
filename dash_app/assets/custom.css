@@ -350,15 +350,9 @@ body {
     transform: translateY(-1px);
 }
 
-/* CSS for small devices */
-@media (max-width: 576px) {
-  .responsive-text, .responsive-text div {
-      font-size: 16px;
-  }
-}
 
 /* CSS for medium to large devices, if needed */
-@media (min-width: 577px) {
+@media (min-width: 1200px) {
   .responsive-text {
       font-size: 22px; /* Larger font size on larger screens */
   }
@@ -377,12 +371,14 @@ body {
 }
 
 /* Responsive adjustments for smaller screens */
-@media (max-width: 991px) {
+@media (max-width: 1200px) {
   .metric-row {
       text-align: left; /* Align text to the left on smaller screens */
-      grid-template-columns: 350px 25px; /* maintains your original fixed-width layout */
+      grid-template-columns: 340px 20px; /* maintains your original fixed-width layout */
     }
-
+    .responsive-text, .responsive-text div {
+      font-size: 16px;
+  }
   .metric-label, .metric-value {
       text-align: left; /* Align text to the left for both label and value */
       width: auto; /* Allows elements to fit the content or container appropriately */

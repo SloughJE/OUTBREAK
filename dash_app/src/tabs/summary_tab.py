@@ -59,7 +59,7 @@ def summary_tab_layout():
                     'margin': '20px auto 0',
                     'display': 'flex',
                     'flexDirection': 'column',
-                    'alignItems': 'center'
+                    'alignItems': 'center', 'padding': '0 10px'
                 }),
 
             ], 
