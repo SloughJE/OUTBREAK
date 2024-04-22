@@ -32,6 +32,7 @@ date_filter_preds = [('date', '>=', pd.to_datetime('2024-01-01'))]
 def load_data():
     df_historical = pd.read_parquet("data/df_historical.parquet", columns=cols_wanted, filters=date_filter_hist)
     df_preds_all =  pd.read_parquet("data/df_predictions.parquet", filters=date_filter_preds)
+
     return df_historical, df_preds_all
 
 df_historical, df_preds_all = load_data()
@@ -297,14 +298,18 @@ def update_kpi(selected_interval):
                 ],
             style_cell_conditional=[
                     {
-                        'if': {'column_id': 'Latest Week'}, 
-                        'paddingRight': '5px'  
-                    }
+                    'if': {'column_id': 'Latest Week'}, 
+                        'paddingRight': '5px'},  
+                    {'if': {'column_id': 'US State / Territory'}, 'width': '22.5%'},
+                    {'if': {'column_id': 'Disease'}, 'width': '52.5%'},  # Wide column for variable content
+                    {'if': {'column_id': 'Previous Week'}, 'width': '12.5%'},
+                    {'if': {'column_id': 'Latest Week'}, 'width': '12.5%'},
+                    
                 ],
             style_table={
-                'maxHeight': '215px',  
+                'maxHeight': '230px',  
                 'overflowY': 'auto',  
-                'width': '90%',  
+                'width': '100%',  
                 'margin': '0 auto',  
                 'padding': '0px',
                 'marginTop': '0px',

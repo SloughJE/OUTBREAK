@@ -84,7 +84,7 @@ def summary_tab_layout():
                         xs=12, lg=6
                     )
                 ], align="stretch", style={'color': '#7FDBFF','borderRadius': '10px'}),
-            ], style={'backgroundColor': 'black','borderRadius': '10px', 'padding':'10px'}),
+            ], style={'backgroundColor': 'black','borderRadius': '10px'}),
 
          ], style={'color': '#7FDBFF', 'paddingBottom': '20px','borderRadius': '10px'})
 
