@@ -309,7 +309,7 @@ def update_kpi(selected_interval):
             style_table={
                 'maxHeight': '230px',  
                 'overflowY': 'auto',  
-                'width': '100%',  
+                'width': '90%',  
                 'margin': '0 auto',  
                 'padding': '0px',
                 'marginTop': '0px',
