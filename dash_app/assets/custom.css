@@ -349,3 +349,51 @@ body {
 .custom-button-ai:hover {
     transform: translateY(-1px);
 }
+
+/* CSS for small devices */
+@media (max-width: 576px) {
+  .responsive-text, .responsive-text div {
+      font-size: 16px;
+  }
+}
+
+/* CSS for medium to large devices, if needed */
+@media (min-width: 577px) {
+  .responsive-text {
+      font-size: 22px; /* Larger font size on larger screens */
+  }
+}
+
+/* Style for larger screens */
+.metric-row {
+  display: grid;
+  grid-template-columns: 530px 100px; /* maintains your original fixed-width layout */
+  align-items: center;
+  text-align: right; /* Right align text by default */
+}
+
+.metric-label, .metric-value {
+  text-align: right; /* Ensure right alignment specifically if needed */
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 991px) {
+  .metric-row {
+      text-align: left; /* Align text to the left on smaller screens */
+      grid-template-columns: 350px 25px; /* maintains your original fixed-width layout */
+    }
+
+  .metric-label, .metric-value {
+      text-align: left; /* Align text to the left for both label and value */
+      width: auto; /* Allows elements to fit the content or container appropriately */
+  }
+  .custom-tab {
+    font-size: 16px !important; /* Smaller font size for better fit */
+    padding: 6px 10px !important; /* Adjusted padding to reduce vertical space */
+  }
+  /* You might also want to adjust active and hover states if necessary */
+  .custom-tab:hover, .custom-tab:focus, .custom-tab-active {
+    font-size: 16px !important; /* Smaller font size for better fit */
+      padding: 6px 10px !important; /* Consistent padding across different states */
+  }
+}

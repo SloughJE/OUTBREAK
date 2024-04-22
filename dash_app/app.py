@@ -85,7 +85,7 @@ app.layout = html.Div([
         html.Div(children=[
             html.H1("OUTBREAK!", style={
             'color': 'black',  
-            'fontSize': '6vw',
+            'fontSize': '70px',
             'textAlign': 'center',
             'marginTop': '20px',
             'textShadow': '''
@@ -320,38 +320,38 @@ def update_kpi(selected_interval):
     # Left column metrics
     left_column_metrics = [
         html.Div([
-            html.Div("Potential Outbreaks by State and Disease:", style={'textAlign': 'right', 'width': '530px'}),
-            html.Div(f"{num_outbreaks_per_state_and_disease}", style={'textAlign': 'right', 'width': '50px'})
-        ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
+            html.Div("Potential Outbreaks by State and Disease:", className='metric-label'),
+            html.Div(f"{num_outbreaks_per_state_and_disease}", className='metric-value')
+        ],className='metric-row'),
         
         html.Div([
-            html.Div("Potential Outbreaks by Disease:", style={'textAlign': 'right', 'width': '530px'}),
-            html.Div(f"{num_outbreaks_per_disease}", style={'textAlign': 'right', 'width': '50px'})
-        ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
+            html.Div("Potential Outbreaks by Disease:", className='metric-label'),
+            html.Div(f"{num_outbreaks_per_disease}", className='metric-value')
+        ],className='metric-row'),
         
         html.Div([
-            html.Div("States with Potential Outbreaks:", style={'textAlign': 'right', 'width': '530px'}),
-            html.Div(f"{num_states_with_outbreak}", style={'textAlign': 'right', 'width': '50px'})
-        ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
+            html.Div("States with Potential Outbreaks:", className='metric-label'),
+            html.Div(f"{num_states_with_outbreak}", className='metric-value')
+        ],className='metric-row'),
     ]
 
     # Right column metrics
     right_column_metrics = [
 
         html.Div([
-            html.Div("Ongoing Potential Outbreaks by State and Disease:", style={'textAlign': 'right', 'width': '530px'}),
-            html.Div(f"{len(ongoing_outbreaks)}", style={'textAlign': 'right', 'width': '50px'})
-        ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
+            html.Div("Ongoing Potential Outbreaks by State and Disease:", className='metric-label'),
+            html.Div(f"{len(ongoing_outbreaks)}", className='metric-value')
+        ],className='metric-row'),
 
         html.Div([
-            html.Div("Ongoing Potential Outbreaks by Disease:", style={'textAlign': 'right', 'width': '530px'}),
-            html.Div(f"{len(ongoing_outbreaks['Disease'].unique())}", style={'textAlign': 'right', 'width': '50px'})
-        ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
+            html.Div("Ongoing Potential Outbreaks by Disease:", className='metric-label'),
+            html.Div(f"{len(ongoing_outbreaks['Disease'].unique())}", className='metric-value')
+        ],className='metric-row'),
         
         html.Div([
-            html.Div("States with Ongoing Potential Outbreaks:", style={'textAlign': 'right', 'width': '530px'}),
-            html.Div(f"{len(ongoing_outbreaks['US State / Territory'].unique())}", style={'textAlign': 'right', 'width': '50px'})
-        ], style={'display': 'grid', 'gridTemplateColumns': '530px 100px', 'alignItems': 'center'}),
+            html.Div("States with Ongoing Potential Outbreaks:", className='metric-label'),
+            html.Div(f"{len(ongoing_outbreaks['US State / Territory'].unique())}", className='metric-value')
+        ],className='metric-row'),
     ]
 
     # df_outbreak = df_outbreak[['item_id','date','state','label','potential_outbreak']]

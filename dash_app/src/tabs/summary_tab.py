@@ -47,13 +47,15 @@ def summary_tab_layout():
 
                 html.Div([
                     dbc.Row([
-                        dbc.Col(html.Div(id='left_column_metrics', style={**common_div_style}), width=6),
-                        dbc.Col(html.Div(id='right_column_metrics', style={**common_div_style}), width=6),
+                        dbc.Col(html.Div(id='left_column_metrics', className='responsive-text', style={**common_div_style}), 
+                                xs=12,  
+                                lg=6),  
+                        dbc.Col(html.Div(id='right_column_metrics', className='responsive-text', style={**common_div_style}),
+                                xs=12,  
+                                lg=6), 
                     ], align="stretch", style={'color': 'white', 'backgroundColor': 'black'})
                 ], style={
                     'color': 'white',
-                    'fontSize': '22px', # specific so it doesn't overflow to 2nd line
-                    #'maxWidth': '1400px',
                     'margin': '20px auto 0',
                     'display': 'flex',
                     'flexDirection': 'column',
@@ -71,7 +73,7 @@ def summary_tab_layout():
                             dcc.Graph(id='us-map', style={**common_div_style, 'width': '100%', 'display': 'block', 'marginBottom': '0px', 'margin-left': 'auto', 'margin-right': 'auto'}),
                             html.Div(id='territories-table', style={'color': 'white', 'padding': '0px', 'marginTop': '0px'})
                         ], style={**common_div_style}),  
-                        width=6
+                        xs=12, lg=6
                     ),
 
                     dbc.Col(
@@ -79,7 +81,7 @@ def summary_tab_layout():
                             dcc.Graph(id='sankey-chart', style={**common_div_style, 'width': '100%', 'display': 'block', 'marginBottom': '0px', 'margin-left': 'auto', 'margin-right': 'auto'}),
                             html.Div(id='ongoing-outbreaks-table', style={'color': 'white', 'padding': '0px', 'marginTop': '0px'})                             
                         ], style={**common_div_style}),  
-                        width=6
+                        xs=12, lg=6
                     )
                 ], align="stretch", style={'color': '#7FDBFF'}),
             ], style={'backgroundColor': 'black'}),

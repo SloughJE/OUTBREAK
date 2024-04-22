@@ -101,9 +101,9 @@ def outbreaks_type_counts_tab_layout():
                 style={'marginBottom': '10px'}
                 ),
             dbc.Row([
-                dbc.Col(dcc.Graph(id='pathogen-chart', style={**common_div_style}), width=4),
-                dbc.Col(dcc.Graph(id='bodily-chart', style={**common_div_style}), width=4),
-                dbc.Col(dcc.Graph(id='transmission-chart', style={**common_div_style}), width=4),
+                dbc.Col(dcc.Graph(id='pathogen-chart', style={**common_div_style}), xs=12, lg=4),
+                dbc.Col(dcc.Graph(id='bodily-chart', style={**common_div_style}), xs=12, lg=4),
+                dbc.Col(dcc.Graph(id='transmission-chart', style={**common_div_style}), xs=12, lg=4),
             ], align="stretch", style={'color': '#7FDBFF'}),
 
             html.Div(id='outbreak-table', style={'color': 'white', 'padding': '0px','paddingBottom':'20px', 'marginTop': '0px'})

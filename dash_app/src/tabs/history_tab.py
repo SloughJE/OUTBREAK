@@ -73,7 +73,7 @@ def details_tab_layout():
                     'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
                 }
                 ),
-            dcc.Graph(id='outbreak_graph',style={**common_div_style}),
+            dcc.Graph(id='outbreak_graph',style={**common_div_style},responsive=True),
             
 
         ]),
