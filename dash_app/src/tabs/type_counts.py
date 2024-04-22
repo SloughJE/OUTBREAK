@@ -13,8 +13,8 @@ available_states = ['ALABAMA', 'ALASKA', 'AMERICAN SAMOA', 'ARIZONA', 'ARKANSAS'
 
 common_div_style = {
     'backgroundColor': 'black', 
-    'padding': '0px', 
-    'borderRadius': '5px',
+    'padding': '10px', 
+    'borderRadius': '10px',
     'marginBottom': '20px'  
 }
 
@@ -81,18 +81,18 @@ def outbreaks_type_counts_tab_layout():
                                 {'label': ' Count per State and Disease', 'value': 'all'},
                                 {'label': ' Count per Unique Disease Only', 'value': 'unique'}
                             ],
-                            value='all',  # Default value
-                            labelStyle={'display': 'block'},  # Arrange radio items vertically
+                            value='all', 
+                            labelStyle={'display': 'block'},  
                             style={'fontSize': '22px', 'marginBottom': '0px', 'marginTop': '0px', 'textAlign': 'left', 'color': 'white'}
                         ), style={
                                 'width': 'fit-content',
                                 'margin': 'auto',
                                 'backgroundColor': 'black',
-                                'paddingTop': '5px',  # Adjust the top padding
-                                'paddingBottom': '5px',  # Adjust the bottom padding
-                                'paddingRight': '10px',  # Keep the right padding as it was
-                                'paddingLeft': '10px',  # Keep the left padding as it was
-                                'borderRadius': '15px'
+                                'paddingTop': '5px',  
+                                'paddingBottom': '5px',  
+                                'paddingRight': '10px',  
+                                'paddingLeft': '10px',  
+                                'borderRadius': '10px'
                             }),
 
                     ]), width=12)

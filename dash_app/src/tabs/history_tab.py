@@ -8,7 +8,7 @@ from src.tabs.outbreak_dropdown import get_dropdown_menu, outbreak_uncertainty_l
 common_div_style = {
     'backgroundColor': 'black', 
     'padding': '10px', 
-    'borderRadius': '5px',
+    'borderRadius': '10px',
     'marginBottom': '20px'  
 }
 
@@ -73,7 +73,7 @@ def details_tab_layout():
                     'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
                 }
                 ),
-            dcc.Graph(id='outbreak_graph',style={**common_div_style},responsive=True),
+            dcc.Graph(id='outbreak_graph',style={**common_div_style}),
             
 
         ]),

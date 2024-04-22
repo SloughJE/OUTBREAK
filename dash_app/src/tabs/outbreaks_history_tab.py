@@ -14,7 +14,7 @@ available_states = ['ALABAMA', 'ALASKA', 'AMERICAN SAMOA', 'ARIZONA', 'ARKANSAS'
 common_div_style = {
     'backgroundColor': 'black', 
     'padding': '10px', 
-    'borderRadius': '5px',
+    'borderRadius': '10px',
     'marginBottom': '20px'  
 }
 

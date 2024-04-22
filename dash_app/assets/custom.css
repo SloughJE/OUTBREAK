@@ -364,10 +364,13 @@ body {
   grid-template-columns: 530px 100px; /* maintains your original fixed-width layout */
   align-items: center;
   text-align: right; /* Right align text by default */
+  border-radius: 10px;
 }
 
 .metric-label, .metric-value {
   text-align: right; /* Ensure right alignment specifically if needed */
+  border-radius: 10px;
+
 }
 
 /* Responsive adjustments for smaller screens */

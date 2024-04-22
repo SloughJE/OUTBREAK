@@ -7,7 +7,7 @@ from src.tabs.outbreak_dropdown import get_dropdown_menu, outbreak_uncertainty_l
 common_div_style = {
     'backgroundColor': 'black', 
     'padding': '10px', 
-    'borderRadius': '5px',
+    'borderRadius': '10px',
     'marginBottom': '20px'  
 }
 
@@ -43,7 +43,7 @@ def summary_tab_layout():
             html.Div([
                 html.Div(id='outbreak_kpi', style={'justifyContent': 'center','display': 'flex', 'flexDirection': 'column', 
                                                    'alignItems': 'center', 'paddingTop': '19px','paddingBottom': '15px','paddingLeft': '40px','paddingRight': '40px',
-                                                   'borderRadius': '5px', 'color': 'white', 'backgroundColor': 'black'}),
+                                                   'borderRadius': '10px', 'color': 'white', 'backgroundColor': 'black'}),
 
                 html.Div([
                     dbc.Row([
@@ -53,17 +53,17 @@ def summary_tab_layout():
                         dbc.Col(html.Div(id='right_column_metrics', className='responsive-text', style={**common_div_style}),
                                 xs=12,  
                                 lg=6), 
-                    ], align="stretch", style={'color': 'white', 'backgroundColor': 'black'})
+                    ], align="stretch", style={'color': 'white', 'backgroundColor': 'black','borderRadius': '10px'})
                 ], style={
                     'color': 'white',
                     'margin': '20px auto 0',
                     'display': 'flex',
                     'flexDirection': 'column',
-                    'alignItems': 'center', 'padding': '0 10px'
+                    'alignItems': 'center', 'padding': '0 10px','borderRadius': '10px',
                 }),
 
             ], 
-            style={ 'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center', 'justifyContent': 'center','paddingBottom':'20px'}
+            style={ 'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center', 'justifyContent': 'center','paddingBottom':'20px','borderRadius': '10px'}
             ),
 
             html.Div([
@@ -83,10 +83,10 @@ def summary_tab_layout():
                         ], style={**common_div_style}),  
                         xs=12, lg=6
                     )
-                ], align="stretch", style={'color': '#7FDBFF'}),
-            ], style={'backgroundColor': 'black'}),
+                ], align="stretch", style={'color': '#7FDBFF','borderRadius': '10px'}),
+            ], style={'backgroundColor': 'black','borderRadius': '10px'}),
 
-         ], style={'color': '#7FDBFF', 'paddingBottom': '20px'})
+         ], style={'color': '#7FDBFF', 'paddingBottom': '20px','borderRadius': '10px'})
 
     ], fluid=True)
 
