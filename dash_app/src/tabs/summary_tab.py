@@ -27,7 +27,7 @@ def summary_tab_layout():
                     style={
                         'color': 'white',
                         'textAlign': 'center',
-                        'fontSize': '3vw',
+                        'fontSize': '44px',
                         'marginTop': '40px',
                     }
                 )
@@ -41,7 +41,8 @@ def summary_tab_layout():
             ),
             #get_dropdown_menu(label_and_info, uncertainty_level_tooltip,'interval_dropdown'),
             html.Div([
-                html.Div(id='outbreak_kpi', style={**common_div_style, 'width': '700px','color': 'white', 'textAlign': 'center'}),
+                html.Div(id='outbreak_kpi', style={'padding': '10px', 
+                        'borderRadius': '5px', 'marginBottom': '20px', 'width': '700px','color': 'white', 'textAlign': 'center'}),
 
                 html.Div([
                     dbc.Row([
@@ -50,7 +51,7 @@ def summary_tab_layout():
                     ], align="stretch", style={'color': 'white', 'backgroundColor': 'black'})
                 ], style={
                     'color': 'white',
-                    'fontSize': '22px',
+                    'fontSize': '22px', # specific so it doesn't overflow to 2nd line
                     #'maxWidth': '1400px',
                     'margin': '0 auto',
                     'display': 'flex',

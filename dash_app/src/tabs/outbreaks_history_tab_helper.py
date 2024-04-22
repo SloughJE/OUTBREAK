@@ -77,6 +77,7 @@ def plot_time_series(df_aggregated, title="Time Series of Counts", display_col='
     # potential: #DE2D26
     # resolved: #FCBBA1
     # ongoing: #A50A0A
+    df_aggregated = df_aggregated[df_aggregated['date']!=pd.to_datetime('2024-02-26')]
 
     fig.add_trace(go.Scatter(x=df_aggregated['date'], y=df_aggregated[display_col],
                              mode='lines+markers',
@@ -88,6 +89,8 @@ def plot_time_series(df_aggregated, title="Time Series of Counts", display_col='
 
     # Check if a secondary DataFrame is provided
     if df_secondary is not None and secondary_display_col is not None:
+        df_secondary = df_secondary[df_secondary['date']!=pd.to_datetime('2024-02-26')]
+
         fig.add_trace(go.Scatter(x=df_secondary['date'], y=df_secondary[secondary_display_col],
                                  mode='lines+markers',
                                  name=secondary_name))
@@ -101,14 +104,19 @@ def plot_time_series(df_aggregated, title="Time Series of Counts", display_col='
         'type': 'date'
     }
     if min_date is not None:
-        xaxis_config['range'] = [min_date, df_aggregated['date'].max()]
+        start_date = pd.to_datetime(min_date) - pd.Timedelta(hours=12)
+        end_date = pd.to_datetime(df_aggregated['date'].max()) + pd.Timedelta(hours=12)
+        xaxis_config['range'] = [start_date, end_date]
 
     fig.update_layout(title=title,
-                      xaxis=xaxis_config,
-                      yaxis_title='Count',
-                      xaxis_title='',
-                      template="plotly_dark",
-                      legend=dict(orientation='h', x=0.5, xanchor='center', y=-0.1, yanchor='top'))
+                    title_font=dict(size=22, color='white', family="Arial, sans-serif"),  
+                    xaxis=xaxis_config,
+                    yaxis_title='Count',
+                    xaxis_title='',
+                    template="plotly_dark",
+                    paper_bgcolor='black',
+                    plot_bgcolor='black',
+                    legend=dict(orientation='h', x=0.5, xanchor='center', y=-0.1, yanchor='top'))
  
 
 

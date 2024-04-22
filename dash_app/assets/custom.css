@@ -5,6 +5,14 @@
     --inactive-color: #333; /* Color for inactive tabs */
 }
 
+.full-width {
+  padding-right: 0;
+  padding-left: 0;
+  margin-right: auto;
+  margin-left: auto;
+  width: 100%;
+}
+
 body {
     font-family: 'Arial', sans-serif;
     color: white;
@@ -12,6 +20,14 @@ body {
 
 .Select-input input {
     color: white;
+}
+
+.custom-tooltip .tooltip-inner {
+  max-width: 800px !important; /* Override Bootstrap's default styling */
+  min-width: 500px !important; /* Ensure the tooltip has a minimum width */
+  text-align: left !important;
+  background-color: rgba(250, 250, 235, 1) !important; /* Black background with reduced transparency */
+  color: #333;
 }
 
 /* Apply flexbox to the control to align items in a row */
@@ -132,9 +148,6 @@ body {
       outline: none !important;
       box-shadow: none !important;
   }
-
-  
-  
 
 /* Make the dropdown arrow bolder and change its color */
 .dropdown-input .Select-arrow {
@@ -259,39 +272,20 @@ body {
     margin-right: 5px;  /* Space between radio button and label */
 }
 
-.monetary-basis-heading {
-    text-align: center;
-    color: white;
-    margin-bottom: 10px;
-}
-
-.radio-button-instruction {
-    text-align: center;
-    color: #f0ad4e;
-    font-size: 0.9em;
-}
-
-.custom-tooltip .tooltip-inner {
-    font-size: 16px; 
-    max-width: 800px;
-    text-align: left;
-}
-
-
-
 /* Tab styling to match the nav bar */
 .custom-tab {
-    padding: 10px 20px !important;  /* Reduced top and bottom padding */
+    /*padding: 10px 20px !important;  /* Reduced top and bottom padding */
     background-color: var(--inactive-color) !important; /* Inactive tab background color */
     color: white !important; /* Text color for all states */
     border: none !important; /* Remove default borders */
     cursor: pointer; /* Cursor for clickable items */
-    font-size: 1.5vw; /* Match the nav link font size */
+    font-size: 26px; /* Match the nav link font size */
     transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* Smooth transition for background, color, and border color change */
     border-bottom: 3px solid transparent; /* Transparent border for a uniform height */
-    display: flex;
+    /* display: flex; */
     align-items: center !important;
-    justify-content: center;
+    /*justify-content: center; */
+    white-space: nowrap;
 }
 
 .custom-tab:hover, .custom-tab:focus {
@@ -305,14 +299,14 @@ body {
     background-color: var(--primary-color) !important; /* Active tab background color */
     color: white !important; /* Active tab text color remains white */
     border-bottom: 3px solid var(--hover-color) !important; /* Underline effect for active tab with Darker variant color */
-    display: flex;
+    
  
 }
 
 /* Container for the tabs to mimic the nav bar layout */
 .tab-container {
-    display: flex;
-    justify-content: start; /* Align tabs to the start of the container */
+    /*display: flex;
+    /*justify-content: start; /* Align tabs to the start of the container */
     background-color: var(--inactive-color) !important; /* Container background color to match the nav bar */
     box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important; /* Optional: Adds a shadow for depth */
 }

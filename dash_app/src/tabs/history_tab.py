@@ -24,7 +24,7 @@ def details_tab_layout():
                     style={
                         'color': 'white',
                         'textAlign': 'center',
-                        'fontSize': '3vw',
+                        'fontSize': '44px',
                         'marginTop': '40px',
                     }
                 )
@@ -45,7 +45,7 @@ def details_tab_layout():
                     {'label': ' Show Outbreaks Only', 'value': 'SHOW_OUTBREAKS'},
                 ],
                 value=[],
-                labelStyle={'display': 'block', 'color': 'white', 'fontSize': 20},  
+                labelStyle={'display': 'block', 'color': 'white', 'fontSize': 22},  
                 style={'textAlign': 'center', 'marginBottom': '20px'}
             ),
             html.Div([  

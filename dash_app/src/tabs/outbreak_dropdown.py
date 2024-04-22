@@ -6,17 +6,19 @@ import dash
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
-outbreak_uncertainty_level_explanation = """• Indicates how certain we want to be in identifying a "potential outbreak"
-• Corresponds to the model prediction interval
-• The model forecasts by predicting distributions of values for the future time period, reflecting the probable range of outcome values.
-• If the actual value for the current week is greater than the upper prediction interval value from last week's prediction, we label it as an "outbreak".
-• A higher "Outbreak Model Certainty Level" yields a higher threshold value, and is therefore less like to identify a new value as an "outbreak".
-• In other words, a higher "Outbreak Model Certainty Level" means if the model identifies a value as an "outhreak", we are more confident that it is actually an outbreak.
-• Example: 99% means we use the 99th percentile of the predicted distribution values as the threshold for identifying an "outbreak".
+outbreak_uncertainty_level_explanation = """• Indicates the certainty level required to identify a "potential outbreak."
+• A higher "Outbreak Model Certainty Level" sets a higher threshold, resulting in fewer identified potential outbreaks.
 
-- Model accuracy is contingent upon the quality and completeness of the training data. Sparse or missing data for specific time series may adversely affect predictions and identification of "outbreaks".
-- Please note, the designation of values as "outbreaks" is solely for the purpose of entertainment and does not carry any official public health significance. It is a predictive tool intended for informational use only and should not be construed as medical or health advice.
+NOTE:
+- Model accuracy is contingent upon the quality and completeness of the training data. Sparse or missing data may adversely affect predictions and identification of "potential outbreaks".
+- Please note, the designation of values as a "potential outbreak" is solely for the purpose of entertainment and does not carry any official public health significance. It is a predictive tool intended for informational use only and should not be construed as medical or health advice.
 """
+#• Corresponds to the model prediction interval
+#• The model forecasts by predicting distributions of values for the future time period, reflecting the probable range of outcome values.
+#• If the actual value for the current week is greater than the upper prediction interval value from last week's prediction, we label it as an "outbreak".
+#• A higher "Outbreak Model Certainty Level" yields a higher threshold value, and is therefore less like to identify a new value as an "outbreak".
+#• In other words, a higher "Outbreak Model Certainty Level" means if the model identifies a value as an "outhreak", we are more confident that it is actually an outbreak.
+#• Example: 99% means we use the 99th percentile of the predicted distribution values as the threshold for identifying an "outbreak".
 
 
 def get_tooltip_with_icon(id_suffix, tooltip_text):
@@ -34,8 +36,10 @@ def get_tooltip_with_icon(id_suffix, tooltip_text):
     info_icon = html.I(className="bi bi-info-circle", id=info_icon_id, 
                        style={'cursor': 'pointer', 'fontSize': '22px', 'marginLeft': '10px', 'textAlign': 'left',})
     
-    tooltip = dbc.Tooltip(tooltip_text, target=info_icon_id, placement="right", className='custom-tooltip',    
-                           style={'white-space': 'pre-line'})
+    tooltip = dbc.Tooltip(tooltip_text, target=info_icon_id, placement="right", className="custom-tooltip",
+                      style={'whiteSpace': 'pre-line', 'textAlign': 'left', 'padding': '10px', 
+                             'borderRadius': '5px', 'fontSize': '16px', 'lineHeight': '1.5', 'margin': '10px 0'})
+
     
     return info_icon, tooltip
 
@@ -55,7 +59,7 @@ def get_dropdown_menu(id_suffix, label_text, tooltip_text, id_dropdown):
     info_icon, tooltip = get_tooltip_with_icon(id_suffix, tooltip_text)
     
     label_and_info = html.H2([info_icon, f" {label_text}:"], style={
-        'color': 'white', 'textAlign': 'center', 'fontSize': '24px', 'marginRight': '0px', 'marginBottom': '3px',
+        'color': 'white', 'textAlign': 'center', 'fontSize': '22px', 'marginRight': '0px', 'marginBottom': '3px',
     })
     
     return dbc.Row([
@@ -81,7 +85,7 @@ def get_dropdown_menu(id_suffix, label_text, tooltip_text, id_dropdown):
                                 clearable=False,
                                 className='dropdown-input',
                             ),
-                            style={'display': 'inline-block', 'width': '150px', 'fontSize': '24px', 'textAlign': 'left', 'fontWeight': 'bold','marginRight': '5px','paddingRight':'0px'},  
+                            style={'display': 'inline-block', 'width': '150px', 'fontSize': '22px', 'textAlign': 'left', 'fontWeight': 'bold','marginRight': '5px','paddingRight':'0px'},  
                         ),
                     ], style={
                         'display': 'inline-flex', 'alignItems': 'center', 'justifyContent': 'center', 
@@ -89,7 +93,7 @@ def get_dropdown_menu(id_suffix, label_text, tooltip_text, id_dropdown):
                         'paddingTop': '7px','paddingBottom': '7px','paddingRight':'0px','paddingLeft':'40px', 'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
                     }),
                 ],
-                style={'textAlign': 'left', 'color': 'white', 'fontSize': '24px', 'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center', 'height': '100px'}
+                style={'textAlign': 'left', 'color': 'white', 'fontSize': '22px', 'display': 'flex', 'alignItems': 'center', 'justifyContent': 'center', 'height': '100px'}
             ),
             width={'size': 12},
         )

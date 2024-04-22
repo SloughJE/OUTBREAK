@@ -30,7 +30,7 @@ def outbreaks_history_tab_layout():
                     style={
                         'color': 'white',
                         'textAlign': 'center',
-                        'font-size': '3vw',
+                        'font-size': '44px',
                         'marginTop': '40px',
                     }
                 )
@@ -83,8 +83,8 @@ def outbreaks_history_tab_layout():
             ),
 
 
-            dcc.Graph(id='outbreak_history_potential_resolved',style={**common_div_style}),
-            dcc.Graph(id='outbreak_history_ongoing',style={**common_div_style}),
+            dcc.Graph(id='outbreak_history_potential_resolved',style={**common_div_style,'padding': '20px'}),
+            dcc.Graph(id='outbreak_history_ongoing',style={**common_div_style,'padding': '20px'}),
     
 
 
