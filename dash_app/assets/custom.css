@@ -377,7 +377,7 @@ body {
 @media (max-width: 1200px) {
   .metric-row {
       text-align: left; /* Align text to the left on smaller screens */
-      grid-template-columns: 340px 20px; /* maintains your original fixed-width layout */
+      grid-template-columns: 340px 16px; /* maintains your original fixed-width layout */
     }
     .responsive-text, .responsive-text div {
       font-size: 14px;

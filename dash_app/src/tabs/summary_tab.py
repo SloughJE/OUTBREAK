@@ -56,7 +56,7 @@ def summary_tab_layout():
                     ], align="stretch", style={'color': 'white', 'backgroundColor': 'black','borderRadius': '10px'})
                 ], style={
                     'color': 'white',
-                    'margin': '20px auto 0',
+                    'margin': '20px 0 0',
                     'display': 'flex',
                     'flexDirection': 'column',
                     'alignItems': 'center', 'padding': '0 10px','borderRadius': '10px',
@@ -84,7 +84,7 @@ def summary_tab_layout():
                         xs=12, lg=6
                     )
                 ], align="stretch", style={'color': '#7FDBFF','borderRadius': '10px'}),
-            ], style={'backgroundColor': 'black','borderRadius': '10px'}),
+            ], style={'backgroundColor': 'black','borderRadius': '10px', 'padding':'10px'}),
 
          ], style={'color': '#7FDBFF', 'paddingBottom': '20px','borderRadius': '10px'})
 
