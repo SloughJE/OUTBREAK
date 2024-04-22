@@ -78,7 +78,7 @@ def outbreaks_history_tab_layout():
                     {'label': ' Cumulative Counts', 'value': 'cumulative'},
                 ],
                 value=[],
-                labelStyle={'display': 'block', 'color': 'white', 'fontSize': 20},  
+                labelStyle={'display': 'block', 'color': 'white', 'fontSize': 22},  
                 style={'textAlign': 'center', 'marginBottom': '20px'}
             ),
 

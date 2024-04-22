@@ -95,7 +95,7 @@ app.layout = html.Div([
                 0 0 25px #B22222, 
                 0 0 30px #B22222''',  
             'fontWeight': 'bold',
-            'backgroundColor': '#300',  
+            'backgroundColor': 'black',  
             'display': 'inline-block',  
             'padding': '10px',  
             'borderRadius': '50px' 
