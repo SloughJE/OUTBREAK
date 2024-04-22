@@ -41,19 +41,20 @@ def summary_tab_layout():
             ),
             #get_dropdown_menu(label_and_info, uncertainty_level_tooltip,'interval_dropdown'),
             html.Div([
-                html.Div(id='outbreak_kpi', style={'padding': '10px', 
-                        'borderRadius': '5px', 'marginBottom': '20px', 'width': '700px','color': 'white', 'textAlign': 'center'}),
+                html.Div(id='outbreak_kpi', style={'justifyContent': 'center','display': 'flex', 'flexDirection': 'column', 
+                                                   'alignItems': 'center', 'paddingTop': '19px','paddingBottom': '15px','paddingLeft': '40px','paddingRight': '40px',
+                                                   'borderRadius': '5px', 'color': 'white', 'backgroundColor': 'black'}),
 
                 html.Div([
                     dbc.Row([
-                        dbc.Col(html.Div(id='left_column_metrics', style=common_div_style), width=6),
-                        dbc.Col(html.Div(id='right_column_metrics', style=common_div_style), width=6)
+                        dbc.Col(html.Div(id='left_column_metrics', style={**common_div_style}), width=6),
+                        dbc.Col(html.Div(id='right_column_metrics', style={**common_div_style}), width=6),
                     ], align="stretch", style={'color': 'white', 'backgroundColor': 'black'})
                 ], style={
                     'color': 'white',
                     'fontSize': '22px', # specific so it doesn't overflow to 2nd line
                     #'maxWidth': '1400px',
-                    'margin': '0 auto',
+                    'margin': '20px auto 0',
                     'display': 'flex',
                     'flexDirection': 'column',
                     'alignItems': 'center'
