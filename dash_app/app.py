@@ -80,6 +80,7 @@ app.layout = html.Div([
 
 
     dcc.Store(id='shared-dropdown-value'),
+
     html.Div([
         html.Div(children=[
             html.H1("OUTBREAK!", style={
@@ -88,13 +89,12 @@ app.layout = html.Div([
             'textAlign': 'center',
             'marginTop': '20px',
             'textShadow': '''
-                0 0 5px #B22222, 
-                0 0 10px #B22222, 
-                0 0 15px #B22222, 
-                0 0 20px #B22222, 
-                0 0 25px #B22222, 
-                0 0 30px #B22222,
-                0 0 35px #B22222''',  
+             0 0 5px #B22222, 
+            0 0 10px #B22222, 
+            0 0 15px #B22222, 
+            0 0 20px #B22222, 
+            0 0 25px #B22222, 
+            0 0 30px #B22222''',  
             'fontWeight': 'bold',
             'backgroundColor': 'black',  
             'display': 'inline-block',  
