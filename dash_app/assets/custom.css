@@ -380,19 +380,19 @@ body {
       grid-template-columns: 340px 20px; /* maintains your original fixed-width layout */
     }
     .responsive-text, .responsive-text div {
-      font-size: 16px;
+      font-size: 14px;
   }
   .metric-label, .metric-value {
       text-align: left; /* Align text to the left for both label and value */
       width: auto; /* Allows elements to fit the content or container appropriately */
   }
   .custom-tab {
-    font-size: 16px !important; /* Smaller font size for better fit */
+    font-size: 14px !important; /* Smaller font size for better fit */
     padding: 6px 10px !important; /* Adjusted padding to reduce vertical space */
   }
   /* You might also want to adjust active and hover states if necessary */
   .custom-tab:hover, .custom-tab:focus, .custom-tab-active {
-    font-size: 16px !important; /* Smaller font size for better fit */
+    font-size: 14px !important; /* Smaller font size for better fit */
       padding: 6px 10px !important; /* Consistent padding across different states */
   }
 }
