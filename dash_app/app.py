@@ -1,6 +1,6 @@
 import dash
 from dash import dcc, html, ctx, dash_table
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.graph_objects as go
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -18,6 +18,8 @@ from src.tabs.disease_info import add_disease_info , bar_chart_counts, disease_g
 from src.tabs.outbreaks_history_tab import outbreaks_history_tab_layout
 from src.tabs.outbreaks_history_tab_helper import agg_outbreak_counts, plot_time_series
 from src.tabs.type_counts import outbreaks_type_counts_tab_layout
+from src.tabs.info_tab import info_view_tab_layout
+
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc.icons.BOOTSTRAP])
 server = app.server # Expose the Flask server for Gunicorn
@@ -109,7 +111,7 @@ app.layout = html.Div([
             dcc.Tab(label='Outbreaks Profiles', value='tab-4', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_type_counts_tab_layout()),
             dcc.Tab(label='Disease History', value='tab-2', className='custom-tab', selected_className='custom-tab-active', children=details_tab_layout()),
             dcc.Tab(label='Outbreaks History', value='tab-3', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_history_tab_layout()),
-            #dcc.Tab(label='Info', value='tab-5', className='custom-tab', selected_className='custom-tab-active',children=ai_patient_view_tab_layout()),
+            dcc.Tab(label='Info', value='tab-5', className='custom-tab', selected_className='custom-tab-active',children=info_view_tab_layout()),
         ], style={'position': 'sticky', 'top': '0', 'zIndex': '1000','width': '100%', 'display': 'block'}),
     ], className='full-width'),
     
@@ -612,6 +614,34 @@ def synchronize_dropdowns(tab1_value, tab2_value, tab3_value,tab4_value):
     return value, value, value, value
 
 
+#######################
+######INFO TAB#########
+#######################
+
+# Callbacks for toggling the collapse
+
+toggle_callbacks = [
+    {"trigger": "collapse-button-dashboard-info", "target": "collapse-dashboard-info"},
+    {"trigger": "collapse-button-tab-info", "target": "collapse-tab-info"},
+   
+    {"trigger": "collapse-button-data-sources", "target": "collapse-data-sources"},
+
+    {"trigger": "collapse-button-modeling", "target": "collapse-modeling"},
+    {"trigger": "collapse-button-modeling-text", "target": "collapse-modeling-text"},
+    {"trigger": "collapse-button-automated", "target": "collapse-automated"},
+]
+
+for callback in toggle_callbacks:
+    @app.callback(
+        Output(callback["target"], "is_open"),
+        [Input(callback["trigger"], "n_clicks")],
+        [State(callback["target"], "is_open")],
+    )
+    def toggle_collapse(n, is_open):
+        if n:
+            return not is_open
+        return is_open
+    
 #if __name__ == '__main__':
     #app.run_server(debug=False, host='0.0.0.0', port=8050)
     #app.run_server(debug=True, port=8080)

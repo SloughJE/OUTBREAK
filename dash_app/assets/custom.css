@@ -274,12 +274,12 @@ body {
 
 /* Tab styling to match the nav bar */
 .custom-tab {
-    /*padding: 10px 20px !important;  /* Reduced top and bottom padding */
+    padding: 10px 20px !important;  /* Reduced top and bottom padding */
     background-color: var(--inactive-color) !important; /* Inactive tab background color */
     color: white !important; /* Text color for all states */
     border: none !important; /* Remove default borders */
     cursor: pointer; /* Cursor for clickable items */
-    font-size: 26px; /* Match the nav link font size */
+    font-size: 22px; /* Match the nav link font size */
     transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* Smooth transition for background, color, and border color change */
     border-bottom: 3px solid transparent; /* Transparent border for a uniform height */
     /* display: flex; */
