@@ -48,7 +48,7 @@ def info_view_tab_layout():
         create_collapsible_card("collapse-button-dashboard-info", "collapse-dashboard-info", dashboard_info_title, [
             html.P([
                 html.Strong("Dashboard Purpose:"), 
-                "\n1) Identify weekly 'Potential Outbreaks' and 'Ongoing Potential Outbreaks' of Nationally Notifiable Diseases automatically.\
+                "\n1) Identify weekly 'Potential Outbreaks' and 'Ongoing Potential Outbreaks' of Nationally Notifiable Diseases automatically at the US State/Territory-disease level.\
                 \n2) Provide supporting details of the diseases such as historical case counts, pathogen type, affected bodily system, and transmission type.\
                 \n\n",
 
@@ -56,8 +56,10 @@ def info_view_tab_layout():
                 html.Strong("Automatic Weekly Data Retrieval"),
                 ": New data from the CDC NNDSS API is updated weekly when available.\n",
                 html.Strong("Automatic Weekly Model Retraining"),
-                ": When new data is available, the Potential Outbreak Identification Model is retrained with the new data automatically.\n\n",
-                
+                ": When new data is available, the Potential Outbreak Identification Model is retrained with the new data automatically.\n",
+                html.Strong("Data Granularity"),
+                ": Data is modeled on the State/Territory-disease level, with Potential Outbreaks identified at this same level.\n\n",
+
                 html.Strong("Definitions:\n"),
                 html.Strong("Notifiable Disease"),
                 ": The ",
@@ -116,12 +118,12 @@ def info_view_tab_layout():
         create_collapsible_card("collapse-button-modeling", "collapse-modeling", modeling_title, [
 
                 create_collapsible_card("collapse-button-modeling-text", "collapse-modeling-text", modeling_subtitle, [
-                    html.P(modeling_text),
+                    html.P(modeling_text, style={'white-space': 'pre-line'}),
                     html.A("DeepAR Model Information", href="https://docs.aws.amazon.com/sagemaker/latest/dg/deepar.html", target="_blank"),
                 ], header_style=sub_section_style),
 
                 create_collapsible_card("collapse-button-automated", "collapse-automated", automated_title, [
-                    html.P(automated_text),
+                    html.P(automated_text, style={'white-space': 'pre-line'}),
                 ], header_style=sub_section_style),
             ], header_style=main_section_style, is_main=True),
 
