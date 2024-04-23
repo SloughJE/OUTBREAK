@@ -26,11 +26,11 @@ def outbreaks_history_tab_layout():
 
         html.Div([
                 html.H2(
-                    "Potential Outbreaks History",
+                    "Potential Outbreaks History", className='tab-title-long',
                     style={
                         'color': 'white',
                         'textAlign': 'center',
-                        'fontSize': 'clamp(30px, 8vw, 44px)',
+                        'fontSize': '44px',
                         'marginTop': '40px',
                     }
                 )

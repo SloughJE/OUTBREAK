@@ -23,11 +23,11 @@ def summary_tab_layout():
 
             html.Div([
                 html.H2(
-                    "Latest Week Summary of Potential Outbreaks",
+                    "Latest Week Summary of Potential Outbreaks", className='tab-title-long',
                     style={
                         'color': 'white',
                         'textAlign': 'center',
-                        'fontSize': 'clamp(30px, 8vw, 44px)',
+                        'fontSize': '44px',
                         'marginTop': '40px',
                     }
                 )

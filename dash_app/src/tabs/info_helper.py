@@ -55,8 +55,10 @@ The model is probabilistic, meaning that it predicts a full probability distribu
 We use the Negative Binomial distribution to model the output, 
 which is particularly suited for count data with overdispersion, a common characteristic in epidemiological data like disease incidence counts. 
 
-A Potential Outbreak is flagged when the actual observed cases exceed the upper bound threshold of the predicted interval. 
+A Potential Outbreak is flagged when the actual observed cases exceed the upper bound chosen threshold of the predicted interval. 
 This threshold is adjustable, allowing users to define what constitutes an outbreak based on their desired level of certainty regarding the model's predictions.
+The "Outbreak Model Certainty Level" of the dashboard corresponds to the model's predicted upper quantile. In other words, \
+    an Outbreak Model Certainty Level of 99% means we use the 99th percentile of the predicted distribution values as the threshold for identifying an "Potential Outbreak" 
 """
 
 # Weekly Data Retrieval and Model Training

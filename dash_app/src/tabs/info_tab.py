@@ -10,12 +10,16 @@ main_section_style = {
     'font-size': '22px',  
     'background-color': '#C06070',  
     'color': 'white',  
+    'textAlign':'left',
+    'textJustify':'left'
 }
 
 sub_section_style = {
     'font-size': '22px', 
     'background-color': '#F08080',  
-    'color': 'white',  
+    'color': 'white',
+    'textAlign':'left',
+    'textJustify':'left'
 }
 
 # Function to create a collapsible card
@@ -55,18 +59,21 @@ def info_view_tab_layout():
                 ": When new data is available, the Potential Outbreak Identification Model is retrained with the new data automatically.\n\n",
                 
                 html.Strong("Definitions:\n"),
-                html.Strong(html.A("Notifiable Disease", href="https://www.cdc.gov/nchs/hus/sources-definitions/notifiable-disease.htm", target="_blank")),
-                ": 'A disease that, when diagnosed, requires health providers (usually by law) to report to state or local public health officials. \
-                Not ifiable diseases are of public interest by reason of their contagiousness, severity, or frequency.'\n",
+                html.Strong("Notifiable Disease"),
+                ": The ",
+                html.A("CDC", href="https://www.cdc.gov/nchs/hus/sources-definitions/notifiable-disease.html", target="_blank"),
+                 " defines this as 'a disease that, when diagnosed, requires health providers (usually by law) to report to state or local public health officials. \
+                Notifiable diseases are of public interest by reason of their contagiousness, severity, or frequency.' The list of nationally notifiable diseases is determined by the Centers for \
+                    Disease Control and Prevention (CDC) in collaboration with the Council of State and Territorial Epidemiologists (CSTE)\n\n",
                 html.Strong("Potential Outbreak"),
                 ": an identification of a possible future disease outbreak by our model. This is not meant to identify an actual outbreak of a disease, rather it should be thought of as an early\
-                      warning that a disease may develop into an outbreak in the future. The user can selected the desired model certainty. Also note that there is no single specific mathematical definition of an outbreak\
-                        of a disease. The WHO defines an outbreak as the ",
-                html.A("occurrence of cases of a disease in excess of what would normally be expected in a defined community, geographical area or season.", href="https://www.emro.who.int/health-topics/disease-outbreaks/index.html", target="_blank"),
-                "\n",
+                      warning that a disease may develop into an outbreak in the future. The user can selected the desired model certainty. See the Potential Outbreaks Model section for more information.\
+                      Note that there is no single specific mathematical definition of an outbreak of a disease. The ",
+                html.A("WHO", href="https://www.emro.who.int/health-topics/disease-outbreaks/index.html", target="_blank"),
+                " defines an outbreak as the occurrence of cases of a disease in excess of what would normally be expected in a defined community, geographical area or season.\n\n",
                 html.Strong("Ongoing Potential Outbreak"),
                 ": if a specific disease in a specific state or territory has been identified as a potential outbreak for at least 2 weeks in a row it is considered an 'ongoing potential outbreak'. \
-                    This indicates a higher likelihood that this could be an actual outbreak.\n",
+                    This indicates a higher likelihood that this could be an actual outbreak.\n\n",
                 html.Strong("Resolved Potential Outbreak"),
                 ": if a specific disease was identified as a potential outbreak in week 1, but then it week 2 is not identified as a potential outbreak, it is considered resolved. \
                     This indicates a the potential outbreak did not develop into an actual outbreak.\n"
@@ -107,12 +114,12 @@ def info_view_tab_layout():
         ], header_style=main_section_style, is_main=True),
 
         create_collapsible_card("collapse-button-modeling", "collapse-modeling", modeling_title, [
-                # CDC PLACES 
+
                 create_collapsible_card("collapse-button-modeling-text", "collapse-modeling-text", modeling_subtitle, [
                     html.P(modeling_text),
                     html.A("DeepAR Model Information", href="https://docs.aws.amazon.com/sagemaker/latest/dg/deepar.html", target="_blank"),
                 ], header_style=sub_section_style),
-                # BEA GDP and Income Data
+
                 create_collapsible_card("collapse-button-automated", "collapse-automated", automated_title, [
                     html.P(automated_text),
                 ], header_style=sub_section_style),
