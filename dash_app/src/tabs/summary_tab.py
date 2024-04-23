@@ -39,9 +39,7 @@ def summary_tab_layout():
                 tooltip_text=outbreak_uncertainty_level_explanation,
                 id_dropdown="interval_dropdown"
             ),
-            html.Div("Automatic Weekly Identification of Potential Outbreaks of CDC Nationally Notifiable Diseases",
-                     style={'justifyContent': 'center','color':'white','fontSize':'22px','alignItems': 'center','textAlign':'center', 'paddingBottom':'20px'}),
-            
+         
             html.Div([
                 html.Div(id='outbreak_kpi', style={'justifyContent': 'center','display': 'flex', 'flexDirection': 'column', 
                                                    'alignItems': 'center', 'paddingTop': '19px','paddingBottom': '15px','paddingLeft': '40px','paddingRight': '40px',

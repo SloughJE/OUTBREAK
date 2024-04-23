@@ -105,7 +105,10 @@ app.layout = html.Div([
             'borderRadius': '50px' 
                 }),
             ], style={'textAlign': 'center', 'width': '100%', 'marginTop': '0px','backgroundColor':'black'}),
-
+        html.Div("Automatic Weekly Identification of Potential Outbreaks of CDC Nationally Notifiable Diseases",
+                     style={'justifyContent': 'center','color':'white','fontSize':'22px','alignItems': 'center','textAlign':'center', 'paddingBottom':'20px',
+                                        'backgroundColor': 'black'}),
+            
         dcc.Tabs(id="tabs", value='tab-1', className='tab-container', children=[
             dcc.Tab(label='Latest Week Summary', value='tab-1', className='custom-tab', selected_className='custom-tab-active', children=summary_tab_layout()),
             dcc.Tab(label='Outbreaks Profiles', value='tab-4', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_type_counts_tab_layout()),
