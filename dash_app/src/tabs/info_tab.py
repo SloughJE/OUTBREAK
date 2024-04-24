@@ -112,7 +112,10 @@ def info_view_tab_layout():
         create_collapsible_card("collapse-button-data-sources", "collapse-data-sources", data_title, [
             html.H4(data_source_title, className="mt-4"),
             html.P(data_source_text, style={'white-space': 'pre-line'}),
+            html.A("CDC NNDSS Information", href="https://www.cdc.gov/nchs/hus/sources-definitions/nndss.htm", target="_blank"),
+            html.P("", style={'white-space': 'pre-line'}),
             html.A("CDC NNDSS API", href="https://dev.socrata.com/foundry/data.cdc.gov/x9gk-5huc", target="_blank"),
+            
         ], header_style=main_section_style, is_main=True),
 
         create_collapsible_card("collapse-button-modeling", "collapse-modeling", modeling_title, [
@@ -120,6 +123,8 @@ def info_view_tab_layout():
                 create_collapsible_card("collapse-button-modeling-text", "collapse-modeling-text", modeling_subtitle, [
                     html.P(modeling_text, style={'white-space': 'pre-line'}),
                     html.A("DeepAR Model Information", href="https://docs.aws.amazon.com/sagemaker/latest/dg/deepar.html", target="_blank"),
+                    html.P("", style={'white-space': 'pre-line'}),
+                    html.A("DeepAR Article", href="https://www.sciencedirect.com/science/article/pii/S0169207019301888", target="_blank"),
                 ], header_style=sub_section_style),
 
                 create_collapsible_card("collapse-button-automated", "collapse-automated", automated_title, [
