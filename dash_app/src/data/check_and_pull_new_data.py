@@ -83,6 +83,9 @@ def check_and_save_new_data(engine,
 
     print(f"Current timestamp: {pd.Timestamp.now()}")
     max_date_historical, max_date_preds = get_max_dates(filepath_historical, filepath_predictions)
+    
+    print(f"max date in historical: {max_date_historical}")
+    print(f"max date in predictions: {max_date_preds}")
 
     df_new_weekly, df_new_predictions = check_and_fetch_new_data(max_date_historical, max_date_preds, engine)
 
