@@ -34,7 +34,7 @@ date_filter_preds = [('date', '>=', pd.to_datetime('2024-01-01'))]
 def load_data():
     df_historical = pd.read_parquet("data/df_historical.parquet", columns=cols_wanted, filters=date_filter_hist)
     df_preds_all =  pd.read_parquet("data/df_predictions.parquet", filters=date_filter_preds)
-
+    print("reloading data")
     return df_historical, df_preds_all
 
 df_historical, df_preds_all = load_data()
