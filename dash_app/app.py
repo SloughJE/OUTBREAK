@@ -27,54 +27,58 @@ server = app.server # Expose the Flask server for Gunicorn
 app.title = "Outbreak Dashboard"
 
 ###################################################
-cols_wanted = ['item_id', 'state', 'date', 'label', 'new_cases']
-date_filter_hist = [('date', '>=', pd.to_datetime('2022-01-01'))]
-date_filter_preds = [('date', '>=', pd.to_datetime('2024-01-01'))]
+
 
 def load_data():
+    cols_wanted = ['item_id', 'state', 'date', 'label', 'new_cases']
+    date_filter_hist = [('date', '>=', pd.to_datetime('2022-01-01'))]
+    date_filter_preds = [('date', '>=', pd.to_datetime('2024-01-01'))]
+
     df_historical = pd.read_parquet("data/df_historical.parquet", columns=cols_wanted, filters=date_filter_hist)
     df_preds_all =  pd.read_parquet("data/df_predictions.parquet", filters=date_filter_preds)
-    print("reloading data")
-    return df_historical, df_preds_all
 
-df_historical, df_preds_all = load_data()
+    df_historical['date'] = pd.to_datetime(df_historical.date.dt.date)
+    max_hist = df_historical.date.max()
+    df_preds_all = pd.merge(df_historical,df_preds_all,on=['item_id','date'], how='inner')
 
-#################################################
+    df_latest = df_historical[df_historical.date==max_hist].copy()
+    df_historical = df_historical[df_historical.date<max_hist]
 
-df_historical['date'] = pd.to_datetime(df_historical.date.dt.date)
-max_hist = df_historical.date.max()
-df_preds_all = pd.merge(df_historical,df_preds_all,on=['item_id','date'], how='inner')
+    df_preds_all['date'] = pd.to_datetime(df_preds_all.date.dt.date)
 
-df_latest = df_historical[df_historical.date==max_hist].copy()
-df_historical = df_historical[df_historical.date<max_hist]
+    min_date_preds = df_preds_all.date.min()
+    df_preds = df_preds_all[df_preds_all.date==df_preds_all.date.max()].copy()
 
-df_preds_all['date'] = pd.to_datetime(df_preds_all.date.dt.date)
+    #df_preds_all['label'] = df_preds_all['item_id'].str.split('_').str[1]
+    #df_preds_all['state'] = df_preds_all['item_id'].str.split('_').str[0]
+    #df_preds_all = df_preds_all.fillna(0)
+    available_states = list(sorted(df_historical.state.unique()))
 
-min_date_preds = df_preds_all.date.min()
-df_preds = df_preds_all[df_preds_all.date==df_preds_all.date.max()].copy()
+    num_diseases_tracked = len(df_latest['label'].unique())
 
-#df_preds_all['label'] = df_preds_all['item_id'].str.split('_').str[1]
-#df_preds_all['state'] = df_preds_all['item_id'].str.split('_').str[0]
-#df_preds_all = df_preds_all.fillna(0)
-available_states = list(sorted(df_historical.state.unique()))
+    df_latest['state'] = df_latest['item_id'].str.split('_').str[0]
+    df_preds['state'] = df_preds['item_id'].str.split('_').str[0]
+    df_preds['label'] = df_preds['item_id'].str.split('_').str[1]
 
-num_diseases_tracked = len(df_latest['label'].unique())
+    df_historical = df_historical.sort_values(['date', 'item_id'])
+    df_preds = df_preds.sort_values(['date', 'item_id'])
+    df_preds_all = df_preds_all.sort_values(['date', 'item_id'])
 
-df_latest['state'] = df_latest['item_id'].str.split('_').str[0]
-df_preds['state'] = df_preds['item_id'].str.split('_').str[0]
-df_preds['label'] = df_preds['item_id'].str.split('_').str[1]
+    df_latest = df_latest.sort_values(['date', 'item_id'])
 
-df_historical = df_historical.sort_values(['date', 'item_id'])
-df_preds = df_preds.sort_values(['date', 'item_id'])
-df_preds_all = df_preds_all.sort_values(['date', 'item_id'])
+    return df_historical, df_preds_all, df_latest, df_preds
 
-df_latest = df_latest.sort_values(['date', 'item_id'])
+df_historical, df_preds_all, df_latest, df_preds = load_data()
+
+
 
 # Callback to update data
 @app.callback(Output('hidden-div', 'children'), [Input('interval-component', 'n_intervals')])
+
 def update_data(n):
-    df_historical, df_preds_all = load_data()
-    # Additional processing or manipulation of the data if needed
+
+    df_historical, df_preds_all, df_latest, df_preds = load_data()
+
     return ""
 
 #######################################################
@@ -126,7 +130,7 @@ app.layout = html.Div([
         html.Div(id='hidden-div', style={'display': 'none'}),
         dcc.Interval(
             id='interval-component',
-            interval=1000,  # every 12 hours
+            interval=12*3600*1000,  # every 12 hours
             n_intervals=0
         )
         ], fluid=True)
