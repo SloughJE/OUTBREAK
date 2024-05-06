@@ -126,7 +126,7 @@ app.layout = html.Div([
         html.Div(id='hidden-div', style={'display': 'none'}),
         dcc.Interval(
             id='interval-component',
-            interval=12*3600*1000,  # every 12 hours
+            interval=1000,  # every 12 hours
             n_intervals=0
         )
         ], fluid=True)
