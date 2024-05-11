@@ -28,58 +28,42 @@ app.title = "Outbreak Dashboard"
 
 ###################################################
 
+cols_wanted = ['item_id', 'state', 'date', 'label', 'new_cases']
+date_filter_hist = [('date', '>=', pd.to_datetime('2022-01-01'))]
+date_filter_preds = [('date', '>=', pd.to_datetime('2024-01-01'))]
 
-def load_data():
-    cols_wanted = ['item_id', 'state', 'date', 'label', 'new_cases']
-    date_filter_hist = [('date', '>=', pd.to_datetime('2022-01-01'))]
-    date_filter_preds = [('date', '>=', pd.to_datetime('2024-01-01'))]
+df_historical = pd.read_parquet("data/df_historical.parquet", columns=cols_wanted, filters=date_filter_hist)
+df_preds_all =  pd.read_parquet("data/df_predictions.parquet", filters=date_filter_preds)
 
-    df_historical = pd.read_parquet("data/df_historical.parquet", columns=cols_wanted, filters=date_filter_hist)
-    df_preds_all =  pd.read_parquet("data/df_predictions.parquet", filters=date_filter_preds)
+df_historical['date'] = pd.to_datetime(df_historical.date.dt.date)
+max_hist = df_historical.date.max()
+df_preds_all = pd.merge(df_historical,df_preds_all,on=['item_id','date'], how='inner')
 
-    df_historical['date'] = pd.to_datetime(df_historical.date.dt.date)
-    max_hist = df_historical.date.max()
-    df_preds_all = pd.merge(df_historical,df_preds_all,on=['item_id','date'], how='inner')
+df_latest = df_historical[df_historical.date==max_hist].copy()
+df_historical = df_historical[df_historical.date<max_hist]
 
-    df_latest = df_historical[df_historical.date==max_hist].copy()
-    df_historical = df_historical[df_historical.date<max_hist]
+df_preds_all['date'] = pd.to_datetime(df_preds_all.date.dt.date)
 
-    df_preds_all['date'] = pd.to_datetime(df_preds_all.date.dt.date)
+min_date_preds = df_preds_all.date.min()
+df_preds = df_preds_all[df_preds_all.date==df_preds_all.date.max()].copy()
 
-    min_date_preds = df_preds_all.date.min()
-    df_preds = df_preds_all[df_preds_all.date==df_preds_all.date.max()].copy()
+#df_preds_all['label'] = df_preds_all['item_id'].str.split('_').str[1]
+#df_preds_all['state'] = df_preds_all['item_id'].str.split('_').str[0]
+#df_preds_all = df_preds_all.fillna(0)
+available_states = list(sorted(df_historical.state.unique()))
 
-    #df_preds_all['label'] = df_preds_all['item_id'].str.split('_').str[1]
-    #df_preds_all['state'] = df_preds_all['item_id'].str.split('_').str[0]
-    #df_preds_all = df_preds_all.fillna(0)
-    available_states = list(sorted(df_historical.state.unique()))
+num_diseases_tracked = len(df_latest['label'].unique())
 
-    num_diseases_tracked = len(df_latest['label'].unique())
+df_latest['state'] = df_latest['item_id'].str.split('_').str[0]
+df_preds['state'] = df_preds['item_id'].str.split('_').str[0]
+df_preds['label'] = df_preds['item_id'].str.split('_').str[1]
 
-    df_latest['state'] = df_latest['item_id'].str.split('_').str[0]
-    df_preds['state'] = df_preds['item_id'].str.split('_').str[0]
-    df_preds['label'] = df_preds['item_id'].str.split('_').str[1]
+df_historical = df_historical.sort_values(['date', 'item_id'])
+df_preds = df_preds.sort_values(['date', 'item_id'])
+df_preds_all = df_preds_all.sort_values(['date', 'item_id'])
 
-    df_historical = df_historical.sort_values(['date', 'item_id'])
-    df_preds = df_preds.sort_values(['date', 'item_id'])
-    df_preds_all = df_preds_all.sort_values(['date', 'item_id'])
+df_latest = df_latest.sort_values(['date', 'item_id'])
 
-    df_latest = df_latest.sort_values(['date', 'item_id'])
-
-    return df_historical, df_preds_all, df_latest, df_preds
-
-df_historical, df_preds_all, df_latest, df_preds = load_data()
-
-
-
-# Callback to update data
-@app.callback(Output('hidden-div', 'children'), [Input('interval-component', 'n_intervals')])
-
-def update_data(n):
-
-    df_historical, df_preds_all, df_latest, df_preds = load_data()
-
-    return ""
 
 #######################################################
 
@@ -122,18 +106,8 @@ app.layout = html.Div([
             dcc.Tab(label='Outbreaks History', value='tab-3', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_history_tab_layout()),
             dcc.Tab(label='About', value='tab-5', className='custom-tab', selected_className='custom-tab-active',children=info_view_tab_layout()),
         ], style={'position': 'sticky', 'top': '0', 'zIndex': '1000','width': '100%', 'display': 'block'}),
-    ], className='full-width'),
-    
-    dbc.Container([
-        html.Div(id='tabs-content'),
+    ], className='full-width')
 
-        html.Div(id='hidden-div', style={'display': 'none'}),
-        dcc.Interval(
-            id='interval-component',
-            interval=12*3600*1000,  # every 12 hours
-            n_intervals=0
-        )
-        ], fluid=True)
     ], style={'width': '100%'})
 
 ##############################
