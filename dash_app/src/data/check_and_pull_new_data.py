@@ -1,6 +1,8 @@
 import pandas as pd
 #from dotenv import load_dotenv
 #import os
+
+import subprocess
 import pandas as pd
 from sqlalchemy import create_engine
 
@@ -88,12 +90,14 @@ def check_and_save_new_data(engine,
     print(f"max date in predictions: {max_date_preds}")
 
     df_new_weekly, df_new_predictions = check_and_fetch_new_data(max_date_historical, max_date_preds, engine)
+    restart_required = False  # Flag to check if restart is needed
 
     if not df_new_weekly.empty:
         df_historical = pd.read_parquet(filepath_historical)
         df_updated_historical = pd.concat([df_historical, df_new_weekly], ignore_index=True)
         df_updated_historical.to_parquet(filepath_historical)
         print("Historical data updated.")
+        restart_required = True
     else:
         print("No new weekly data.")
     
@@ -102,9 +106,14 @@ def check_and_save_new_data(engine,
         df_updated_predictions = pd.concat([df_predictions, df_new_predictions], ignore_index=True)
         df_updated_predictions.to_parquet(filepath_predictions)
         print("Predictions data updated.")
+        restart_required = True
     else:
         print("No new predictions data.")
 
+    if restart_required:
+        print("Restarting Dash app")
+        subprocess.run(["sudo", "systemctl", "restart", "dashapp"])
+        print("Dash app restarted successfully.")
 
 check_and_save_new_data(engine,
     filepath_historical="/home/ec2-user/dash_app/NNDSS/dash_app/data/df_historical.parquet",
