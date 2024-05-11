@@ -63,7 +63,7 @@ def check_and_fetch_new_data(max_date_historical, max_date_preds, engine):
     df_new_weekly = pd.read_sql(query_weekly_new_data, engine)
     df_new_predictions = pd.read_sql(query_predictions_new_data, engine)
     df_new_predictions.rename(columns={"prediction_for_date":"date"},inplace=True)
-
+    
     return df_new_weekly, df_new_predictions
 
 
@@ -86,13 +86,14 @@ def check_and_save_new_data(engine,
     print(f"Current timestamp: {pd.Timestamp.now()}")
     max_date_historical, max_date_preds = get_max_dates(filepath_historical, filepath_predictions)
     
-    print(f"max date in historical: {max_date_historical}")
-    print(f"max date in predictions: {max_date_preds}")
+    print(f"max date in local historical data: {max_date_historical}")
+    print(f"max date in local prediction data: {max_date_preds}")
 
     df_new_weekly, df_new_predictions = check_and_fetch_new_data(max_date_historical, max_date_preds, engine)
     restart_required = False  # Flag to check if restart is needed
 
     if not df_new_weekly.empty:
+        print(f"max date in s3 historical: {df_new_weekly.date.max()}")
         df_historical = pd.read_parquet(filepath_historical)
         df_updated_historical = pd.concat([df_historical, df_new_weekly], ignore_index=True)
         df_updated_historical.to_parquet(filepath_historical)
@@ -102,6 +103,8 @@ def check_and_save_new_data(engine,
         print("No new weekly data.")
     
     if not df_new_predictions.empty:
+
+        print(f"max date in s3 predictions: {df_new_predictions.date.max()}")
         df_predictions = pd.read_parquet(filepath_predictions)
         df_updated_predictions = pd.concat([df_predictions, df_new_predictions], ignore_index=True)
         df_updated_predictions.to_parquet(filepath_predictions)
