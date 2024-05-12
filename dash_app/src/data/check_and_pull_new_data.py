@@ -51,15 +51,15 @@ def check_and_fetch_new_data(max_date_historical, max_date_preds, engine):
     SELECT * FROM cdc_nndss.weekly
     WHERE date > TIMESTAMP '{max_date_historical}'
     """
-    # Execute the queries and fetch results into pandas DataFrames using the engine
     df_new_weekly = pd.read_sql(query_weekly_new_data, engine)
-    new_historical_date = df_new_weekly['date'].max()
     
     # Construct the SQL query for new predictions data up to the max date of the weekly data
+    if not df_new_weekly.empty:
+        max_date_historical = df_new_weekly['date'].max()
     query_predictions_new_data = f"""
     SELECT * FROM cdc_nndss.predictions
     WHERE prediction_for_date > TIMESTAMP '{max_date_preds}'
-      AND prediction_for_date <= TIMESTAMP '{new_historical_date}'
+      AND prediction_for_date <= TIMESTAMP '{max_date_historical}'
     """
     df_new_predictions = pd.read_sql(query_predictions_new_data, engine)
     df_new_predictions.rename(columns={"prediction_for_date":"date"},inplace=True)
