@@ -51,16 +51,16 @@ def check_and_fetch_new_data(max_date_historical, max_date_preds, engine):
     SELECT * FROM cdc_nndss.weekly
     WHERE date > TIMESTAMP '{max_date_historical}'
     """
+    # Execute the queries and fetch results into pandas DataFrames using the engine
+    df_new_weekly = pd.read_sql(query_weekly_new_data, engine)
+    new_historical_date = df_new_weekly['date'].max()
     
     # Construct the SQL query for new predictions data up to the max date of the weekly data
     query_predictions_new_data = f"""
     SELECT * FROM cdc_nndss.predictions
     WHERE prediction_for_date > TIMESTAMP '{max_date_preds}'
-      AND prediction_for_date <= TIMESTAMP '{max_date_historical}'
+      AND prediction_for_date <= TIMESTAMP '{new_historical_date}'
     """
-
-    # Execute the queries and fetch results into pandas DataFrames using the engine
-    df_new_weekly = pd.read_sql(query_weekly_new_data, engine)
     df_new_predictions = pd.read_sql(query_predictions_new_data, engine)
     df_new_predictions.rename(columns={"prediction_for_date":"date"},inplace=True)
     
@@ -73,8 +73,8 @@ def get_max_dates(filepath_historical="/home/ec2-user/dash_app/NNDSS/dash_app/da
     df_historical = pd.read_parquet(filepath_historical, columns=['date'])
     df_preds_all = pd.read_parquet(filepath_predictions, columns=['date'])
 
-    max_date_historical = df_historical.date.max()
-    max_date_preds = df_preds_all.date.max()
+    max_date_historical = df_historical['date'].max()
+    max_date_preds = df_preds_all['date'].max()
 
     return max_date_historical, max_date_preds
 
