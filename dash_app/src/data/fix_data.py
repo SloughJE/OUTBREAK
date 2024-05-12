@@ -20,3 +20,5 @@ def remove_dates_in_data(filepath_historical="/home/ec2-user/dash_app/NNDSS/dash
     print(f"saved data to {filepath_predictions}")
 
     
+remove_dates_in_data(filepath_historical="/home/ec2-user/dash_app/NNDSS/dash_app/data/df_historical.parquet",
+                  filepath_predictions="/home/ec2-user/dash_app/NNDSS/dash_app/data/df_predictions.parquet")
