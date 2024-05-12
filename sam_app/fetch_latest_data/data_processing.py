@@ -110,3 +110,67 @@ def read_all_parquets_from_s3(s3_client, bucket_name, prefix):
     else:
         return pd.DataFrame()
         
+
+def align_data_types(base_df, target_df):
+    for column in target_df.columns:
+        if column in base_df.columns:  # Ensure the column exists in both DataFrames
+            target_df[column] = target_df[column].astype(base_df[column].dtype)
+    return target_df
+
+
+def save_missing_week_to_s3(s3_client, df, bucket_name, bucket_folder):
+
+    file_date = df.date.max().strftime('%Y-%m-%d')
+    # Convert DataFrame to Parquet and upload to S3
+
+    file_key = f"{bucket_folder}/weekly_actuals_{file_date}.parquet"
+
+    # Use a buffer for the Parquet file
+    buffer = BytesIO()
+    df.to_parquet(buffer, index=False)
+    buffer.seek(0)
+    s3_client.put_object(Bucket=bucket_name, Key=file_key, Body=buffer.getvalue())
+    print(f"Saving skipped week for date {file_date} to s3")
+
+
+def fill_missing_weeks(s3_client, df, bucket_name, bucket_folder):
+
+    # CDC API seems to sometimes skip weeks. We deal with that here
+    df = df.sort_values(by='date')
+
+    while True:
+
+        unique_dates = df['date'].unique()
+        unique_dates = sorted(unique_dates)  # Sort the dates
+        
+        gap = unique_dates[-1] - unique_dates[-2]
+
+        if gap > pd.Timedelta(days=7):
+            
+            max_date_df = df[df['date'] == unique_dates[-1]].copy()
+            second_last_date_df = df[df['date'] == unique_dates[-2]].copy()
+            
+            # Create a new dataframe for missing weeks by concatenating max and second last date dataframes
+            missing_weeks_df = pd.concat([max_date_df, second_last_date_df])
+            missing_weeks_df = missing_weeks_df.drop_duplicates(subset=['item_id'], keep='last')
+
+            weeks_to_fill = gap.days // 7
+            print(weeks_to_fill)
+            # Generate skipped weeks
+            for i in range(1, weeks_to_fill):
+                temp_df = missing_weeks_df.copy()
+                print(f"filling data with NaN for skipped week: {(unique_dates[-2] + pd.Timedelta(weeks=i)).strftime('%Y-%m-%d')}")
+                temp_df['date'] = unique_dates[-2] + pd.Timedelta(weeks=i)
+                temp_df['week'] = second_last_date_df['week'].iloc[0] + i
+                temp_df['new_cases'] = np.nan
+                temp_df = align_data_types(df, temp_df)
+                # save skipped week to s3
+                save_missing_week_to_s3(s3_client, temp_df, bucket_name, bucket_folder)
+
+                df = pd.concat([df, temp_df], ignore_index=True)
+
+            df = df.sort_values(['item_id','date'])
+        else:
+            break
+
+    return df

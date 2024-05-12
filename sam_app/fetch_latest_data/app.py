@@ -7,7 +7,7 @@ import pandas as pd
 from io import BytesIO
 from botocore.exceptions import ClientError
 
-from data_processing import align_data_schema, process_dataframe_deepar, read_all_parquets_from_s3
+from data_processing import align_data_schema, process_dataframe_deepar, read_all_parquets_from_s3, fill_missing_weeks
 from model_training import trigger_sagemaker_training
 
 
@@ -105,6 +105,7 @@ def lambda_handler(event, context):
 
         # Convert JSON to DataFrame
         df = pd.DataFrame(latest_week_data)
+
         df = align_data_schema(df)
         file_date = df.date.max().strftime('%Y-%m-%d')
         # Convert DataFrame to Parquet and upload to S3
@@ -118,6 +119,7 @@ def lambda_handler(event, context):
         s3.put_object(Bucket=bucket_name, Key=file_key, Body=buffer.getvalue())
         print(f"Parquet file for the most recent week of year {api_latest_year}, week {api_latest_week} saved to S3")
 
+
         # now we create the DeepAR training data with this new data included
         print("creating DeepAR input data ")
         s3_client = boto3.client('s3')
@@ -125,6 +127,12 @@ def lambda_handler(event, context):
         print("df heads and tails")
         print(df.head(2))
         print(df.tail(2))
+        # check for skipped weeks
+        df = fill_missing_weeks(s3_client, df, bucket_name, bucket_folder)
+
+        # remove the last week of data for training, so that we make predictions for the current (latest) week of data
+        df = df[df['date'] < df['date'].max()]
+
         json_lines_str, mapping_str, label_to_int_str, cardinality = process_dataframe_deepar(df)
         transformed_key = 'deepar_input_data/deepar_dataset.jsonl'
         s3.put_object(Bucket=bucket_name, Key=transformed_key, Body=json_lines_str)
