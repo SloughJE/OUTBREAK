@@ -102,7 +102,7 @@ def lambda_handler(event, context):
         latest_week_data, error = fetch_api_data(week_data_query_url)
         if error:
             return {'statusCode': 500, 'body': json.dumps(error)}
-
+        print(f"New data for week {api_latest_week}, year {api_latest_year}")
         # Convert JSON to DataFrame
         df = pd.DataFrame(latest_week_data)
 
