@@ -104,7 +104,6 @@ app.index_string = f"""
 
 app.layout = html.Div([
     dcc.Store(id='shared-dropdown-value'),
-    dcc.Location(id='url', refresh=False),
 
     html.Div([
         html.Div(children=[
