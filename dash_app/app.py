@@ -66,9 +66,19 @@ df_latest = df_latest.sort_values(['date', 'item_id'])
 
 
 #######################################################
+# add G analytics tracking
+GA_MEASUREMENT_ID = 'G-FCN8R7FYVK'
 
 app.layout = html.Div([ 
 
+  # Google Analytics script
+    html.Script(src=f"https://www.googletagmanager.com/gtag/js?id=G-FCN8R7FYVK", **{'async': 'async'}),
+    html.Script(children="""
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-FCN8R7FYVK');
+    """),
 
     dcc.Store(id='shared-dropdown-value'),
 
