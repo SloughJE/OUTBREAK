@@ -69,56 +69,81 @@ df_latest = df_latest.sort_values(['date', 'item_id'])
 # add G analytics tracking
 GA_MEASUREMENT_ID = 'G-FCN8R7FYVK'
 
-app.layout = html.Div([ 
+# Modify the index_string to include Google Analytics script and required placeholders
+app.index_string = f"""
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>My Dash App</title>
+        <!-- Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id={GA_MEASUREMENT_ID}"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){{dataLayer.push(arguments);}}
+            gtag('js', new Date());
+            gtag('config', '{GA_MEASUREMENT_ID}');
+        </script>
+        <!-- End Google Analytics -->
+        {{%metas%}}
+        {{%favicon%}}
+        {{%css%}}
+    </head>
+    <body>
+        <div id="react-entry-point">
+            {{%app_entry%}}
+        </div>
+        <footer>
+            {{%config%}}
+            {{%scripts%}}
+            {{%renderer%}}
+        </footer>
+    </body>
+</html>
+"""
 
-  # Google Analytics script
-    html.Script(src=f"https://www.googletagmanager.com/gtag/js?id=G-FCN8R7FYVK", **{'async': 'async'}),
-    html.Script(children="""
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-FCN8R7FYVK');
-    """),
-
+app.layout = html.Div([
     dcc.Store(id='shared-dropdown-value'),
+    dcc.Location(id='url', refresh=False),
 
     html.Div([
         html.Div(children=[
             html.H1("OUTBREAK!", style={
-            'color': 'black',  
-            'fontSize': 'clamp(56px, 8vw, 100px)',
-            'textAlign': 'center',
-            'marginTop': '20px',
-            'textShadow': '''
-             0 0 5px #B22222, 
-            0 0 10px #B22222, 
-            0 0 15px #B22222, 
-            0 0 20px #B22222, 
-            0 0 25px #B22222, 
-            0 0 30px #B22222''',  
-            'fontWeight': 'bold',
-            'backgroundColor': 'black',  
-            'display': 'inline-block',  
-            'padding': '10px',  
-            'borderRadius': '50px' 
-                }),
-            ], style={'textAlign': 'center', 'width': '100%', 'marginTop': '0px','backgroundColor':'black'}),
+                'color': 'black',
+                'fontSize': 'clamp(56px, 8vw, 100px)',
+                'textAlign': 'center',
+                'marginTop': '20px',
+                'textShadow': '''
+                0 0 5px #B22222,
+                0 0 10px #B22222,
+                0 0 15px #B22222,
+                0 0 20px #B22222,
+                0 0 25px #B22222,
+                0 0 30px #B22222''',
+                'fontWeight': 'bold',
+                'backgroundColor': 'black',
+                'display': 'inline-block',
+                'padding': '10px',
+                'borderRadius': '50px'
+            }),
+        ], style={'textAlign': 'center', 'width': '100%', 'marginTop': '0px', 'backgroundColor': 'black'}),
         html.Div("Automatic Weekly Identification of Potential Outbreaks of CDC Nationally Notifiable Diseases", className='main-subtitle',
-                     style={'justifyContent': 'center','color':'white',
-                            'fontSize':'26px', 'color': '#F08080',
-                            'alignItems': 'center','textAlign':'center', 'paddingBottom':'20px',
-                                        'backgroundColor': 'black'}),
-            
+                 style={'justifyContent': 'center', 'color': 'white',
+                        'fontSize': '26px', 'color': '#F08080',
+                        'alignItems': 'center', 'textAlign': 'center', 'paddingBottom': '20px',
+                        'backgroundColor': 'black'}),
+
         dcc.Tabs(id="tabs", value='tab-1', className='tab-container', children=[
             dcc.Tab(label='Latest Week Summary', value='tab-1', className='custom-tab', selected_className='custom-tab-active', children=summary_tab_layout()),
-            dcc.Tab(label='Outbreaks Profiles', value='tab-4', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_type_counts_tab_layout()),
+            dcc.Tab(label='Outbreaks Profiles', value='tab-4', className='custom-tab', selected_className='custom-tab-active', children=outbreaks_type_counts_tab_layout()),
             dcc.Tab(label='Disease History', value='tab-2', className='custom-tab', selected_className='custom-tab-active', children=details_tab_layout()),
-            dcc.Tab(label='Outbreaks History', value='tab-3', className='custom-tab', selected_className='custom-tab-active',children=outbreaks_history_tab_layout()),
-            dcc.Tab(label='About', value='tab-5', className='custom-tab', selected_className='custom-tab-active',children=info_view_tab_layout()),
-        ], style={'position': 'sticky', 'top': '0', 'zIndex': '1000','width': '100%', 'display': 'block'}),
+            dcc.Tab(label='Outbreaks History', value='tab-3', className='custom-tab', selected_className='custom-tab-active', children=outbreaks_history_tab_layout()),
+            dcc.Tab(label='About', value='tab-5', className='custom-tab', selected_className='custom-tab-active', children=info_view_tab_layout()),
+        ], style={'position': 'sticky', 'top': '0', 'zIndex': '1000', 'width': '100%', 'display': 'block'}),
     ], className='full-width')
 
-    ], style={'width': '100%'})
+], style={'width': '100%'})
+
 
 ##############################
 ##### CALLBACKS###############
