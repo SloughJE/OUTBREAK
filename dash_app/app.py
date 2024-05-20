@@ -75,7 +75,7 @@ app.index_string = f"""
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>My Dash App</title>
+        <title>Outbreak!</title>
         <!-- Google Analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id={GA_MEASUREMENT_ID}"></script>
         <script>
