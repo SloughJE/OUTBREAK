@@ -424,9 +424,9 @@ def update_graph(selected_state, label_dropdown, selected_interval):
     df_outbreak = get_outbreaks(df_preds, chosen_interval=selected_interval)
 
     # Retrieve the list of possible states and labels from df_outbreak
-    all_states = sorted(df_outbreak[df_outbreak['potential_outbreak']==True]['state'].unique())
-    all_labels = sorted(df_outbreak[df_outbreak['potential_outbreak']==True]['label'].unique())
-    
+    all_states = sorted(df_outbreak[df_outbreak['potential_outbreak'] == True]['state'].unique())
+    all_labels = sorted(df_outbreak[(df_outbreak['potential_outbreak'] == True) & (df_outbreak['state'] == all_states[0])]['label'].unique()) if all_states else []
+
     # Set default state and label if not selected
     if not selected_state:
         selected_state = all_states[0] if all_states else None
