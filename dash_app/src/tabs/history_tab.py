@@ -44,7 +44,7 @@ def details_tab_layout():
                 options=[
                     {'label': ' Show Outbreaks Only', 'value': 'SHOW_OUTBREAKS'},
                 ],
-                value=[],
+                value=['SHOW_OUTBREAKS'],  # Set the default value here
                 labelStyle={'display': 'block', 'color': 'white', 'fontSize': 22},  
                 style={'textAlign': 'center', 'marginBottom': '20px'}
             ),

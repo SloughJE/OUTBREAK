@@ -420,16 +420,26 @@ def update_kpi(selected_interval):
 )
 def update_graph(selected_state, label_dropdown, selected_interval):
 
-    if selected_state and label_dropdown and selected_interval is not None:
+    # Retrieve the outbreak data based on the selected interval
+    df_outbreak = get_outbreaks(df_preds, chosen_interval=selected_interval)
 
-        df_outbreak = get_outbreaks(df_preds, chosen_interval=selected_interval)
+    # Retrieve the list of possible states and labels from df_outbreak
+    all_states = sorted(df_outbreak['state'].unique())
+    all_labels = sorted(df_outbreak['label'].unique())
+    
+    # Set default state and label if not selected
+    if not selected_state:
+        selected_state = all_states[0] if all_states else None
+    if not label_dropdown:
+        label_dropdown = all_labels[0] if all_labels else None
+
+    if selected_state and label_dropdown and selected_interval is not None:
 
         df_historical_filtered = df_historical[(df_historical['state'] == selected_state) & (df_historical['label'] == label_dropdown)]
         df_latest_filtered = df_outbreak[(df_outbreak['state'] == selected_state) & (df_outbreak['label'] == label_dropdown) & (df_outbreak.new_cases.notna())]
         df_preds_filtered = df_outbreak[(df_outbreak['state'] == selected_state) & (df_outbreak['label'] == label_dropdown)]
 
         fig = plot_outbreak(df_historical_filtered, df_latest_filtered, df_preds_filtered, selected_state, label_dropdown)
-
     else:
         fig = go.Figure(layout_template="plotly_dark")
     
@@ -437,7 +447,6 @@ def update_graph(selected_state, label_dropdown, selected_interval):
     details = disease_details.get(disease_group, {})
 
     if details:  
-
         if (label_dropdown == "Q fever, Total" and selected_state == "PENNSYLVANIA"):
             transmission_type_content = [
                 html.H4(f"Transmission Type: {', '.join(details.get('transmission', ['N/A']))}", style={'color': '#7FDBFF'}),
