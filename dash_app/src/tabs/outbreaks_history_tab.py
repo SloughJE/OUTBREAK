@@ -74,7 +74,7 @@ def outbreaks_history_tab_layout():
             ),
 
 
-            dcc.Graph(id='outbreak_history_potential_resolved',style={**common_div_style,'padding': '20px'},responsive=True),
+            dcc.Graph(id='outbreak_history_potential_resolved',style={**common_div_style,'padding': '20px'}),
 
             dcc.Checklist(
                 id='show_cumulative_toggle',
@@ -85,7 +85,7 @@ def outbreaks_history_tab_layout():
                 labelStyle={'display': 'block', 'color': 'white', 'fontSize': 22},  
                 style={'textAlign': 'center', 'marginBottom': '20px'}
             ),
-            dcc.Graph(id='outbreak_history_ongoing',style={**common_div_style,'padding': '20px'},responsive=True),
+            dcc.Graph(id='outbreak_history_ongoing',style={**common_div_style,'padding': '20px'}),
     
 
 
