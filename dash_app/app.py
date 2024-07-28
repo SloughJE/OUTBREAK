@@ -427,11 +427,12 @@ def update_graph(selected_state, label_dropdown, selected_interval):
     all_states = sorted(df_outbreak[df_outbreak['potential_outbreak'] == True]['state'].unique())
     all_labels = sorted(df_outbreak[(df_outbreak['potential_outbreak'] == True) & (df_outbreak['state'] == all_states[0])]['label'].unique()) if all_states else []
 
-    # Set default state and label if not selected
     if not selected_state:
         selected_state = all_states[0] if all_states else None
-    if not label_dropdown:
+    if not label_dropdown and selected_state:
+        all_labels = sorted(df_outbreak[(df_outbreak['potential_outbreak'] == True) & (df_outbreak['state'] == selected_state)]['label'].unique())
         label_dropdown = all_labels[0] if all_labels else None
+
 
     if selected_state and label_dropdown and selected_interval is not None:
 
