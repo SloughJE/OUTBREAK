@@ -408,15 +408,16 @@ def update_kpi(selected_interval):
 
 ###### DISEASE HISTORY TAB CALLBACK
 @app.callback(
-    [Output('graph', 'figure'),
-     Output('disease-info', 'children'),
-     Output('state-dropdown', 'value'),
-     Output('label-dropdown', 'value')],
-    [Input('state-dropdown', 'value'),
-     Input('label-dropdown', 'value'),
-     Input('interval-dropdown', 'value')]
+    [
+        Output('outbreak_graph', 'figure'),
+        Output('disease_info_display', 'children')
+    ],
+    [
+        Input('state_dropdown', 'value'),
+        Input('label_dropdown', 'value'),
+        Input('interval_dropdown_detail', 'value')
+        ]  
 )
-
 def update_graph(selected_state, label_dropdown, selected_interval):
 
     # Retrieve the outbreak data based on the selected interval
@@ -467,7 +468,7 @@ def update_graph(selected_state, label_dropdown, selected_interval):
     else:
         disease_html = html.H4("")
     
-    return fig, disease_html, selected_state, label_dropdown
+    return fig, disease_html
 
 
 ###### OUTBREAK HISTORY TAB CALLBACK
