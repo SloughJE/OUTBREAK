@@ -496,17 +496,21 @@ def update_outbreak_history_graph(selected_states, show_cumulative_toggle, selec
     df_weekly_potential = agg_outbreak_counts(df_outbreak_history_filt,  condition='potential_outbreak')
     df_weekly_ongoing = agg_outbreak_counts(df_outbreak_history_filt,  condition='ongoing_outbreaks')
 
+    fig_potential_resolved = plot_time_series(df_weekly_potential, title="Potential vs Resolved Outbreaks", 
+                display_col='count', primary_name = 'Potential', primary_color='#DE2D26', df_secondary=df_weekly_resolved, 
+                secondary_display_col='count', secondary_name='Resolved',min_date=df_weekly_potential.date.min())
+        
     if "cumulative" in show_cumulative_toggle:
-        fig_potential_resolved = plot_time_series(df_weekly_potential, title="Cumulative Potential vs Resolved Outbreaks", 
-                        display_col='cumulative_count', primary_name = 'Potential', primary_color='#DE2D26', df_secondary=df_weekly_resolved, 
-                        secondary_display_col='cumulative_count', secondary_name='Resolved',min_date=df_weekly_potential.date.min())
+        #fig_potential_resolved = plot_time_series(df_weekly_potential, title="Cumulative Potential vs Resolved Outbreaks", 
+        #                display_col='cumulative_count', primary_name = 'Potential', primary_color='#DE2D26', df_secondary=df_weekly_resolved, 
+        #                secondary_display_col='cumulative_count', secondary_name='Resolved',min_date=df_weekly_potential.date.min())
         
         fig_ongoing = plot_time_series(df_weekly_ongoing, title="Cumulative Ongoing Potential Outbreaks", 
                         display_col='cumulative_count', primary_name = 'Ongoing', primary_color='#A50A0A', min_date=df_weekly_potential.date.min())
     else:
-        fig_potential_resolved = plot_time_series(df_weekly_potential, title="Potential vs Resolved Outbreaks", 
-                display_col='count', primary_name = 'Potential', primary_color='#DE2D26', df_secondary=df_weekly_resolved, 
-                secondary_display_col='count', secondary_name='Resolved',min_date=df_weekly_potential.date.min())
+        #fig_potential_resolved = plot_time_series(df_weekly_potential, title="Potential vs Resolved Outbreaks", 
+        #        display_col='count', primary_name = 'Potential', primary_color='#DE2D26', df_secondary=df_weekly_resolved, 
+        #        secondary_display_col='count', secondary_name='Resolved',min_date=df_weekly_potential.date.min())
         
         fig_ongoing = plot_time_series(df_weekly_ongoing, title="Ongoing Potential Outbreaks", 
                         display_col='count', primary_name = 'Ongoing', primary_color='#A50A0A', min_date=df_weekly_potential.date.min())

@@ -72,18 +72,19 @@ def outbreaks_history_tab_layout():
                     'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
                 }
             ),
+
+
+            dcc.Graph(id='outbreak_history_potential_resolved',style={**common_div_style,'padding': '20px'},responsive=True),
+
             dcc.Checklist(
                 id='show_cumulative_toggle',
                 options=[
-                    {'label': ' Cumulative Counts', 'value': 'cumulative'},
+                    {'label': ' Show Cumulative Counts', 'value': 'cumulative'},
                 ],
                 value=[],
                 labelStyle={'display': 'block', 'color': 'white', 'fontSize': 22},  
                 style={'textAlign': 'center', 'marginBottom': '20px'}
             ),
-
-
-            dcc.Graph(id='outbreak_history_potential_resolved',style={**common_div_style,'padding': '20px'},responsive=True),
             dcc.Graph(id='outbreak_history_ongoing',style={**common_div_style,'padding': '20px'},responsive=True),
     
 
