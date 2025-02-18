@@ -1,7 +1,25 @@
 import pandas as pd
 import numpy as np
+import requests
 import json
 from io import BytesIO
+
+
+def fetch_api_data(url):
+    response = requests.get(url)
+    if response.status_code != 200:
+        return None, f"Failed to fetch data: {response.status_code}"
+    return response.json(), None
+
+
+def get_current_max_year_week(df):
+    """
+    Return the maximum (year, week) from the given DataFrame
+    by looking at the 'year' and 'week' columns.
+    """
+    max_year = df['year'].max()
+    max_week = df.loc[df['year'] == max_year, 'week'].max()
+    return (max_year, max_week)
 
 
 def align_data_schema(df):
@@ -174,3 +192,85 @@ def fill_missing_weeks(s3_client, df, bucket_name, bucket_folder):
             break
 
     return df
+
+
+def fetch_data_for_week(year, week, app_token):
+    """
+    Fetch a single (year, week) from the CDC NNDSS API and return a DataFrame.
+    If there's no data for that week, returns an empty DataFrame.
+    """
+    import pandas as pd
+    
+    base_url = "https://data.cdc.gov/resource/x9gk-5huc.json"
+    limit = 50000
+    query_url = (
+        f"{base_url}?$$app_token={app_token}"
+        f"&$select=year,week,states,label,m1"
+        f"&$where=year='{year}' AND week='{week}' AND location1 IS NOT NULL"
+        f"&$limit={limit}"
+    )
+    
+    data, error = fetch_api_data(query_url)  
+    if error:
+        raise RuntimeError(f"Failed to fetch data: {error}")
+    
+    if not data:
+        # No records returned for that (year, week).
+        return pd.DataFrame()
+    
+    df = pd.DataFrame(data)
+    df = align_data_schema(df)  # your existing schema alignment
+    return df
+
+
+def backfill_missing_weeks(
+    start_year, 
+    start_week, 
+    end_year, 
+    end_week, 
+    app_token
+):
+    """
+    For all missing (year, week) from (start_year, start_week+1)
+    up to (end_year, end_week), fetch from the CDC using fetch_data_for_week.
+    Return one concatenated DataFrame with all newly fetched data.
+    
+    If there's no data for a particular week, we just get an empty DataFrame for that week.
+    """
+
+    def increment_year_week(y, w):
+        # In real data, you might handle 52 or 53 weeks. For now, assume 52 max:
+        if w >= 52:
+            return (y + 1, 1)
+        else:
+            return (y, w + 1)
+    
+    all_new_dfs = []
+
+    # Start from (start_year, start_week)
+    current_year = start_year
+    current_week = start_week
+
+    # We'll loop until we reach (end_year, end_week)
+    while True:
+        # increment the current (year, week)
+        (current_year, current_week) = increment_year_week(current_year, current_week)
+        
+        # if we've passed the end condition, break
+        if (current_year > end_year) or (
+           current_year == end_year and current_week > end_week):
+            break
+
+        # fetch data for this missing week
+        df_week = fetch_data_for_week(current_year, current_week, app_token)
+        if not df_week.empty:
+            print(f"Fetched {len(df_week)} records for (year={current_year}, week={current_week})")
+            all_new_dfs.append(df_week)
+        else:
+            print(f"No data for (year={current_year}, week={current_week})")
+
+    # Combine all
+    if all_new_dfs:
+        return pd.concat(all_new_dfs, ignore_index=True)
+    else:
+        return pd.DataFrame()

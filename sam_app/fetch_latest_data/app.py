@@ -7,7 +7,8 @@ import pandas as pd
 from io import BytesIO
 from botocore.exceptions import ClientError
 
-from data_processing import align_data_schema, process_dataframe_deepar, read_all_parquets_from_s3, fill_missing_weeks
+from data_processing import (align_data_schema, process_dataframe_deepar, read_all_parquets_from_s3, 
+                             get_current_max_year_week, fill_missing_weeks, backfill_missing_weeks)
 from model_training import trigger_sagemaker_training
 
 
@@ -22,17 +23,47 @@ def get_secret():
     except ClientError as e:
         raise e
 
-def get_latest_file_from_s3(bucket, folder):
-    s3 = boto3.client('s3')
-    paginator = s3.get_paginator('list_objects_v2')
-    latest_file = None
-    latest_date = None
-    for page in paginator.paginate(Bucket=bucket, Prefix=folder):
-        for obj in page.get('Contents', []):
-            if obj['Key'].endswith('.parquet') and (not latest_date or obj['LastModified'] > latest_date):
-                latest_date = obj['LastModified']
-                latest_file = obj['Key']
-    return latest_file
+
+def fetch_data_for_week(year, week, app_token):
+    """
+    Fetch a single (year, week) from the CDC NNDSS API and return a DataFrame.
+    If there's no data for that week, returns an empty DataFrame.
+    """
+    import pandas as pd
+    
+    base_url = "https://data.cdc.gov/resource/x9gk-5huc.json"
+    limit = 50000
+    query_url = (
+        f"{base_url}?$$app_token={app_token}"
+        f"&$select=year,week,states,label,m1"
+        f"&$where=year='{year}' AND week='{week}' AND location1 IS NOT NULL"
+        f"&$limit={limit}"
+    )
+    
+    data, error = fetch_api_data(query_url)  # Re-use your existing fetch_api_data
+    if error:
+        raise RuntimeError(f"Failed to fetch data: {error}")
+    
+    if not data:
+        # No records returned for that (year, week).
+        return pd.DataFrame()
+    
+    df = pd.DataFrame(data)
+    df = align_data_schema(df)  # your existing schema alignment
+    return df
+
+
+#def get_latest_file_from_s3(bucket, folder):
+#    s3 = boto3.client('s3')
+#    paginator = s3.get_paginator('list_objects_v2')
+#    latest_file = None
+#    latest_date = None
+#    for page in paginator.paginate(Bucket=bucket, Prefix=folder):
+#        for obj in page.get('Contents', []):
+#            if obj['Key'].endswith('.parquet') and (not latest_date or obj['LastModified'] > latest_date):
+#                latest_date = obj['LastModified']
+#                latest_file = obj['Key']
+#    return latest_file
 
 def get_latest_data_from_parquet(bucket, file_key):
     s3_resource = boto3.resource('s3')
@@ -76,48 +107,76 @@ def lambda_handler(event, context):
     bucket_name = "nndss"
     bucket_folder = "weekly"
     base_url = "https://data.cdc.gov/resource/x9gk-5huc.json"
-    limit = 50000
 
-    latest_file_key = get_latest_file_from_s3(bucket_name, bucket_folder)
-    if not latest_file_key:
-        print('Failed to fetch latest file from S3')
-        return {'statusCode': 500, 'body': json.dumps('Failed to fetch latest file from S3')}
+    # 1) Read ALL Parquets from S3
+    s3_client = boto3.client('s3')
+    df_all = read_all_parquets_from_s3(s3_client, bucket_name, bucket_folder)
+    if df_all.empty:
+        print("No existing data found in S3. We'll treat this as having year=0, week=0.")
+        latest_year_in_s3, latest_week_in_s3 = (0, 0)
+    else:
+        # 2) Find the maximum (year, week) in the entire DataFrame
+        latest_year_in_s3, latest_week_in_s3 = get_current_max_year_week(df_all)
+    print(f"Current data in S3 goes up to year={latest_year_in_s3}, week={latest_week_in_s3}")
 
-    latest_year, latest_week = get_latest_data_from_parquet(bucket_name, latest_file_key)
-    query_url = f"{base_url}?$$app_token={nndss_app_token}&$select=year,week&$where=location1 IS NOT NULL&$order=year DESC, week DESC&$limit=1"
+    # 3) Query the CDC API for the absolute newest (year, week) they have
+    query_url = (
+        f"{base_url}?$$app_token={nndss_app_token}"
+        "&$select=year,week&$where=location1 IS NOT NULL"
+        "&$order=year DESC, week DESC&$limit=1"
+    )
     latest_record, error = fetch_api_data(query_url)
     if error:
         print(f"Error: {error}")
         return {'statusCode': 500, 'body': json.dumps(error)}
 
     if not latest_record:
-        print("No latest record in s3 found")
+        print("No latest record from CDC.")
         return {'statusCode': 200, 'body': json.dumps("No recent data found.")}
 
+    # CDC's latest year/week
     api_latest_year = int(latest_record[0]['year'])
     api_latest_week = int(latest_record[0]['week'])
 
-    if (api_latest_year > latest_year) or (api_latest_year == latest_year and api_latest_week > latest_week):
-        week_data_query_url = f"{base_url}?$$app_token={nndss_app_token}&$select=year,week,states,label,m1&$where=year='{api_latest_year}' AND week='{api_latest_week}' AND location1 IS NOT NULL&$limit={limit}"
-        latest_week_data, error = fetch_api_data(week_data_query_url)
-        if error:
-            return {'statusCode': 500, 'body': json.dumps(error)}
-        print(f"New data for week {api_latest_week}, year {api_latest_year}")
-        # Convert JSON to DataFrame
-        df = pd.DataFrame(latest_week_data)
+    ########
+    # 4) Compare new vs. S3
+    if (api_latest_year > latest_year_in_s3) or (
+        api_latest_year == latest_year_in_s3 and api_latest_week > latest_week_in_s3
+    ):
+        print(
+            f"CDC data goes up to year={api_latest_year}, week={api_latest_week}, "
+            f"while S3 has year={latest_year_in_s3}, week={latest_week_in_s3}."
+        )
+        print("Backfilling all missing weeks now...")
 
-        df = align_data_schema(df)
-        file_date = df.date.max().strftime('%Y-%m-%d')
-        # Convert DataFrame to Parquet and upload to S3
-        s3 = boto3.client('s3')
-        file_key = f"{bucket_folder}/weekly_actuals_{file_date}.parquet"
-        
-        # Use a buffer for the Parquet file
-        buffer = BytesIO()
-        df.to_parquet(buffer, index=False)
-        buffer.seek(0)
-        s3.put_object(Bucket=bucket_name, Key=file_key, Body=buffer.getvalue())
-        print(f"Parquet file for the most recent week of year {api_latest_year}, week {api_latest_week} saved to S3")
+        df_new = backfill_missing_weeks(
+            start_year=latest_year_in_s3,
+            start_week=latest_week_in_s3,
+            end_year=api_latest_year,
+            end_week=api_latest_week,
+            app_token=nndss_app_token
+        )
+
+        if df_new.empty:
+            print("No data returned for missing weeks. Possibly no data from CDC.")
+            return {
+                'statusCode': 200,
+                'body': json.dumps("No new data. CDC returned no records.")
+            }
+        else:
+            print(f"Backfilled {len(df_new)} total rows from CDC for all missing weeks.")
+            # Merge with existing df_all
+            df_all = pd.concat([df_all, df_new], ignore_index=True)
+
+            # Save the newly fetched data to S3 in one Parquet file --
+            file_date = df_new['date'].max().strftime('%Y-%m-%d')
+            file_key = f"{bucket_folder}/weekly_actuals_{file_date}.parquet"
+            print(f"Saving merged backfill data to S3 -> {file_key}")
+
+            buffer = BytesIO()
+            df_new.to_parquet(buffer, index=False)
+            buffer.seek(0)
+            s3_client.put_object(Bucket=bucket_name, Key=file_key, Body=buffer.getvalue())
 
 
         # now we create the DeepAR training data with this new data included
@@ -132,7 +191,8 @@ def lambda_handler(event, context):
 
         # remove the last week of data for training, so that we make predictions for the current (latest) week of data
         df = df[df['date'] < df['date'].max()]
-
+        
+        s3 = boto3.client('s3')
         json_lines_str, mapping_str, label_to_int_str, cardinality = process_dataframe_deepar(df)
         transformed_key = 'deepar_input_data/deepar_dataset.jsonl'
         s3.put_object(Bucket=bucket_name, Key=transformed_key, Body=json_lines_str)
