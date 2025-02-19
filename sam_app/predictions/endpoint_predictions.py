@@ -250,8 +250,8 @@ def create_pred_df(prediction, bucket_name, deepar_training, ts_mapping_file_key
 def create_pred_endpoint_predict_save(training_job_name):
 
     my_config = Config(
-        read_timeout=600,   # e.g. wait up to 300s
-        connect_timeout=120, # e.g. 60s to connect
+        read_timeout=600,   # 10 minutes
+        connect_timeout=120,
         retries={"max_attempts": 0}
     )
 
@@ -263,30 +263,51 @@ def create_pred_endpoint_predict_save(training_job_name):
     bucket_name = 'nndss'
     key = 'deepar_input_data/deepar_dataset.jsonl'
 
-    # Load the training data
+    # 1) Load the entire training data
     deepar_training = load_deepar_training_data(bucket_name, key)
-    #model_data_url = 's3://nndss/deepar/output/deepar-training-job-2024-04-15-22-21-37/output/model.tar.gz'
 
+    # 2) Deploy the model as before
     model_data_url = f"s3://{bucket_name}/deepar/output/{training_job_name}/output/model.tar.gz"
-    endpoint_name = deploy_model_with_boto3(sagemaker_client, model_data_url, role)
-
-    # Wait for the endpoint to be fully in service
+    endpoint_name = deploy_model_with_boto3(sagemaker_client, model_data_url, role, instance_type='ml.m4.2xlarge')
     wait_for_endpoint_to_be_in_service(sagemaker_client, endpoint_name)
 
-    predictor_input = {
-        "instances": deepar_training,  
-        "configuration": {
-            "num_samples": 50,
-            "output_types": ["mean", "quantiles"],
-            "quantiles": [
-                "0.001", "0.999", "0.01", "0.99", "0.03", "0.97", "0.05", "0.95", "0.1", "0.9", "0.2", "0.8", "0.5"
-            ]
+    # We'll break the "instances" into multiple chunks so each real-time inference call is smaller.
+    BATCH_SIZE = 200   # or whatever chunk size you want
+    aggregated_predictions = []  # we'll store the partial results here
+
+    # 3) Loop over the data in chunks
+    for start_idx in range(0, len(deepar_training), BATCH_SIZE):
+        end_idx = start_idx + BATCH_SIZE
+        chunk = deepar_training[start_idx:end_idx]
+
+        # Build a chunk-level input payload
+        predictor_input = {
+            "instances": chunk,
+            "configuration": {
+                "num_samples": 50,
+                "output_types": ["mean", "quantiles"],
+                "quantiles": [
+                    "0.001", "0.999", "0.01", "0.99", "0.03", "0.97", "0.05", "0.95",
+                    "0.1", "0.9", "0.2", "0.8", "0.5"
+                ]
+            }
         }
-    }
 
-    prediction = predict_with_boto3(sagemaker_runtime_client, endpoint_name, predictor_input)
-    prediction = json.loads(prediction)
+        # 4) Invoke the endpoint on this chunk
+        chunk_prediction_str = predict_with_boto3(sagemaker_runtime_client, endpoint_name, predictor_input)
+        chunk_prediction = json.loads(chunk_prediction_str)
+
+        # chunk_prediction is a dict like {"predictions": [...pred objects...]}
+        # We'll accumulate them in aggregated_predictions
+        aggregated_predictions.extend(chunk_prediction["predictions"])
+
+    # 5) Now we have a single list of predictions in the original order
+    # Construct a final dict so create_pred_df can read it
+    final_prediction = {"predictions": aggregated_predictions}
+
+    # 6) Delete the endpoint
     delete_sagemaker_endpoint(sagemaker_client, endpoint_name)
-    
-    create_pred_df(prediction, bucket_name, deepar_training, ts_mapping_file_key='deepar_input_data/time_series_mapping_with_labels.json')
 
+    # 7) Call create_pred_df with the combined predictions
+    create_pred_df(final_prediction, bucket_name, deepar_training,
+                   ts_mapping_file_key='deepar_input_data/time_series_mapping_with_labels.json')
