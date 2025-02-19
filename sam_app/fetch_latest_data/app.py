@@ -193,17 +193,27 @@ def lambda_handler(event, context):
         df = df[df['date'] < df['date'].max()]
         
         s3 = boto3.client('s3')
-        json_lines_str, mapping_str, label_to_int_str, cardinality = process_dataframe_deepar(df)
+        json_lines_str, time_series_mapping_json, state_map_json, disease_map_json, cardinality = process_dataframe_deepar(df)
+
+        # json_lines_str, mapping_str, label_to_int_str, cardinality = process_dataframe_deepar(df)
         transformed_key = 'deepar_input_data/deepar_dataset.jsonl'
         s3.put_object(Bucket=bucket_name, Key=transformed_key, Body=json_lines_str)
         print("Data processed and saved to 'deepar_input_data/deepar_dataset.jsonl'")
+
         mapping_key = 'deepar_input_data/time_series_mapping_with_labels.json'
-        s3.put_object(Bucket=bucket_name, Key=mapping_key, Body=mapping_str)
+        s3.put_object(Bucket=bucket_name, Key=mapping_key, Body=time_series_mapping_json)
         print(f"Mapping file saved to s3://{bucket_name}/{mapping_key}")
+
         label_to_int_key = 'deepar_input_data/label_to_int_mapping.json'
-        s3.put_object(Bucket=bucket_name, Key=label_to_int_key, Body=label_to_int_str)
+        s3.put_object(Bucket=bucket_name, Key=label_to_int_key, Body=disease_map_json)
         print(f"Label-to-int mapping file saved to s3://{bucket_name}/{label_to_int_key}")
 
+        state_map_key = 'deepar_input_data/state_map.json'
+        s3.put_object(Bucket=bucket_name, Key=state_map_key, Body=state_map_json)
+        print(f"state_map mapping file saved to s3://{bucket_name}/{state_map_key}")
+
+        cardinality_str = json.dumps(cardinality) 
+        
         try:
             print("Setting up SageMaker training job")
             # Client for SageMaker
@@ -211,7 +221,7 @@ def lambda_handler(event, context):
             role = os.environ['SAGEMAKER_ROLE_ARN']
             
             print(f"Starting the SageMaker training job with role: {role}")
-            training_job_name = trigger_sagemaker_training(sagemaker_client, bucket_name, transformed_key, role, cardinality)
+            training_job_name = trigger_sagemaker_training(sagemaker_client, bucket_name, transformed_key, role, cardinality_str)
             
             if training_job_name:
                 wait_for_training_completion(sagemaker_client, training_job_name)
