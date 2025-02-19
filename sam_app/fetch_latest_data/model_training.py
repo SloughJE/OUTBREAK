@@ -59,8 +59,8 @@ def trigger_sagemaker_training(client, bucket, data_key, role, cardinality):
             "VolumeSizeInGB": 50
         },
         "StoppingCondition": {
-            "MaxRuntimeInSeconds": 400,  
-            "MaxWaitTimeInSeconds": 720  
+            "MaxRuntimeInSeconds": 1200,  
+            "MaxWaitTimeInSeconds": 1600  
         },
         "EnableManagedSpotTraining": True,  # Enable spot training
         "CheckpointConfig": {
@@ -73,7 +73,9 @@ def trigger_sagemaker_training(client, bucket, data_key, role, cardinality):
             "context_length": '2',           
             "prediction_length": '1',        
             "likelihood": "negative-binomial",
-            "cardinality": str(cardinality)
+            "learning_rate": "1E-4",
+            "embedding_dimension": "3",  
+            "cardinality": "auto" # str(cardinality)
         }
     }
 

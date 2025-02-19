@@ -4,6 +4,8 @@ import time
 import pandas as pd
 from datetime import datetime, timedelta
 
+from botocore.config import Config
+
 
 def get_deepar_container_uri(region_name):
     # AWS account IDs that host SageMaker algorithm containers
@@ -59,7 +61,7 @@ def create_sagemaker_model(sagemaker_client, model_data_url, role):
     return model_name
 
 
-def create_endpoint_config(sagemaker_client, model_name, instance_type='ml.m4.xlarge'):
+def create_endpoint_config(sagemaker_client, model_name, instance_type='ml.m4.2xlarge'):
     endpoint_config_name = 'deepar-endpoint-config-' + time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
     response = sagemaker_client.create_endpoint_config(
         EndpointConfigName=endpoint_config_name,
@@ -247,8 +249,15 @@ def create_pred_df(prediction, bucket_name, deepar_training, ts_mapping_file_key
 
 def create_pred_endpoint_predict_save(training_job_name):
 
+    my_config = Config(
+        read_timeout=600,   # e.g. wait up to 300s
+        connect_timeout=120, # e.g. 60s to connect
+        retries={"max_attempts": 0}
+    )
+
     sagemaker_client = boto3.client('sagemaker')
-    sagemaker_runtime_client = boto3.client('sagemaker-runtime')
+    sagemaker_runtime_client = boto3.client('sagemaker-runtime', config=my_config)
+
     role = 'arn:aws:iam::047290901679:role/sagemaker-deepar-deployment'
 
     bucket_name = 'nndss'
@@ -267,7 +276,7 @@ def create_pred_endpoint_predict_save(training_job_name):
     predictor_input = {
         "instances": deepar_training,  
         "configuration": {
-            "num_samples": 100,
+            "num_samples": 50,
             "output_types": ["mean", "quantiles"],
             "quantiles": [
                 "0.001", "0.999", "0.01", "0.99", "0.03", "0.97", "0.05", "0.95", "0.1", "0.9", "0.2", "0.8", "0.5"

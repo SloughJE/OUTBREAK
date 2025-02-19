@@ -43,6 +43,9 @@ def align_data_schema(df):
 
 
 def process_dataframe_deepar(df):
+    import numpy as np
+    import pandas as pd
+    import json
 
     # A function to convert NaN values to "NaN" string and others to float
     def convert_target(target_series):
@@ -57,52 +60,84 @@ def process_dataframe_deepar(df):
             return int(obj)  # Convert numpy.int64 to int
         else:
             return obj
-        
+
+    # 1) Ensure 'date' is datetime and sort by (item_id, date)
     df['date'] = pd.to_datetime(df['date'])
     df.sort_values(by=['item_id', 'date'], inplace=True)
 
-    # Randomly shuffle the time series
-    random_groups = pd.Series(np.random.permutation(df['item_id'].unique()), index=df['item_id'].unique())
+    # 2) Randomly shuffle the time series order (as before)
+    random_groups = pd.Series(
+        np.random.permutation(df['item_id'].unique()),
+        index=df['item_id'].unique()
+    )
     df['random_group'] = df['item_id'].map(random_groups)
 
-    df = df.sort_values(by=['random_group', 'date']).drop('random_group', axis=1).reset_index(drop=True)
+    df = df.sort_values(by=['random_group', 'date']) \
+           .drop('random_group', axis=1) \
+           .reset_index(drop=True)
 
-    # Encode the 'label' as integers
-    unique_labels = df['label'].unique()
-    cardinality = len(unique_labels)
+    # 3) Create integer encodings for 'state' and 'label' so we have 2 categorical features.
+    unique_states = df['state'].unique()
+    unique_diseases = df['label'].unique()
 
-    label_to_int = {label: idx for idx, label in enumerate(unique_labels)}
-    df['label_encoded'] = df['label'].map(label_to_int)
+    state_to_int = {st: i for i, st in enumerate(unique_states)}
+    disease_to_int = {d: i for i, d in enumerate(unique_diseases)}
 
-    # Prepare containers for the JSON Lines and mappings
+    # Add columns to df
+    df['state_idx'] = df['state'].map(state_to_int)
+    df['disease_idx'] = df['label'].map(disease_to_int)
+
+    # DeepAR expects cardinality = [#states, #diseases]
+    cardinality = [len(unique_states), len(unique_diseases)]
+
+    # 4) Build JSON lines and a mapping dictionary
     json_lines = []
     time_series_mapping = {}
 
+    # group by item_id so each group is a single time series
     for idx, (item_id, group) in enumerate(df.groupby('item_id')):
-        # Get the encoded label; assuming one label per item_id group
-        encoded_label = group['label_encoded'].iloc[0]
+        # Pull the state/disease indices from the first row in this group (they are all the same for that item_id)
+        st_idx = int(group['state_idx'].iloc[0])
+        ds_idx = int(group['disease_idx'].iloc[0])
 
-        # Create time series data with 'cat' for static features
+        # Build the DeepAR record
         time_series = {
-            "start": str(group['date'].dt.date.iloc[0]),
+            "start": str(group['date'].dt.date.iloc[0]),  # e.g., "2022-01-03"
             "target": convert_target(group['new_cases']),
-            # Convert numpy int64 to Python int before including it in the 'cat' field
-            "cat": [int(encoded_label)]  # Ensuring it's a native Python int type
+            "cat": [st_idx, ds_idx]
         }
+
+        # Convert time_series to JSON and store in json_lines
         json_lines.append(json.dumps(time_series))
 
-        # Map item_id to its index and label encoding in the JSON Lines file
-        time_series_mapping[item_id] = {'index': idx, 'label_encoded': encoded_label}
+        # Also store a mapping for reference
+        time_series_mapping[item_id] = {
+            "index": idx,
+            "state_idx": st_idx,
+            "disease_idx": ds_idx
+        }
 
-    # Convert JSON Lines list to a single string for storage or transmission
+    # 5) Convert JSON Lines list to a single string
     json_lines_str = "\n".join(json_lines)
 
-    # Optionally, save the mappings as JSON for future reference
+    # 6) Convert time_series_mapping to JSON
     time_series_mapping = convert_numpy_int64(time_series_mapping)
     time_series_mapping_json = json.dumps(time_series_mapping)
-    label_to_int_json = json.dumps(label_to_int)
 
-    return json_lines_str, time_series_mapping_json, label_to_int_json, cardinality
+    # Convert the state_to_int and disease_to_int maps to JSON 
+    state_map_json = json.dumps(convert_numpy_int64(state_to_int))
+    disease_map_json = json.dumps(convert_numpy_int64(disease_to_int))
+
+    # Return everything
+    # - json_lines_str: The actual DeepAR dataset
+    # - time_series_mapping_json: Which item_id maps to which cat indices
+    # - state_map_json, disease_map_json: Mappings of state/disease to integer
+    # - cardinality: The [number_of_states, number_of_diseases]
+    return (json_lines_str,
+            time_series_mapping_json,
+            state_map_json,
+            disease_map_json,
+            cardinality)
 
 
 def read_all_parquets_from_s3(s3_client, bucket_name, prefix):
