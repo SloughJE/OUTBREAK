@@ -6,14 +6,17 @@ def remove_dates_in_data(filepath_historical="/home/ec2-user/dash_app/NNDSS/dash
     df_historical = pd.read_parquet(filepath_historical)
     df_preds_all = pd.read_parquet(filepath_predictions)
     
-    df_historical = df_historical[df_historical['state'].str.isupper()]
-    df_preds_all = df_preds_all[df_preds_all['state'].str.isupper()]
-
     print(df_historical.tail())
+    print(df_preds_all.tail())
+
+    #df_historical = df_historical[df_historical['state'].str.isupper()]
+    #df_preds_all = df_preds_all[df_preds_all['state'].str.isupper()]
+    df_historical = df_historical[df_historical["item_id"].str.split("_").str[0].str.isupper()]
+    df_preds_all = df_preds_all[df_preds_all["item_id"].str.split("_").str[0].str.isupper()]
+
     #df_historical = df_historical[df_historical['date'] < df_historical['date'].max()]
     print(df_historical.tail())
 
-    print(df_preds_all.tail())
     #df_preds_all = df_preds_all[df_preds_all['date'] < df_preds_all['date'].max()]
     print(df_preds_all.tail())
 
