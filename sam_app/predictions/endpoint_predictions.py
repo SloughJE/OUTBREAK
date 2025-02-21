@@ -284,7 +284,7 @@ def create_pred_endpoint_predict_save(training_job_name):
         predictor_input = {
             "instances": chunk,
             "configuration": {
-                "num_samples": 50,
+                "num_samples": 200,
                 "output_types": ["mean", "quantiles"],
                 "quantiles": [
                     "0.001", "0.999", "0.01", "0.99", "0.03", "0.97", "0.05", "0.95",

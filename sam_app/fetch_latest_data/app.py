@@ -117,6 +117,7 @@ def lambda_handler(event, context):
     else:
         # 2) Find the maximum (year, week) in the entire DataFrame
         latest_year_in_s3, latest_week_in_s3 = get_current_max_year_week(df_all)
+        del df_all
     print(f"Current data in S3 goes up to year={latest_year_in_s3}, week={latest_week_in_s3}")
 
     # 3) Query the CDC API for the absolute newest (year, week) they have
@@ -166,7 +167,21 @@ def lambda_handler(event, context):
         else:
             print(f"Backfilled {len(df_new)} total rows from CDC for all missing weeks.")
             # Merge with existing df_all
-            df_all = pd.concat([df_all, df_new], ignore_index=True)
+            # df_all = pd.concat([df_all, df_new], ignore_index=True)
+
+            ##################################################
+            #print(df_new['date'].dtype)  # Check the original type
+            #print(df_new['date'].unique())  # See if there are unexpected values
+            #print(df_new['date'].min())
+            #print(df_new['date'].max())
+            df_new['date'] = pd.to_datetime(df_new['date'])
+            #df_new = df_new[df_new['date'] <= '2025-02-17'] ##
+            print(df_new['date'].min())
+            print(df_new['date'].max())
+            #print(df_new['date'].dtype)  # Check the original type
+            print(df_new['date'].unique())  # See if there are unexpected values
+
+            ##################################################
 
             # Save the newly fetched data to S3 in one Parquet file --
             file_date = df_new['date'].max().strftime('%Y-%m-%d')
@@ -178,7 +193,7 @@ def lambda_handler(event, context):
             buffer.seek(0)
             s3_client.put_object(Bucket=bucket_name, Key=file_key, Body=buffer.getvalue())
 
-
+        
         # now we create the DeepAR training data with this new data included
         print("creating DeepAR input data ")
         s3_client = boto3.client('s3')
@@ -191,7 +206,8 @@ def lambda_handler(event, context):
 
         # remove the last week of data for training, so that we make predictions for the current (latest) week of data
         df = df[df['date'] < df['date'].max()]
-        
+        print(f"max date in df: {df['date'].max()}")
+
         s3 = boto3.client('s3')
         json_lines_str, time_series_mapping_json, state_map_json, disease_map_json, cardinality = process_dataframe_deepar(df)
 

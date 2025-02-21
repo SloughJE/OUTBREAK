@@ -210,15 +210,25 @@ def fill_missing_weeks(s3_client, df, bucket_name, bucket_folder):
             # Generate skipped weeks
             for i in range(1, weeks_to_fill):
                 temp_df = missing_weeks_df.copy()
-                print(f"filling data with NaN for skipped week: {(unique_dates[-2] + pd.Timedelta(weeks=i)).strftime('%Y-%m-%d')}")
-                temp_df['date'] = unique_dates[-2] + pd.Timedelta(weeks=i)
+                new_date = unique_dates[-2] + pd.Timedelta(weeks=i)
+                
+                print(f"filling data with NaN for skipped week: {new_date.strftime('%Y-%m-%d')}")
+                
+                temp_df['date'] = new_date
                 temp_df['week'] = second_last_date_df['week'].iloc[0] + i
+
+                # Ensure the year remains 2024 if the date is still in 2024
+                if new_date.year == 2024:
+                    temp_df['year'] = 2024  # Force year to 2024 even if it's week 53
+                
                 temp_df['new_cases'] = np.nan
                 temp_df = align_data_types(df, temp_df)
-                # save skipped week to s3
+                
+                # Save skipped week to S3
                 save_missing_week_to_s3(s3_client, temp_df, bucket_name, bucket_folder)
 
                 df = pd.concat([df, temp_df], ignore_index=True)
+
 
             df = df.sort_values(['item_id','date'])
         else:
@@ -271,12 +281,15 @@ def backfill_missing_weeks(
     If there's no data for a particular week, we just get an empty DataFrame for that week.
     """
 
+    from datetime import date
+
     def increment_year_week(y, w):
-        # In real data, you might handle 52 or 53 weeks. For now, assume 52 max:
-        if w >= 52:
+        max_weeks = date(y, 12, 28).isocalendar()[1]  # 52 or 53 weeks in that year
+        if w >= max_weeks:
             return (y + 1, 1)
         else:
             return (y, w + 1)
+
     
     all_new_dfs = []
 
