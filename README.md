@@ -90,8 +90,6 @@ All disease case data is retrieved from the [CDC NNDSS (National Notifiable Dise
 - **Data Source**: CDC NNDSS (publicly available data).  
 - **DeepAR**: Amazon SageMaker implementation.  
 
-*(Include a license section here if your project is open source, e.g., MIT License, Apache License 2.0, etc.)*
-
 ---
 
 **Disclaimer**  
