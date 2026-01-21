@@ -4,25 +4,53 @@ import json
 from io import BytesIO
 
 
-def align_data_schema(df):
+def align_data_schema(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Transforms the data fetched from the API to the desired schema.
-    """
-    
-    df.rename(columns={'states': 'state'}, inplace=True)  # Renaming 'states' to 'state'
-    df["state"] = df["state"].str.upper()
-    df['item_id'] = df['state'] + '_' + df['label']  # Using the renamed 'state' column
-    df['date'] = pd.to_datetime(df['year'].astype(str) + df['week'].astype(str) + '-1', format='%Y%W-%w')
-    df['new_cases'] = pd.to_numeric(df['m1'], errors='coerce').fillna(0)
+    Transforms CDC NNDSS API output into the canonical schema.
 
-    df['week'] = df.week.astype(int)
-    df['year'] = df.year.astype(int)
-    # Ensure the DataFrame has only the expected columns, in the correct order
-    expected_columns = ['item_id', 'year', 'week','state', 'date', 'label', 'new_cases']
-    # Reorder or filter the DataFrame to match the expected schema
-    df = df[expected_columns]
-    
-    return df
+    Critical: construct `date` using ISO week rules so that (year, week) maps
+    consistently to a Monday timestamp across year boundaries.
+    """
+    df = df.copy()
+
+    df.rename(columns={'states': 'state'}, inplace=True)
+    df["state"] = df["state"].astype(str).str.upper()
+
+    # Ensure types early
+    df["year"] = pd.to_numeric(df["year"], errors="coerce").astype("Int64")
+    df["week"] = pd.to_numeric(df["week"], errors="coerce").astype("Int64")
+
+    # Drop rows where year/week missing
+    df = df.dropna(subset=["year", "week"])
+
+    df["year"] = df["year"].astype(int)
+    df["week"] = df["week"].astype(int)
+
+    # ISO week -> Monday date.
+    # %G = ISO year, %V = ISO week number, %u = ISO weekday (1=Mon)
+    df["date"] = pd.to_datetime(
+        df["year"].astype(str)
+        + "-W"
+        + df["week"].astype(str).str.zfill(2)
+        + "-1",
+        format="%G-W%V-%u",
+        errors="coerce",
+        utc=False,
+    )
+
+    # If any dates failed to parse, you want to know immediately.
+    # (Optional) Keep this as a print or raise; in Lambda I suggest print.
+    if df["date"].isna().any():
+        bad = df[df["date"].isna()][["year", "week"]].drop_duplicates().head(20)
+        print("WARNING: Failed to parse ISO week->date for some rows. Sample:", bad.to_dict("records"))
+
+    df["new_cases"] = pd.to_numeric(df.get("m1"), errors="coerce").fillna(0)
+
+    df["item_id"] = df["state"] + "_" + df["label"].astype(str)
+
+    expected_columns = ["item_id", "year", "week", "state", "date", "label", "new_cases"]
+    return df[expected_columns]
+
 
 
 def process_dataframe_deepar(df):

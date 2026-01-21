@@ -22,25 +22,53 @@ def get_current_max_year_week(df):
     return (max_year, max_week)
 
 
-def align_data_schema(df):
+def align_data_schema(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Transforms the data fetched from the API to the desired schema.
-    """
-    
-    df.rename(columns={'states': 'state'}, inplace=True)  # Renaming 'states' to 'state'
-    df["state"] = df["state"].str.upper()
-    df['item_id'] = df['state'] + '_' + df['label']  # Using the renamed 'state' column
-    df['date'] = pd.to_datetime(df['year'].astype(str) + df['week'].astype(str) + '-1', format='%Y%W-%w')
-    df['new_cases'] = pd.to_numeric(df['m1'], errors='coerce').fillna(0)
+    Transforms CDC NNDSS API output into the canonical schema.
 
-    df['week'] = df.week.astype(int)
-    df['year'] = df.year.astype(int)
-    # Ensure the DataFrame has only the expected columns, in the correct order
-    expected_columns = ['item_id', 'year', 'week','state', 'date', 'label', 'new_cases']
-    # Reorder or filter the DataFrame to match the expected schema
-    df = df[expected_columns]
-    
-    return df
+    Critical: construct `date` using ISO week rules so that (year, week) maps
+    consistently to a Monday timestamp across year boundaries.
+    """
+    df = df.copy()
+
+    df.rename(columns={'states': 'state'}, inplace=True)
+    df["state"] = df["state"].astype(str).str.upper()
+
+    # Ensure types early
+    df["year"] = pd.to_numeric(df["year"], errors="coerce").astype("Int64")
+    df["week"] = pd.to_numeric(df["week"], errors="coerce").astype("Int64")
+
+    # Drop rows where year/week missing
+    df = df.dropna(subset=["year", "week"])
+
+    df["year"] = df["year"].astype(int)
+    df["week"] = df["week"].astype(int)
+
+    # ISO week -> Monday date.
+    # %G = ISO year, %V = ISO week number, %u = ISO weekday (1=Mon)
+    df["date"] = pd.to_datetime(
+        df["year"].astype(str)
+        + "-W"
+        + df["week"].astype(str).str.zfill(2)
+        + "-1",
+        format="%G-W%V-%u",
+        errors="coerce",
+        utc=False,
+    )
+
+    # If any dates failed to parse, you want to know immediately.
+    # (Optional) Keep this as a print or raise; in Lambda I suggest print.
+    if df["date"].isna().any():
+        bad = df[df["date"].isna()][["year", "week"]].drop_duplicates().head(20)
+        print("WARNING: Failed to parse ISO week->date for some rows. Sample:", bad.to_dict("records"))
+
+    df["new_cases"] = pd.to_numeric(df.get("m1"), errors="coerce").fillna(0)
+
+    df["item_id"] = df["state"] + "_" + df["label"].astype(str)
+
+    expected_columns = ["item_id", "year", "week", "state", "date", "label", "new_cases"]
+    return df[expected_columns]
+
 
 
 def process_dataframe_deepar(df):
@@ -139,27 +167,27 @@ def process_dataframe_deepar(df):
 
 
 def read_all_parquets_from_s3(s3_client, bucket_name, prefix):
-
     response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
     all_dfs = []
 
-    for obj in response.get('Contents', []):
-        key = obj['Key']
-        if key.endswith('.parquet'):
-            # Corrected parameter names in the get_object call
-            obj_response = s3_client.get_object(Bucket=bucket_name, Key=key)
-            buffer = BytesIO(obj_response['Body'].read())
-            df = pd.read_parquet(buffer)
-            expected_columns = ['item_id', 'year', 'week', 'state', 'date', 'label', 'new_cases']
-            df = df[expected_columns]
-            all_dfs.append(df)
 
-    # Concatenate all dataframes into one
-    if all_dfs:
-        full_df = pd.concat(all_dfs, ignore_index=True)
-        return full_df
-    else:
-        return pd.DataFrame()
+    keys = sorted(
+        obj["Key"]
+        for obj in response.get("Contents", [])
+        if obj["Key"].endswith(".parquet")
+    )
+
+    for key in keys:
+        obj_response = s3_client.get_object(Bucket=bucket_name, Key=key)
+        buffer = BytesIO(obj_response["Body"].read())
+        df = pd.read_parquet(buffer)
+
+        expected_columns = ["item_id", "year", "week", "state", "date", "label", "new_cases"]
+        df = df[expected_columns]
+        all_dfs.append(df)
+
+    return pd.concat(all_dfs, ignore_index=True) if all_dfs else pd.DataFrame()
+
         
 
 def align_data_types(base_df, target_df):
@@ -185,56 +213,64 @@ def save_missing_week_to_s3(s3_client, df, bucket_name, bucket_folder):
 
 
 def fill_missing_weeks(s3_client, df, bucket_name, bucket_folder):
+    """
+    Ensure the dataset has a continuous weekly (W-MON) time index between its min and max date.
 
-    # CDC API seems to sometimes skip weeks. We deal with that here
-    df = df.sort_values(by='date')
+    We fill missing weeks by inserting rows (one per item_id) with new_cases = NaN.
+    Year/week are derived from the inserted `date` using ISO week rules.
 
-    while True:
+    This function does NOT attempt to guess CDC week numbers by arithmetic.
+    """
+    df = df.copy()
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
 
-        unique_dates = df['date'].unique()
-        unique_dates = sorted(unique_dates)  # Sort the dates
-        
-        gap = unique_dates[-1] - unique_dates[-2]
+    # If date parsing failed anywhere, drop those rows (or handle explicitly)
+    # Dropping prevents silent max-date errors.
+    df = df.dropna(subset=["date"])
 
-        if gap > pd.Timedelta(days=7):
-            
-            max_date_df = df[df['date'] == unique_dates[-1]].copy()
-            second_last_date_df = df[df['date'] == unique_dates[-2]].copy()
-            
-            # Create a new dataframe for missing weeks by concatenating max and second last date dataframes
-            missing_weeks_df = pd.concat([max_date_df, second_last_date_df])
-            missing_weeks_df = missing_weeks_df.drop_duplicates(subset=['item_id'], keep='last')
+    df = df.sort_values(["item_id", "date"]).reset_index(drop=True)
 
-            weeks_to_fill = gap.days // 7
-            print(weeks_to_fill)
-            # Generate skipped weeks
-            for i in range(1, weeks_to_fill):
-                temp_df = missing_weeks_df.copy()
-                new_date = unique_dates[-2] + pd.Timedelta(weeks=i)
-                
-                print(f"filling data with NaN for skipped week: {new_date.strftime('%Y-%m-%d')}")
-                
-                temp_df['date'] = new_date
-                temp_df['week'] = second_last_date_df['week'].iloc[0] + i
+    min_date = df["date"].min()
+    max_date = df["date"].max()
 
-                # Ensure the year remains 2024 if the date is still in 2024
-                if new_date.year == 2024:
-                    temp_df['year'] = 2024  # Force year to 2024 even if it's week 53
-                
-                temp_df['new_cases'] = np.nan
-                temp_df = align_data_types(df, temp_df)
-                
-                # Save skipped week to S3
-                save_missing_week_to_s3(s3_client, temp_df, bucket_name, bucket_folder)
+    if pd.isna(min_date) or pd.isna(max_date) or min_date == max_date:
+        return df
 
-                df = pd.concat([df, temp_df], ignore_index=True)
+    # Generate a complete Monday-based weekly range
+    full_range = pd.date_range(start=min_date, end=max_date, freq="W-MON")
+    existing_dates = set(pd.to_datetime(df["date"].unique()))
 
+    missing_dates = [d for d in full_range if d not in existing_dates]
+    if not missing_dates:
+        return df
 
-            df = df.sort_values(['item_id','date'])
-        else:
-            break
+    # Template: last observed row per item_id (keeps state/label/item_id stable)
+    latest_by_item = (
+        df.sort_values("date")
+          .groupby("item_id", as_index=False)
+          .tail(1)
+          .copy()
+    )
 
+    for d in missing_dates:
+        temp_df = latest_by_item.copy()
+        temp_df["date"] = d
+
+        iso = pd.Timestamp(d).isocalendar()
+        temp_df["year"] = int(iso.year)
+        temp_df["week"] = int(iso.week)
+
+        temp_df["new_cases"] = np.nan
+
+        # Keep your existing dtype alignment and S3 persistence hooks
+        temp_df = align_data_types(df, temp_df)
+        save_missing_week_to_s3(s3_client, temp_df, bucket_name, bucket_folder)
+
+        df = pd.concat([df, temp_df], ignore_index=True)
+
+    df = df.sort_values(["item_id", "date"]).reset_index(drop=True)
     return df
+
 
 
 def fetch_data_for_week(year, week, app_token):

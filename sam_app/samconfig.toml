@@ -34,3 +34,12 @@ warm_containers = "EAGER"
 
 [default.local_start_lambda.parameters]
 warm_containers = "EAGER"
+
+[Y.deploy.parameters]
+stack_name = "NNDSSDataFetcher"
+resolve_s3 = true
+s3_prefix = "NNDSSDataFetcher"
+region = "us-east-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+image_repositories = []

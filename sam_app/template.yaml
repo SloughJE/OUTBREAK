@@ -5,6 +5,7 @@ Description: >
 
 Globals:
   Function:
+    Runtime: python3.12
     Timeout: 900
     MemorySize: 1024
     LoggingConfig:
@@ -45,7 +46,6 @@ Resources:
     Properties:
       CodeUri: fetch_latest_data/
       Handler: app.lambda_handler
-      Runtime: python3.9
       Architectures:
         - x86_64
       Role: !GetAtt FetchLatestNNDSSdataFunctionRole.Arn
@@ -63,7 +63,6 @@ Resources:
     Properties:
       CodeUri: predictions/
       Handler: app.lambda_handler
-      Runtime: python3.9
       Architectures:
         - x86_64
       Role: !GetAtt FetchLatestNNDSSdataFunctionRole.Arn
