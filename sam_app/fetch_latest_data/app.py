@@ -11,6 +11,7 @@ from data_processing import (align_data_schema, process_dataframe_deepar, read_a
                              get_current_max_year_week, fill_missing_weeks, backfill_missing_weeks)
 from model_training import trigger_sagemaker_training
 
+# app.py
 
 def get_secret():
     secret_name = "CDC_NNDSS_API"
@@ -195,26 +196,38 @@ def lambda_handler(event, context):
 
         
         # now we create the DeepAR training data with this new data included
-        print("creating DeepAR input data ")
+        print("creating DeepAR input data")
+
         s3_client = boto3.client('s3')
-        df = read_all_parquets_from_s3(s3_client, bucket_name, bucket_folder)
-        print("df heads and tails")
-        print(df.head(2))
-        print(df.tail(2))
-        # check for skipped weeks
-        df = fill_missing_weeks(s3_client, df, bucket_name, bucket_folder)
-
-        # remove the last week of data for training, so that we make predictions for the current (latest) week of data
-        df = df[df['date'] < df['date'].max()]
-        print(f"max date in df: {df['date'].max()}")
-
         s3 = boto3.client('s3')
-        json_lines_str, time_series_mapping_json, state_map_json, disease_map_json, cardinality = process_dataframe_deepar(df)
 
-        # json_lines_str, mapping_str, label_to_int_str, cardinality = process_dataframe_deepar(df)
+        # Read actual CDC weekly data only
+        df_actual = read_all_parquets_from_s3(s3_client, bucket_name, bucket_folder)
+        df_actual["date"] = pd.to_datetime(df_actual["date"], errors="coerce")
+        df_actual = df_actual.dropna(subset=["date"])
+
+        print("df_actual head/tail")
+        print(df_actual.head(2))
+        print(df_actual.tail(2))
+
+        actual_max_date = df_actual["date"].max()
+        print(f"latest actual CDC date: {actual_max_date}")
+
+        # Fill globally missing weeks only for model prep, in memory only
+        df_train = fill_missing_weeks(df_actual.copy())
+
+        # Remove the latest actual week so the model predicts that week
+        df_train = df_train[df_train["date"] < actual_max_date].copy()
+
+        training_max_date = pd.to_datetime(df_train["date"]).max()
+        print(f"training max date: {training_max_date}")
+        print(f"prediction should be for: {actual_max_date}")
+
+        json_lines_str, time_series_mapping_json, state_map_json, disease_map_json, cardinality = process_dataframe_deepar(df_train)
+
         transformed_key = 'deepar_input_data/deepar_dataset.jsonl'
         s3.put_object(Bucket=bucket_name, Key=transformed_key, Body=json_lines_str)
-        print("Data processed and saved to 'deepar_input_data/deepar_dataset.jsonl'")
+        print(f"Data processed and saved to s3://{bucket_name}/{transformed_key}")
 
         mapping_key = 'deepar_input_data/time_series_mapping_with_labels.json'
         s3.put_object(Bucket=bucket_name, Key=mapping_key, Body=time_series_mapping_json)
@@ -226,10 +239,23 @@ def lambda_handler(event, context):
 
         state_map_key = 'deepar_input_data/state_map.json'
         s3.put_object(Bucket=bucket_name, Key=state_map_key, Body=state_map_json)
-        print(f"state_map mapping file saved to s3://{bucket_name}/{state_map_key}")
+        print(f"State-map file saved to s3://{bucket_name}/{state_map_key}")
 
-        cardinality_str = json.dumps(cardinality) 
-        
+        prediction_context = {
+            "actual_max_date": actual_max_date.strftime("%Y-%m-%d"),
+            "training_max_date": training_max_date.strftime("%Y-%m-%d")
+        }
+
+        context_key = "deepar_input_data/prediction_context.json"
+        s3.put_object(
+            Bucket=bucket_name,
+            Key=context_key,
+            Body=json.dumps(prediction_context)
+        )
+        print(f"Prediction context saved to s3://{bucket_name}/{context_key}")
+
+        cardinality_str = json.dumps(cardinality)       
+     
         try:
             print("Setting up SageMaker training job")
             # Client for SageMaker
@@ -244,7 +270,10 @@ def lambda_handler(event, context):
                  # Now invoke the second Lambda for predictions without waiting for it to finish
                 lambda_client = boto3.client('lambda')
                 payload = {
-                    'training_job_name': training_job_name,
+                    "training_job_name": training_job_name,
+                    "deepar_key": transformed_key,
+                    "mapping_key": mapping_key,
+                    "context_key": context_key
                 }
                 lambda_client.invoke(
                     FunctionName='arn:aws:lambda:us-east-2:047290901679:function:NNDSSDataFetcher-PredictionsLambdaFunction-jHBncip3gtsy',

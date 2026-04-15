@@ -4,6 +4,7 @@ import requests
 import json
 from io import BytesIO
 
+# data_processing.py
 
 def fetch_api_data(url):
     response = requests.get(url)
@@ -212,22 +213,14 @@ def save_missing_week_to_s3(s3_client, df, bucket_name, bucket_folder):
     print(f"Saving skipped week for date {file_date} to s3")
 
 
-def fill_missing_weeks(s3_client, df, bucket_name, bucket_folder):
+def fill_missing_weeks(df):
     """
-    Ensure the dataset has a continuous weekly (W-MON) time index between its min and max date.
-
-    We fill missing weeks by inserting rows (one per item_id) with new_cases = NaN.
-    Year/week are derived from the inserted `date` using ISO week rules.
-
-    This function does NOT attempt to guess CDC week numbers by arithmetic.
+    Fill globally missing weeks in memory only.
+    Do NOT write placeholder rows back to S3.
     """
     df = df.copy()
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
-
-    # If date parsing failed anywhere, drop those rows (or handle explicitly)
-    # Dropping prevents silent max-date errors.
     df = df.dropna(subset=["date"])
-
     df = df.sort_values(["item_id", "date"]).reset_index(drop=True)
 
     min_date = df["date"].min()
@@ -236,21 +229,21 @@ def fill_missing_weeks(s3_client, df, bucket_name, bucket_folder):
     if pd.isna(min_date) or pd.isna(max_date) or min_date == max_date:
         return df
 
-    # Generate a complete Monday-based weekly range
     full_range = pd.date_range(start=min_date, end=max_date, freq="W-MON")
     existing_dates = set(pd.to_datetime(df["date"].unique()))
-
     missing_dates = [d for d in full_range if d not in existing_dates]
+
     if not missing_dates:
         return df
 
-    # Template: last observed row per item_id (keeps state/label/item_id stable)
     latest_by_item = (
         df.sort_values("date")
           .groupby("item_id", as_index=False)
           .tail(1)
           .copy()
     )
+
+    filler_frames = []
 
     for d in missing_dates:
         temp_df = latest_by_item.copy()
@@ -259,17 +252,15 @@ def fill_missing_weeks(s3_client, df, bucket_name, bucket_folder):
         iso = pd.Timestamp(d).isocalendar()
         temp_df["year"] = int(iso.year)
         temp_df["week"] = int(iso.week)
-
         temp_df["new_cases"] = np.nan
 
-        # Keep your existing dtype alignment and S3 persistence hooks
         temp_df = align_data_types(df, temp_df)
-        save_missing_week_to_s3(s3_client, temp_df, bucket_name, bucket_folder)
+        filler_frames.append(temp_df)
 
-        df = pd.concat([df, temp_df], ignore_index=True)
+    if filler_frames:
+        df = pd.concat([df] + filler_frames, ignore_index=True)
 
-    df = df.sort_values(["item_id", "date"]).reset_index(drop=True)
-    return df
+    return df.sort_values(["item_id", "date"]).reset_index(drop=True)
 
 
 

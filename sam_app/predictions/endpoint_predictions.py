@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from botocore.config import Config
 
+# endpoint_predictions.py
 
 def get_deepar_container_uri(region_name):
     # AWS account IDs that host SageMaker algorithm containers
@@ -184,24 +185,39 @@ def delete_all_endpoints(sagemaker_client, status_filter='InService'):
             print(f"Failed to delete endpoint {endpoint_name}: {str(e)}")
 
 
-def create_pred_df(prediction, bucket_name, deepar_training, ts_mapping_file_key='deepar_input_data/time_series_mapping_with_labels.json'):
-
-
+def create_pred_df(
+    prediction,
+    bucket_name,
+    deepar_training,
+    ts_mapping_file_key='deepar_input_data/time_series_mapping_with_labels.json',
+    prediction_context_key='deepar_input_data/prediction_context.json'
+):
     time_series_mapping = load_json_from_s3(bucket_name, ts_mapping_file_key)
+    prediction_context = load_json_from_s3(bucket_name, prediction_context_key)
 
-    last_known_date = find_max_date(deepar_training)
+    if not time_series_mapping:
+        raise ValueError(f"Could not load time series mapping from {ts_mapping_file_key}")
 
-    # The prediction_for_date is the next time period (e.g., the next week) after the last known date
-    prediction_for_date = pd.to_datetime(last_known_date + timedelta(weeks=1))
+    if not prediction_context:
+        raise ValueError(f"Could not load prediction context from {prediction_context_key}")
+
+    prediction_for_date = pd.to_datetime(prediction_context["actual_max_date"])
+    expected_training_max_date = prediction_context["training_max_date"]
+
+    calculated_training_max = find_max_date(deepar_training).strftime("%Y-%m-%d")
+    if calculated_training_max != expected_training_max_date:
+        raise ValueError(
+            f"Training max mismatch: JSONL implies {calculated_training_max}, "
+            f"context says {expected_training_max_date}"
+        )
+
     print(f"The prediction is for the date: {prediction_for_date.strftime('%Y-%m-%d')}")
 
     prediction_data = []
 
-    # Directly map indices back to item_ids
     index_to_item_id = {v['index']: k for k, v in time_series_mapping.items()}
 
     for idx, pred in enumerate(prediction['predictions']):
-
         item_id = index_to_item_id[idx]
 
         prediction_data.append({
@@ -226,31 +242,32 @@ def create_pred_df(prediction, bucket_name, deepar_training, ts_mapping_file_key
     prediction_df['prediction_for_date'] = prediction_for_date
 
     columns_to_process = [
-        'pred_mean', 'pred_median', 
-        'pred_lower_0_001', 'pred_upper_0_999', 
-        'pred_lower_0_01', 'pred_upper_0_99', 
-        'pred_lower_0_03', 'pred_upper_0_97', 
-        'pred_lower_0_05', 'pred_upper_0_95', 
-        'pred_lower_0_1', 'pred_upper_0_9', 
+        'pred_mean', 'pred_median',
+        'pred_lower_0_001', 'pred_upper_0_999',
+        'pred_lower_0_01', 'pred_upper_0_99',
+        'pred_lower_0_03', 'pred_upper_0_97',
+        'pred_lower_0_05', 'pred_upper_0_95',
+        'pred_lower_0_1', 'pred_upper_0_9',
         'pred_lower_0_2', 'pred_upper_0_8'
     ]
 
     for col in columns_to_process:
-        prediction_df[col] = prediction_df[col].apply(lambda x: x[0] if isinstance(x, list) and x else None)
-    
+        prediction_df[col] = prediction_df[col].apply(
+            lambda x: x[0] if isinstance(x, list) and x else None
+        )
+
     bucket_name = 'nndss'
     folder_path = 'predictions'
     file_name = f"weekly_predictions_{prediction_for_date.strftime('%Y-%m-%d')}.parquet"
     s3_path = f's3://{bucket_name}/{folder_path}/{file_name}'
 
     save_preds_to_s3(prediction_df, s3_path)
-    print(f"prediction dataset created and saved to {s3_path}")
-    
+    print(f"prediction dataset created and saved to {s3_path}")    
 
-def create_pred_endpoint_predict_save(training_job_name):
+def create_pred_endpoint_predict_save(training_job_name, deepar_key, mapping_key, context_key):
 
     my_config = Config(
-        read_timeout=600,   # 10 minutes
+        read_timeout=600,
         connect_timeout=120,
         retries={"max_attempts": 0}
     )
@@ -261,26 +278,25 @@ def create_pred_endpoint_predict_save(training_job_name):
     role = 'arn:aws:iam::047290901679:role/sagemaker-deepar-deployment'
 
     bucket_name = 'nndss'
-    key = 'deepar_input_data/deepar_dataset.jsonl'
 
-    # 1) Load the entire training data
-    deepar_training = load_deepar_training_data(bucket_name, key)
+    deepar_training = load_deepar_training_data(bucket_name, deepar_key)
 
-    # 2) Deploy the model as before
     model_data_url = f"s3://{bucket_name}/deepar/output/{training_job_name}/output/model.tar.gz"
-    endpoint_name = deploy_model_with_boto3(sagemaker_client, model_data_url, role, instance_type='ml.m4.2xlarge')
+    endpoint_name = deploy_model_with_boto3(
+        sagemaker_client,
+        model_data_url,
+        role,
+        instance_type='ml.m4.2xlarge'
+    )
     wait_for_endpoint_to_be_in_service(sagemaker_client, endpoint_name)
 
-    # We'll break the "instances" into multiple chunks so each real-time inference call is smaller.
-    BATCH_SIZE = 200   # or whatever chunk size you want
-    aggregated_predictions = []  # we'll store the partial results here
+    BATCH_SIZE = 200
+    aggregated_predictions = []
 
-    # 3) Loop over the data in chunks
     for start_idx in range(0, len(deepar_training), BATCH_SIZE):
         end_idx = start_idx + BATCH_SIZE
         chunk = deepar_training[start_idx:end_idx]
 
-        # Build a chunk-level input payload
         predictor_input = {
             "instances": chunk,
             "configuration": {
@@ -293,21 +309,22 @@ def create_pred_endpoint_predict_save(training_job_name):
             }
         }
 
-        # 4) Invoke the endpoint on this chunk
-        chunk_prediction_str = predict_with_boto3(sagemaker_runtime_client, endpoint_name, predictor_input)
+        chunk_prediction_str = predict_with_boto3(
+            sagemaker_runtime_client,
+            endpoint_name,
+            predictor_input
+        )
         chunk_prediction = json.loads(chunk_prediction_str)
-
-        # chunk_prediction is a dict like {"predictions": [...pred objects...]}
-        # We'll accumulate them in aggregated_predictions
         aggregated_predictions.extend(chunk_prediction["predictions"])
 
-    # 5) Now we have a single list of predictions in the original order
-    # Construct a final dict so create_pred_df can read it
     final_prediction = {"predictions": aggregated_predictions}
 
-    # 6) Delete the endpoint
     delete_sagemaker_endpoint(sagemaker_client, endpoint_name)
 
-    # 7) Call create_pred_df with the combined predictions
-    create_pred_df(final_prediction, bucket_name, deepar_training,
-                   ts_mapping_file_key='deepar_input_data/time_series_mapping_with_labels.json')
+    create_pred_df(
+        final_prediction,
+        bucket_name,
+        deepar_training,
+        ts_mapping_file_key=mapping_key,
+        prediction_context_key=context_key
+    )

@@ -44,6 +44,7 @@ Resources:
   FetchLatestNNDSSdataFunction:
     Type: AWS::Serverless::Function
     Properties:
+      MemorySize: 4096
       CodeUri: fetch_latest_data/
       Handler: app.lambda_handler
       Architectures:
@@ -61,6 +62,7 @@ Resources:
   PredictionsLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
+      MemorySize: 4096
       CodeUri: predictions/
       Handler: app.lambda_handler
       Architectures:

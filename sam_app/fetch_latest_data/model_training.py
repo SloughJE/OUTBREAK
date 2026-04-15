@@ -75,7 +75,7 @@ def trigger_sagemaker_training(client, bucket, data_key, role, cardinality):
             "likelihood": "negative-binomial",
             "learning_rate": "1E-4",
             "embedding_dimension": "3",  
-            "cardinality": "auto" # str(cardinality)
+            "cardinality": cardinality #"auto" # str(cardinality)
         }
     }
 
