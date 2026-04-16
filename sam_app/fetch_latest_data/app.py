@@ -266,33 +266,22 @@ def lambda_handler(event, context):
             training_job_name = trigger_sagemaker_training(sagemaker_client, bucket_name, transformed_key, role, cardinality_str)
             
             if training_job_name:
-                wait_for_training_completion(sagemaker_client, training_job_name)
-                 # Now invoke the second Lambda for predictions without waiting for it to finish
-                lambda_client = boto3.client('lambda')
-                payload = {
-                    "training_job_name": training_job_name,
-                    "deepar_key": transformed_key,
-                    "mapping_key": mapping_key,
-                    "context_key": context_key
-                }
-                lambda_client.invoke(
-                    FunctionName='arn:aws:lambda:us-east-2:047290901679:function:NNDSSDataFetcher-PredictionsLambdaFunction-jHBncip3gtsy',
-                    InvocationType='Event',  # Asynchronous invocation (don't wait for 2nd lambda to finsh)
-                    Payload=json.dumps(payload)
-                )
-                print("Prediction lambda invoked!")
+                print(f"Training job started: {training_job_name}")
+                print("Predictions will be triggered by EventBridge when training completes.")
 
-            else:
-                print("Failed to start the training job.")
                 return {
-                    'statusCode': 400,
-                    'body': json.dumps("Training job could not be initiated.")
+                    "statusCode": 200,
+                    "body": json.dumps({
+                        "message": "New data pulled, DeepAR input saved, and training job started.",
+                        "training_job_name": training_job_name
+                    })
+                }
+            else:
+                return {
+                    "statusCode": 500,
+                    "body": json.dumps("Failed to start training job.")
                 }
           
-            return {
-                'statusCode': 200,
-                'body': json.dumps("New data pulled and saved. DeepAR model input data created and new model trained successfully.")
-            }
         
         except Exception as e:
             print(f"An error occurred trying to train the model : {str(e)}")

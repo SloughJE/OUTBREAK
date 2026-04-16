@@ -62,6 +62,18 @@ Resources:
   PredictionsLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
+      Events:
+        SageMakerTrainingCompleted:
+          Type: EventBridgeRule
+          Properties:
+            Pattern:
+              source:
+                - aws.sagemaker
+              detail-type:
+                - SageMaker Training Job State Change
+              detail:
+                TrainingJobStatus:
+                  - Completed
       MemorySize: 4096
       CodeUri: predictions/
       Handler: app.lambda_handler
