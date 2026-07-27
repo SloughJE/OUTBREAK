@@ -14,10 +14,9 @@ from src.tabs.summary_tab_helper import (
 from src.tabs.load_data import load_preds
 from src.tabs.summary_tab import summary_tab_layout
 from src.tabs.history_tab import details_tab_layout 
-from src.tabs.disease_info import add_disease_info , bar_chart_counts, disease_groups, disease_details
+from src.tabs.disease_info import disease_groups, disease_details
 from src.tabs.outbreaks_history_tab import outbreaks_history_tab_layout
 from src.tabs.outbreaks_history_tab_helper import agg_outbreak_counts, plot_time_series
-from src.tabs.type_counts import outbreaks_type_counts_tab_layout
 from src.tabs.info_tab import info_view_tab_layout
 
 
@@ -134,7 +133,6 @@ app.layout = html.Div([
 
         dcc.Tabs(id="tabs", value='tab-1', className='tab-container', children=[
             dcc.Tab(label='Latest Week Summary', value='tab-1', className='custom-tab', selected_className='custom-tab-active', children=summary_tab_layout()),
-            dcc.Tab(label='Outbreaks Profiles', value='tab-4', className='custom-tab', selected_className='custom-tab-active', children=outbreaks_type_counts_tab_layout()),
             dcc.Tab(label='Disease History', value='tab-2', className='custom-tab', selected_className='custom-tab-active', children=details_tab_layout()),
             dcc.Tab(label='Outbreaks History', value='tab-3', className='custom-tab', selected_className='custom-tab-active', children=outbreaks_history_tab_layout()),
             dcc.Tab(label='About', value='tab-5', className='custom-tab', selected_className='custom-tab-active', children=info_view_tab_layout()),
@@ -572,21 +570,6 @@ def update_outbreak_history_graph(selected_states, show_cumulative_toggle, selec
     return fig_potential_resolved, fig_ongoing
 
 
-################## TYPE COUNTS TAB##########
-@app.callback(
-  [
-    Output('pathogen-chart', 'figure'),
-    Output('bodily-chart', 'figure'),
-    Output('transmission-chart', 'figure'),
-    Output('outbreak-table', 'children'),
-
-    ],
-    [
-    Input('interval_dropdown_type', 'value'),
-    Input('analysis-toggle', 'value'),
-    Input('state_dropdown_outbreak_type_counts', 'value'),
-    ]  
-)
 def update_type_counts(selected_interval, analysis_type, states_selected):
     
     if states_selected:
@@ -673,29 +656,33 @@ def update_type_counts(selected_interval, analysis_type, states_selected):
 
 ################################
 @app.callback(
-    Output('interval_dropdown', 'value'),
-    Output('interval_dropdown_detail', 'value'),
-    Output('interval_dropdown_outbreak', 'value'),
-    Output('interval_dropdown_type', 'value'),
+    Output("interval_dropdown", "value"),
+    Output("interval_dropdown_detail", "value"),
+    Output("interval_dropdown_outbreak", "value"),
 
-    Input('interval_dropdown', 'value'),
-    Input('interval_dropdown_detail', 'value'),
-    Input('interval_dropdown_outbreak', 'value'),
-    Input('interval_dropdown_type', 'value'),
-
+    Input("interval_dropdown", "value"),
+    Input("interval_dropdown_detail", "value"),
+    Input("interval_dropdown_outbreak", "value"),
 )
-def synchronize_dropdowns(tab1_value, tab2_value, tab3_value,tab4_value):
-    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if trigger_id == 'interval_dropdown':
-        value = tab1_value
-    elif trigger_id == 'interval_dropdown_detail':
-        value = tab2_value
-    elif trigger_id == 'interval_dropdown_outbreak':
-        value = tab3_value
-    else:
-        value = tab4_value
-    
-    return value, value, value, value
+def synchronize_dropdowns(
+    summary_value,
+    detail_value,
+    history_value
+):
+    trigger_id = ctx.triggered_id
+
+    values = {
+        "interval_dropdown": summary_value,
+        "interval_dropdown_detail": detail_value,
+        "interval_dropdown_outbreak": history_value,
+    }
+
+    value = values.get(
+        trigger_id,
+        summary_value
+    )
+
+    return value, value, value
 
 
 #######################
