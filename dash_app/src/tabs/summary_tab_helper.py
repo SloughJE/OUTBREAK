@@ -357,6 +357,13 @@ def build_location_outbreak_summary(df_outbreak):
         .apply(lambda value: value if isinstance(value, list) else [])
     )
 
+    location_totals["hover_text"] = location_totals.apply(
+        make_plotly_hover,
+        axis=1
+    )
+
+    return date_wanted, location_totals
+
 def make_plotly_hover(row):
     state_name = escape(
         str(row["state"]).title()
