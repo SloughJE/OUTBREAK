@@ -433,7 +433,7 @@ def update_kpi(selected_interval):
                         "filter_query": '{Status} = "New"',
                         "column_id": "Status"
                     },
-                    "color": "#EF3B2C",
+                    "color": "#FF7A00",
                     "fontWeight": "bold"
                 },
                 {
@@ -441,7 +441,7 @@ def update_kpi(selected_interval):
                         "filter_query": '{Status} = "Ongoing"',
                         "column_id": "Status"
                     },
-                    "color": "#CB181D",
+                    "color": "#B11226",
                     "fontWeight": "bold"
                 }
             ],
