@@ -2,6 +2,7 @@ import pandas as pd
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
+from html import escape
 
 
 outbreak_uncertainty_level_explanation = """• Indicates how certain we want to be in identifying a "potential outbreak"
@@ -131,51 +132,235 @@ state_code_mapping = {
     'WEST VIRGINIA': 'WV', 'WISCONSIN': 'WI', 'WYOMING': 'WY'
 }
 
-def create_us_map(df_outbreak):
-    
-    
-    date_wanted = df_outbreak.date.max()
-    outbreaks_per_state = df_outbreak[df_outbreak.date==date_wanted].groupby('state')['potential_outbreak'].apply(lambda x: x.astype(int).sum()).reset_index()
-    outbreaks_per_state['state_code'] = outbreaks_per_state['state'].map(state_code_mapping)
-    territories = ['PR', 'GU', 'VI', 'AS', 'MP','NYC']  # Puerto Rico, Guam, U.S. Virgin Islands, American Samoa, Northern Mariana Islands, NYC
 
-    df_states = outbreaks_per_state[~outbreaks_per_state['state_code'].isin(territories)]
-    df_territories = outbreaks_per_state[outbreaks_per_state['state_code'].isin(territories)]
-    df_territories = df_territories.rename(columns={"state":"US Territory / City","potential_outbreak":"Potential Outbreaks"})
 
-    fig = go.Figure(data=go.Choropleth(
-        locations=df_states['state_code'],
-        z=df_states['potential_outbreak'].astype(float),
-        locationmode='USA-states',
-        colorscale='Reds',
-        #colorbar_title="",
-        
-        colorbar=dict(x=0.9,thickness=5,len=.7), 
-    ))
+def format_case_count(value):
+    """Format case counts cleanly for tooltips."""
+    if pd.isna(value):
+        return "NA"
 
-    fig.update_layout(
-        title_text=f"Potential Outbreaks by State", #: {date_wanted.strftime('%Y-%m-%d')}",
-        title_x=0.5,  
-        title_y=0.97,  
-        geo_scope='usa',
-        paper_bgcolor='black',
-        plot_bgcolor='black',
-        template="plotly_dark",
-        geo=dict(
-            landcolor='rgb(83, 83, 83)',
-            lakecolor='rgb(32, 32, 32)',
-            subunitcolor='rgb(100, 100, 100)',
-            countrycolor='rgb(100, 100, 100)',
-            bgcolor='rgb(0, 0, 0)',
-        ),
-        #width=600, 
-        #height=400,
-        margin=dict(l=0, r=0, b=10,t=20),
-        title_font=dict(size=22, color='white', family="Arial, sans-serif"),  
+    value = float(value)
+
+    if value.is_integer():
+        return f"{int(value):,}"
+
+    return f"{value:,.1f}"
+
+
+def build_location_outbreak_summary(df_outbreak):
+    """
+    Create one row per state/territory for the latest week, including:
+      - total number of potential outbreaks
+      - diseases identified as potential outbreaks
+      - latest-week case count for each disease
+      - formatted Plotly hover text
+    """
+    date_wanted = df_outbreak["date"].max()
+
+    latest = df_outbreak.loc[
+        df_outbreak["date"].eq(date_wanted)
+    ].copy()
+
+    latest["potential_outbreak"] = (
+        latest["potential_outbreak"]
+        .fillna(False)
+        .astype(bool)
     )
 
+    latest["new_cases"] = pd.to_numeric(
+        latest["new_cases"],
+        errors="coerce"
+    )
 
-    return fig, df_territories[["US Territory / City","Potential Outbreaks"]]
+    # One total per state/territory.
+    location_totals = (
+        latest
+        .groupby("state", as_index=False)["potential_outbreak"]
+        .sum()
+        .rename(
+            columns={
+                "potential_outbreak": "Potential Outbreaks"
+            }
+        )
+    )
+
+    # Disease-level details only for rows currently identified
+    # as potential outbreaks.
+    disease_details = (
+        latest.loc[
+            latest["potential_outbreak"],
+            ["state", "label", "new_cases"]
+        ]
+        .groupby(
+            ["state", "label"],
+            as_index=False,
+            dropna=False
+        )["new_cases"]
+        .sum(min_count=1)
+        .sort_values(
+            ["state", "new_cases", "label"],
+            ascending=[True, False, True]
+        )
+    )
+
+    details_by_location = {
+        state: [
+            {
+                "disease": str(row["label"]),
+                "latest_cases": row["new_cases"]
+            }
+            for _, row in group.iterrows()
+        ]
+        for state, group in disease_details.groupby(
+            "state",
+            sort=False
+        )
+    }
+
+    location_totals["disease_details"] = (
+        location_totals["state"]
+        .map(details_by_location)
+        .apply(lambda value: value if isinstance(value, list) else [])
+    )
+
+    def make_plotly_hover(row):
+        state_name = escape(str(row["state"]).title())
+        outbreak_total = int(row["Potential Outbreaks"])
+        disease_rows = row["disease_details"]
+
+        if disease_rows:
+            disease_text = "<br>".join(
+                (
+                    f"{escape(item['disease'])}: "
+                    f"<b>{format_case_count(item['latest_cases'])}</b>"
+                )
+                for item in disease_rows
+            )
+        else:
+            disease_text = "None"
+
+        return (
+            f"<b>{state_name}</b>"
+            f"<br>Total potential outbreaks: "
+            f"<b>{outbreak_total:,}</b>"
+            f"<br><br>"
+            f"<b>Disease — latest-week cases</b>"
+            f"<br>{disease_text}"
+        )
+
+    location_totals["hover_text"] = location_totals.apply(
+        make_plotly_hover,
+        axis=1
+    )
+
+    return date_wanted, location_totals
+
+
+def create_us_map(df_outbreak):
+
+    date_wanted, location_summary = (
+        build_location_outbreak_summary(df_outbreak)
+    )
+
+    location_summary["state_code"] = (
+        location_summary["state"].map(state_code_mapping)
+    )
+
+    territories = [
+        "PR", "GU", "VI", "AS", "MP", "NYC"
+    ]
+
+    df_states = location_summary.loc[
+        ~location_summary["state_code"].isin(territories)
+        & location_summary["state_code"].notna()
+    ].copy()
+
+    df_territories = location_summary.loc[
+        location_summary["state_code"].isin(territories)
+    ].copy()
+
+    df_territories = df_territories.rename(
+        columns={
+            "state": "US Territory / City"
+        }
+    )
+
+    fig = go.Figure(
+        data=go.Choropleth(
+            locations=df_states["state_code"],
+            z=df_states["Potential Outbreaks"].astype(float),
+            locationmode="USA-states",
+            colorscale="Reds",
+
+            # The complete tooltip is stored as one custom-data value
+            # for each state.
+            customdata=df_states["hover_text"],
+
+            # Suppresses Plotly's default state abbreviation and z value.
+            hovertemplate="%{customdata}<extra></extra>",
+
+            colorbar=dict(
+                x=0.9,
+                thickness=5,
+                len=0.7
+            )
+        )
+    )
+
+    fig.update_layout(
+        title_text="Potential Outbreaks by State",
+        title_x=0.5,
+        title_y=0.97,
+        geo_scope="usa",
+        paper_bgcolor="black",
+        plot_bgcolor="black",
+        template="plotly_dark",
+
+        # Appearance of the new tooltip.
+        hoverlabel=dict(
+            align="left",
+            bgcolor="#222222",
+            bordercolor="#777777",
+            font=dict(
+                color="white",
+                size=14,
+                family="Arial, sans-serif"
+            )
+        ),
+
+        geo=dict(
+            landcolor="rgb(83, 83, 83)",
+            lakecolor="rgb(32, 32, 32)",
+            subunitcolor="rgb(100, 100, 100)",
+            countrycolor="rgb(100, 100, 100)",
+            bgcolor="rgb(0, 0, 0)"
+        ),
+
+        margin=dict(
+            l=0,
+            r=0,
+            b=10,
+            t=20
+        ),
+
+        title_font=dict(
+            size=22,
+            color="white",
+            family="Arial, sans-serif"
+        )
+    )
+
+    # disease_details is retained for constructing the table tooltip,
+    # but it will not be displayed as a table column.
+    territory_output = df_territories[
+        [
+            "US Territory / City",
+            "Potential Outbreaks",
+            "disease_details"
+        ]
+    ].copy()
+
+    return fig, territory_output
 
 
 def create_sankey_chart(df_outbreak):
