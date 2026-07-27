@@ -548,7 +548,7 @@ def create_sankey_chart(df_outbreak):
 
 
     # ------------------------------------------------------------
-    # Weekly signal transitions
+    # Weekly signal transition counts
     # ------------------------------------------------------------
 
     previous_total = int(
@@ -582,102 +582,91 @@ def create_sankey_chart(df_outbreak):
         0
     )
 
-    current_total = int(
-        current_flags.sum()
+    current_total = int(current_flags.sum())
+
+    # ------------------------------------------------------------
+    # Two-period stacked transition chart
+    # ------------------------------------------------------------
+
+    fig = go.Figure()
+
+    # Previous week bar
+    fig.add_trace(
+        go.Bar(
+            y=["Previous week"],
+            x=[no_longer_flagged],
+            name="No longer flagged",
+            orientation="h",
+            marker_color="#FCBBA1",
+            text=[f"No longer flagged<br>{no_longer_flagged}"],
+            textposition="inside",
+            insidetextanchor="middle",
+            hovertemplate=(
+                "Previous week<br>"
+                "No longer flagged: %{x} signals"
+                "<extra></extra>"
+            )
+        )
     )
 
-    labels = [
-        f"Previous week<br>{previous_total} signals",
-        f"No longer flagged<br>{no_longer_flagged}",
-        f"Continuing<br>{continuing_signals}",
-        f"New this week<br>{new_signals}",
-        f"Current week<br>{current_total} signals",
-    ]
+    fig.add_trace(
+        go.Bar(
+            y=["Previous week"],
+            x=[continuing_signals],
+            name="Continuing",
+            orientation="h",
+            marker_color="#A50F15",
+            text=[f"Continuing<br>{continuing_signals}"],
+            textposition="inside",
+            insidetextanchor="middle",
+            hovertemplate=(
+                "Previous week<br>"
+                "Continuing: %{x} signals"
+                "<extra></extra>"
+            )
+        )
+    )
 
-    # Previous week splits into:
-    #   - no longer flagged
-    #   - continuing
-    #
-    # Continuing and new signals combine into current week.
-    source = [0, 0, 2, 3]
-    target = [1, 2, 4, 4]
+    # Current week bar
+    fig.add_trace(
+        go.Bar(
+            y=["Current week"],
+            x=[continuing_signals],
+            name="Continuing ",
+            orientation="h",
+            marker_color="#A50F15",
+            text=[f"Continuing<br>{continuing_signals}"],
+            textposition="inside",
+            insidetextanchor="middle",
+            showlegend=False,
+            hovertemplate=(
+                "Current week<br>"
+                "Continuing: %{x} signals"
+                "<extra></extra>"
+            )
+        )
+    )
 
-    values = [
-        no_longer_flagged,
-        continuing_signals,
-        continuing_signals,
-        new_signals,
-    ]
-
-    node_colors = [
-        "#FB6A4A",  # Previous week
-        "#FCBBA1",  # No longer flagged
-        "#A50F15",  # Continuing
-        "#EF3B2C",  # New this week
-        "#CB181D",  # Current week
-    ]
-
-    link_colors = [
-        "rgba(252, 187, 161, 0.65)",
-        "rgba(165, 15, 21, 0.75)",
-        "rgba(165, 15, 21, 0.75)",
-        "rgba(239, 59, 44, 0.70)",
-    ]
-
-    fig = go.Figure(
-        go.Sankey(
-            arrangement="fixed",
-
-            node=dict(
-                pad=25,
-                thickness=20,
-
-                line=dict(
-                    color="rgba(80, 80, 80, 0.8)",
-                    width=1
-                ),
-
-                label=labels,
-                color=node_colors,
-
-                x=[
-                    0.02,  # Previous week
-                    0.96,  # No longer flagged
-                    0.48,  # Continuing
-                    0.02,  # New this week
-                    0.96,  # Current week
-                ],
-
-                y=[
-                    0.18,  # Previous week
-                    0.12,  # No longer flagged
-                    0.60,  # Continuing
-                    0.82,  # New this week
-                    0.64,  # Current week
-                ],
-
-                hovertemplate=(
-                    "%{label}"
-                    "<extra></extra>"
-                )
-            ),
-
-            link=dict(
-                source=source,
-                target=target,
-                value=values,
-                color=link_colors,
-
-                hovertemplate=(
-                    "%{source.label} → %{target.label}"
-                    "<br>%{value} signals"
-                    "<extra></extra>"
-                )
+    fig.add_trace(
+        go.Bar(
+            y=["Current week"],
+            x=[new_signals],
+            name="New this week",
+            orientation="h",
+            marker_color="#EF3B2C",
+            text=[f"New this week<br>{new_signals}"],
+            textposition="inside",
+            insidetextanchor="middle",
+            hovertemplate=(
+                "Current week<br>"
+                "New this week: %{x} signals"
+                "<extra></extra>"
             )
         )
     )
 
     fig.update_layout(
+        barmode="stack",
         title=dict(
             text=(
                 "Weekly Potential-Outbreak Signal Transitions"
@@ -686,34 +675,83 @@ def create_sankey_chart(df_outbreak):
                 "Previous week to current week"
                 "</span>"
             ),
-
             x=0.5,
             xanchor="center",
             y=0.96,
             yanchor="top",
-
             font=dict(
                 size=22,
                 color="white",
                 family="Arial, sans-serif"
             )
         ),
-
-        font=dict(
-            size=14,
-            color="white"
-        ),
-
         paper_bgcolor="black",
         plot_bgcolor="black",
-
+        font=dict(
+            color="white",
+            size=14
+        ),
+        legend=dict(
+            orientation="h",
+            x=0.5,
+            xanchor="center",
+            y=-0.15,
+            yanchor="top"
+        ),
         margin=dict(
-            l=25,
-            r=25,
+            l=80,
+            r=60,
             t=85,
-            b=25
+            b=60
+        ),
+        xaxis=dict(
+            title="Signals",
+            showgrid=True,
+            gridcolor="rgba(70, 90, 105, 0.35)",
+            zeroline=False
+        ),
+        yaxis=dict(
+            title="",
+            categoryorder="array",
+            categoryarray=["Current week", "Previous week"]
         )
     )
+
+    # Total labels at the end of each stacked bar
+    fig.add_annotation(
+        x=previous_total,
+        y="Previous week",
+        text=f"Total: {previous_total}",
+        showarrow=False,
+        xanchor="left",
+        yanchor="middle",
+        font=dict(color="white", size=14),
+        xshift=10
+    )
+
+    fig.add_annotation(
+        x=current_total,
+        y="Current week",
+        text=f"Total: {current_total}",
+        showarrow=False,
+        xanchor="left",
+        yanchor="middle",
+        font=dict(color="white", size=14),
+        xshift=10
+    )
+
+    # Optional annotation emphasizing carryover
+    fig.add_annotation(
+        x=max(previous_total, current_total) * 0.52,
+        y=0.5,
+        xref="x",
+        yref="paper",
+        text="Continuing signals carried forward",
+        showarrow=False,
+        font=dict(color="#D9D9D9", size=13)
+    )
+
+    resolved_outbreaks_week_2 = no_longer_flagged
 
     # Preserve the existing variable name used by app.py.
     resolved_outbreaks_week_2 = no_longer_flagged
@@ -725,4 +763,5 @@ def create_sankey_chart(df_outbreak):
     #print(ongoing_outbreaks_table.head())
     #print(ongoing_outbreaks_table_test.head(3))
     ongoing_outbreaks_table.columns = ['US State / Territory','Disease','Previous Week','Latest Week']
+    
     return fig, ongoing_outbreaks_table, resolved_outbreaks_week_2
