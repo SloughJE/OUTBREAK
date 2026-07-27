@@ -357,37 +357,65 @@ def build_location_outbreak_summary(df_outbreak):
         .apply(lambda value: value if isinstance(value, list) else [])
     )
 
-    def make_plotly_hover(row):
-        state_name = escape(str(row["state"]).title())
-        outbreak_total = int(row["Potential Outbreaks"])
-        disease_rows = row["disease_details"]
-
-        if disease_rows:
-            disease_text = "<br>".join(
-                (
-                    f"{format_hover_disease_name(item['disease'])}: "
-                    f"<b>{format_case_count(item['latest_cases'])}</b>"
-                )
-                for item in disease_rows
-            )
-        else:
-            disease_text = "None"
-
-        return (
-            f"<b>{state_name}</b>"
-            f"<br>Total potential outbreaks: "
-            f"<b>{outbreak_total:,}</b>"
-            f"<br><br>"
-            f"<b>Disease: latest week cases</b>"
-            f"<br><br>{disease_text}"
-        )
-
-    location_totals["hover_text"] = location_totals.apply(
-        make_plotly_hover,
-        axis=1
+def make_plotly_hover(row):
+    state_name = escape(
+        str(row["state"]).title()
     )
 
-    return date_wanted, location_totals
+    outbreak_total = int(
+        row["Potential Outbreaks"]
+    )
+
+    outbreak_word = (
+        "outbreak"
+        if outbreak_total == 1
+        else "outbreaks"
+    )
+
+    disease_rows = row["disease_details"]
+
+    if disease_rows:
+        formatted_diseases = []
+
+        for item in disease_rows:
+            disease_name = format_hover_disease_name(
+                item["disease"],
+                width=38,
+                max_lines=2
+            )
+
+            # Indent the second line of wrapped disease names.
+            disease_name = disease_name.replace(
+                "<br>",
+                "<br>&nbsp;&nbsp;&nbsp;"
+            )
+
+            case_count = format_case_count(
+                item["latest_cases"]
+            )
+
+            formatted_diseases.append(
+                f"• {disease_name}: "
+                f"<b>{case_count}</b>"
+            )
+
+        disease_text = "<br>".join(
+            formatted_diseases
+        )
+
+    else:
+        disease_text = "No potential outbreaks"
+
+    return (
+        f"<b>{state_name}</b>"
+        f"<br><br>"
+        f"<b>{outbreak_total:,} potential "
+        f"{outbreak_word}</b>"
+        f"<br><br>"
+        f"<b>Latest-week cases</b>"
+        f"<br><br>"
+        f"{disease_text}"
+    )
 
 
 def create_us_map(df_outbreak):
@@ -450,14 +478,13 @@ def create_us_map(df_outbreak):
         plot_bgcolor="black",
         template="plotly_dark",
 
-        # Appearance of the new tooltip.
         hoverlabel=dict(
             align="left",
-            bgcolor="#222222",
-            bordercolor="#777777",
+            bgcolor="#242424",
+            bordercolor="#A8A8A8",
             font=dict(
                 color="white",
-                size=14,
+                size=15,
                 family="Arial, sans-serif"
             )
         ),
