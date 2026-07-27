@@ -589,7 +589,7 @@ def create_sankey_chart(df_outbreak):
 # Two-period stacked transition chart
 # ------------------------------------------------------------
 
-    bar_width = 0.34
+    bar_width = 0.42
     ongoing_midpoint = continuing_signals / 2
 
     fig = go.Figure()

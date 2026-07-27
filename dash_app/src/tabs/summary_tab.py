@@ -77,7 +77,7 @@ def summary_tab_layout():
                                     "width": "100%",
                                     "height": SUMMARY_GRAPH_HEIGHT,
                                     "display": "block",
-                                    "marginBottom": "0px",
+                                    "marginBottom": "6px",
                                     "marginLeft": "auto",
                                     "marginRight": "auto"
                                 },
@@ -85,7 +85,7 @@ def summary_tab_layout():
                                     "responsive": True
                                 }
                             ),                            
-                            html.Div(id='territories-table', style={'color': 'white', 'padding': '0px', 'marginTop': '0px'})
+                            html.Div(id='territories-table', style={'color': 'white', 'padding': '0px', 'marginTop': '14px'})
                         ], style={**common_div_style}),  
                         xs=12, lg=6
                     ),
@@ -99,7 +99,7 @@ def summary_tab_layout():
                                     "width": "100%",
                                     "height": SUMMARY_GRAPH_HEIGHT,
                                     "display": "block",
-                                    "marginBottom": "0px",
+                                    "marginBottom": "6px",
                                     "marginLeft": "auto",
                                     "marginRight": "auto"
                                 },
@@ -107,7 +107,7 @@ def summary_tab_layout():
                                     "responsive": True
                                 }
                             ),                            
-                            html.Div(id='ongoing-outbreaks-table', style={'color': 'white', 'padding': '0px', 'marginTop': '0px'})                             
+                            html.Div(id='ongoing-outbreaks-table', style={'color': 'white', 'padding': '0px', 'marginTop': '14px'})                             
                         ], style={**common_div_style}),  
                         xs=12, lg=6
                     )
