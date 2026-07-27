@@ -124,3 +124,98 @@ def plot_outbreak(df_historical_filtered, df_latest_filtered, df_preds_filtered,
     )
 
     return fig
+
+
+def summarize_history_period(df_outbreak_history, weeks):
+    """
+    Summarize one state-disease time series over the selected
+    number of calendar weeks.
+
+    Returns:
+      - period_start
+      - period_end
+      - total_cases
+      - flagged_weeks
+      - episodes_started
+      - peak_weekly_cases
+    """
+    if df_outbreak_history.empty:
+        return None
+
+    history = (
+        df_outbreak_history
+        .sort_values("date")
+        .copy()
+    )
+
+    history["date"] = pd.to_datetime(history["date"])
+    history["new_cases"] = pd.to_numeric(
+        history["new_cases"],
+        errors="coerce"
+    )
+
+    history["potential_outbreak"] = (
+        history["potential_outbreak"]
+        .fillna(False)
+        .astype(bool)
+    )
+
+    period_end = history["date"].max()
+
+    # Subtract 11 weeks for a 12-week inclusive window,
+    # 25 weeks for a 26-week window, etc.
+    period_start = period_end - pd.Timedelta(
+        weeks=weeks - 1
+    )
+
+    period_data = history.loc[
+        history["date"].between(
+            period_start,
+            period_end
+        )
+    ].copy()
+
+    period_data = period_data.loc[
+        period_data["new_cases"].notna()
+    ].copy()
+
+    if period_data.empty:
+        return None
+
+    # Determine whether the first flagged week in the displayed
+    # period continued an episode that began before the window.
+    preceding_rows = history.loc[
+        history["date"] < period_start
+    ]
+
+    if preceding_rows.empty:
+        previous_flag = False
+    else:
+        previous_flag = bool(
+            preceding_rows.iloc[-1]["potential_outbreak"]
+        )
+
+    flags = period_data["potential_outbreak"]
+
+    episode_starts = (
+        flags
+        & ~flags.shift(
+            1,
+            fill_value=previous_flag
+        )
+    )
+
+    return {
+        "period_start": period_start,
+        "period_end": period_end,
+        "total_cases": int(
+            period_data["new_cases"].sum()
+        ),
+        "flagged_weeks": int(flags.sum()),
+        "episodes_started": int(
+            episode_starts.sum()
+        ),
+        "peak_weekly_cases": int(
+            period_data["new_cases"].max()
+        ),
+    }

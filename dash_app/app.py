@@ -5,8 +5,10 @@ import plotly.graph_objects as go
 import dash_bootstrap_components as dbc
 import pandas as pd
 
-from src.tabs.history_tab_helper import plot_outbreak
-
+from src.tabs.history_tab_helper import (
+    plot_outbreak,
+    summarize_history_period
+)
 from src.tabs.summary_tab_helper import (
     get_outbreaks, create_us_map, 
     is_outbreak_resolved, create_sankey_chart,
@@ -460,16 +462,20 @@ def update_kpi(selected_interval):
 ###### DISEASE HISTORY TAB CALLBACK
 @app.callback(
     [
-        Output('outbreak_graph', 'figure'),
-        Output('disease_info_display', 'children')
+        Output("outbreak_graph", "figure"),
+        Output("disease_info_display", "children"),
+        Output("history_summary_metrics", "children")
     ],
     [
-        Input('state_dropdown', 'value'),
-        Input('label_dropdown', 'value'),
-        Input('interval_dropdown_detail', 'value')
-        ]  
+        Input("state_dropdown", "value"),
+        Input("label_dropdown", "value"),
+        Input("interval_dropdown_detail", "value"),
+        Input("history_period_dropdown", "value")
+    ]
 )
-def update_graph(selected_state, label_dropdown, selected_interval):
+
+
+def update_graph(selected_state, label_dropdown, selected_interval, history_period):
 
     # Retrieve the outbreak data based on the selected interval
     df_outbreak = get_outbreaks(df_preds, chosen_interval=selected_interval)
@@ -492,8 +498,109 @@ def update_graph(selected_state, label_dropdown, selected_interval):
         df_preds_filtered = df_outbreak[(df_outbreak['state'] == selected_state) & (df_outbreak['label'] == label_dropdown)]
 
         fig = plot_outbreak(df_historical_filtered, df_latest_filtered, df_preds_filtered, selected_state, label_dropdown)
+
+
+        # Filter first so get_outbreaks_all() only processes
+        # one state-disease series.
+        history_series = df_preds_all.loc[
+            (df_preds_all["state"] == selected_state)
+            & (df_preds_all["label"] == label_dropdown)
+        ].copy()
+
+        history_series = get_outbreaks_all(
+            history_series,
+            chosen_interval=selected_interval
+        )
+
+        history_summary = summarize_history_period(
+            history_series,
+            weeks=history_period
+        )
+
+        if history_summary is None:
+            history_summary_content = html.Div(
+                "No data available for this period.",
+                style={
+                    "color": "white",
+                    "textAlign": "center"
+                }
+            )
+
+        else:
+            def metric_card(title, value):
+                return html.Div(
+                    [
+                        html.Div(
+                            title,
+                            style={
+                                "fontSize": "15px",
+                                "color": "#D0D0D0",
+                                "marginBottom": "6px",
+                                "textAlign": "center"
+                            }
+                        ),
+
+                        html.Div(
+                            value,
+                            style={
+                                "fontSize": "28px",
+                                "fontWeight": "bold",
+                                "color": "white",
+                                "textAlign": "center"
+                            }
+                        )
+                    ],
+                    style={
+                        "backgroundColor": "black",
+                        "border": "1px solid #555555",
+                        "borderRadius": "8px",
+                        "padding": "14px 18px",
+                        "minWidth": "190px",
+                        "flex": "1 1 190px"
+                    }
+                )
+
+            history_summary_content = [
+                metric_card(
+                    "Cases reported",
+                    f"{history_summary['total_cases']:,}"
+                ),
+
+                metric_card(
+                    "Weeks flagged",
+                    f"{history_summary['flagged_weeks']:,}"
+                ),
+
+                metric_card(
+                    "Flagged episodes started",
+                    f"{history_summary['episodes_started']:,}"
+                ),
+
+                metric_card(
+                    "Peak weekly cases",
+                    f"{history_summary['peak_weekly_cases']:,}"
+                ),
+
+                html.Div(
+                    (
+                        f"Summary period: "
+                        f"{history_summary['period_start']:%Y-%m-%d} "
+                        f"to "
+                        f"{history_summary['period_end']:%Y-%m-%d}"
+                    ),
+                    style={
+                        "width": "100%",
+                        "color": "#BDBDBD",
+                        "fontSize": "13px",
+                        "textAlign": "center",
+                        "marginTop": "2px"
+                    }
+                )
+            ]
     else:
         fig = go.Figure(layout_template="plotly_dark")
+        history_summary_content = []
+
     
     disease_group = disease_groups.get(label_dropdown, None)
     details = disease_details.get(disease_group, {})
@@ -519,7 +626,7 @@ def update_graph(selected_state, label_dropdown, selected_interval):
     else:
         disease_html = html.H4("")
     
-    return fig, disease_html
+    return fig, disease_html, history_summary_content
 
 
 ###### OUTBREAK HISTORY TAB CALLBACK
