@@ -715,7 +715,7 @@ def create_sankey_chart(df_outbreak):
         yshift=5,
         font=dict(
             color="white",
-            size=12
+            size=14
         )
     )
 
@@ -728,7 +728,7 @@ def create_sankey_chart(df_outbreak):
         yshift=5,
         font=dict(
             color="white",
-            size=12
+            size=14
         )
     )
 
@@ -767,7 +767,7 @@ def create_sankey_chart(df_outbreak):
 
         font=dict(
             color="white",
-            size=12
+            size=14
         ),
 
         # Direct labels already identify every segment.
