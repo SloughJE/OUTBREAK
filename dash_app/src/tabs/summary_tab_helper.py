@@ -545,95 +545,179 @@ def create_sankey_chart(df_outbreak):
 
     week_1_data = df_outbreak[df_outbreak['date'] == date_previous]
     week_2_data = df_outbreak[df_outbreak['date'] == date_latest]
-    potential_outbreaks_week_1 = week_1_data['potential_outbreak'].sum()  
-    resolved_outbreaks_week_2 = week_2_data[(week_2_data.potential_outbreak_past_week==True)]['Potential_Outbreak_Resolved'].sum()  
-    ongoing_outbreaks_week_2 = week_2_data[(week_2_data['potential_outbreak_past_week'] == True) & (week_2_data['potential_outbreak'] == True)].shape[0]
 
+
+    # ------------------------------------------------------------
+    # Weekly signal transitions
+    # ------------------------------------------------------------
+
+    previous_total = int(
+        week_1_data["potential_outbreak"]
+        .fillna(False)
+        .sum()
+    )
+
+    current_flags = (
+        week_2_data["potential_outbreak"]
+        .fillna(False)
+        .astype(bool)
+    )
+
+    previous_flags = (
+        week_2_data["potential_outbreak_past_week"]
+        .fillna(False)
+        .astype(bool)
+    )
+
+    continuing_signals = int(
+        (current_flags & previous_flags).sum()
+    )
+
+    new_signals = int(
+        (current_flags & ~previous_flags).sum()
+    )
+
+    no_longer_flagged = max(
+        previous_total - continuing_signals,
+        0
+    )
+
+    current_total = int(
+        current_flags.sum()
+    )
 
     labels = [
-        f"Previous Week<br>Potential Outbreaks: {int(potential_outbreaks_week_1)}",
-        f"Ongoing Outbreaks: {int(ongoing_outbreaks_week_2)}",       
-        f"Current Week<br>Resolved Outbreaks: {int(resolved_outbreaks_week_2)}",
+        f"Previous week<br>{previous_total} signals",
+        f"No longer flagged<br>{no_longer_flagged}",
+        f"Continuing<br>{continuing_signals}",
+        f"New this week<br>{new_signals}",
+        f"Current week<br>{current_total} signals",
     ]
 
-    # Adjusting source and target arrays based on the updated labels order
-    source = [0, 0]  
-    target = [1, 2]  
-    value = [
-        ongoing_outbreaks_week_2,  # From Potential to Ongoing
-        resolved_outbreaks_week_2,  # From Potential to Resolved
+    # Previous week splits into:
+    #   - no longer flagged
+    #   - continuing
+    #
+    # Continuing and new signals combine into current week.
+    source = [0, 0, 2, 3]
+    target = [1, 2, 4, 4]
+
+    values = [
+        no_longer_flagged,
+        continuing_signals,
+        continuing_signals,
+        new_signals,
     ]
 
-    # Colors similar to the plotly reds colorscale used in map
     node_colors = [
-        'rgb(222, 45, 38)',  # Virginia's lighter red for Potential Outbreaks
-        'rgb(165, 10, 10)',  # Florida's darkest red for Ongoing Outbreaks
-        'rgb(252, 187, 161)',  # North Carolina's very light red for Resolved Outbreaks
+        "#FB6A4A",  # Previous week
+        "#FCBBA1",  # No longer flagged
+        "#A50F15",  # Continuing
+        "#EF3B2C",  # New this week
+        "#CB181D",  # Current week
     ]
 
-    # Link colors as intermediate colors closer to the node colors they connect to
     link_colors = [
-        'rgb(203, 24, 29)',  # Arizona's red for the transition to "Ongoing Outbreaks"
-        'rgb(251, 106, 74)',  # Colorado's light red for the transition to "Resolved Outbreaks"
+        "rgba(252, 187, 161, 0.65)",
+        "rgba(165, 15, 21, 0.75)",
+        "rgba(165, 15, 21, 0.75)",
+        "rgba(239, 59, 44, 0.70)",
     ]
 
-    hover_colors = [
-        'rgba(223, 54, 60, 0.8)',    # Brightened version of Arizona's red for link to Ongoing Outbreaks hover
-        'rgba(251, 146, 114, 0.8)',  # Brightened version of Colorado's light red for link to Resolved Outbreaks hover
-    ]
-    
-    node_customdata = [
-        f"Potential Outbreaks: {int(potential_outbreaks_week_1)}",
-        f"Ongoing Outbreaks: {int(ongoing_outbreaks_week_2)}",
-        f"Resolved Outbreaks: {int(resolved_outbreaks_week_2)}",
+    fig = go.Figure(
+        go.Sankey(
+            arrangement="fixed",
 
-    ]
-    node_hovertemplate = '%{customdata}<extra></extra>'
-    
-    link_customdata = [
-        "Transition to Ongoing",
-        "Transition to Resolved"
-    ]
-    link_hovertemplate = '%{source.customdata} to %{target.customdata}<extra></extra>'
+            node=dict(
+                pad=25,
+                thickness=20,
 
+                line=dict(
+                    color="rgba(80, 80, 80, 0.8)",
+                    width=1
+                ),
 
-    fig = go.Figure(data=[go.Sankey(
-        
-        node=dict(
-            pad=20,
-            thickness=20,
-        line=dict(color="rgba(50,50,50,0.5)", width=1), 
-            label=labels,
-            color=node_colors,
-            customdata=node_customdata,
-            hovertemplate=node_hovertemplate
-        ),
-        link=dict(
-            arrowlen=15,    
-            source=source,
-            target=target,
-            value=value,
-            color=link_colors,
-            hovercolor=hover_colors,
-            customdata=link_customdata,
-            hovertemplate=link_hovertemplate
-            ))])
+                label=labels,
+                color=node_colors,
+
+                x=[
+                    0.02,  # Previous week
+                    0.96,  # No longer flagged
+                    0.48,  # Continuing
+                    0.02,  # New this week
+                    0.96,  # Current week
+                ],
+
+                y=[
+                    0.18,  # Previous week
+                    0.12,  # No longer flagged
+                    0.60,  # Continuing
+                    0.82,  # New this week
+                    0.64,  # Current week
+                ],
+
+                hovertemplate=(
+                    "%{label}"
+                    "<extra></extra>"
+                )
+            ),
+
+            link=dict(
+                source=source,
+                target=target,
+                value=values,
+                color=link_colors,
+
+                hovertemplate=(
+                    "%{source.label} → %{target.label}"
+                    "<br>%{value} signals"
+                    "<extra></extra>"
+                )
+            )
+        )
+    )
 
     fig.update_layout(
-     title=dict(
-        text=f"Ongoing Potential Outbreaks<br>previous week to current week",
-        font=dict(size=22, color='white', family="Arial, bold"),
-        
-        x=0.5,  
-        y=0.94,  
-        xanchor='center',  
-        yanchor='top'      
-    ),
-        font=dict(size=16, color='white'),
-        paper_bgcolor='rgba(0,0,0,0.95)',
-        plot_bgcolor='rgba(0,0,0,0.95)',
-        #margin=dict(l=20, r=20, t=40, b=20), 
+        title=dict(
+            text=(
+                "Weekly Potential-Outbreak Signal Transitions"
+                "<br>"
+                "<span style='font-size:14px'>"
+                "Previous week to current week"
+                "</span>"
+            ),
+
+            x=0.5,
+            xanchor="center",
+            y=0.96,
+            yanchor="top",
+
+            font=dict(
+                size=22,
+                color="white",
+                family="Arial, sans-serif"
+            )
+        ),
+
+        font=dict(
+            size=14,
+            color="white"
+        ),
+
+        paper_bgcolor="black",
+        plot_bgcolor="black",
+
+        margin=dict(
+            l=25,
+            r=25,
+            t=85,
+            b=25
+        )
     )
+
+    # Preserve the existing variable name used by app.py.
+    resolved_outbreaks_week_2 = no_longer_flagged
+
     ongoing_outbreaks_table = week_2_data[(week_2_data.Potential_Outbreak_Resolved==False)][['state','label','new_cases']]
     ongoing_outbreaks_table = pd.merge(week_1_data[['state','label','new_cases']], ongoing_outbreaks_table, 
                                             on=['state','label'], how='inner',suffixes=['_previous','_latest'])
