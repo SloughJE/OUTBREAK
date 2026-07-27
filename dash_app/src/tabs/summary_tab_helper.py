@@ -622,9 +622,11 @@ def create_sankey_chart(df_outbreak):
             width=bar_width,
             name="No longer flagged",
             marker_color="#FCBBA1",
-            text=[
-                f"No longer flagged<br>{no_longer_flagged}"
-            ],
+            text=[f"No longer flagged<br>{no_longer_flagged}"],
+            textfont=dict(
+                size=14,
+                color="#333333"
+            ),
             textposition="inside",
             insidetextanchor="middle",
             hovertemplate=(
@@ -665,7 +667,7 @@ def create_sankey_chart(df_outbreak):
             showarrow=False,
             font=dict(
                 color="white",
-                size=11
+                size=14
             ),
             align="center"
         )
@@ -692,14 +694,12 @@ def create_sankey_chart(df_outbreak):
         x=0.5,
         y=continuing_signals,
         text=(
-            f"Same {continuing_signals} signals "
-            "remained flagged"
-        ),
+            f"{continuing_signals} ongoing signals"),
         showarrow=False,
         yshift=12,
         font=dict(
             color="#E0E0E0",
-            size=11
+            size=14
         ),
         bgcolor="rgba(0,0,0,0.65)",
         borderpad=2
@@ -742,10 +742,11 @@ def create_sankey_chart(df_outbreak):
 
         title=dict(
             text=(
-                "Weekly Potential-Outbreak Signal Transitions"
+                "How Potential-Outbreak Signals Changed This Week"
                 "<br>"
-                "<span style='font-size:12px'>"
-                "Previous week to current week"
+                "<span style='font-size:16px'>"
+                f"{previous_total} previous-week signals "
+                f"→ {current_total} current-week signals"
                 "</span>"
             ),
             x=0.5,
@@ -753,7 +754,7 @@ def create_sankey_chart(df_outbreak):
             y=0.97,
             yanchor="top",
             font=dict(
-                size=18,
+                size=20,
                 color="white",
                 family="Arial, sans-serif"
             )
@@ -784,6 +785,7 @@ def create_sankey_chart(df_outbreak):
 
         xaxis=dict(
             title="",
+            tickfont=dict(size=14),
             tickmode="array",
             tickvals=[0, 1],
             ticktext=[
@@ -797,7 +799,12 @@ def create_sankey_chart(df_outbreak):
         ),
 
         yaxis=dict(
-            title="Signals",
+            title=dict(
+                text="Potential Outbreaks",
+                font=dict(size=14)
+            ),
+            tickfont=dict(size=13),
+        
             range=[
                 0,
                 maximum_total * 1.16

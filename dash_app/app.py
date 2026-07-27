@@ -356,7 +356,7 @@ def update_kpi(selected_interval):
     if ongoing_outbreaks.empty:
         table_title = "Ongoing Outbreaks: None"
     else:
-        table_title = "Ongoing Outbreak Cases"
+        table_title = "Ongoing Outbreaks"
         
     table_content_ongoing_outbreaks = html.Div([
         html.H3(table_title, style={'textAlign': 'center', 'color': 'white','fontSize':'22px'}),
