@@ -433,20 +433,16 @@ def update_kpi(selected_interval):
                         "filter_query": '{Status} = "New"',
                         "column_id": "Status"
                     },
-                    "backgroundColor": "rgba(239, 59, 44, 0.14)",
-                    "color": "#FF8A80",
-                    "fontWeight": "bold",
-                    "borderLeft": "4px solid #EF3B2C"
+                    "color": "#FF5A4D",
+                    "fontWeight": "bold"
                 },
                 {
                     "if": {
                         "filter_query": '{Status} = "Ongoing"',
                         "column_id": "Status"
                     },
-                    "backgroundColor": "rgba(165, 15, 21, 0.14)",
-                    "color": "#F0A0A5",
-                    "fontWeight": "bold",
-                    "borderLeft": "4px solid #A50F15"
+                    "color": "#E69A9F",
+                    "fontWeight": "bold"
                 }
             ],
             style_table={
