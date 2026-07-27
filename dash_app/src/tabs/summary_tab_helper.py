@@ -750,8 +750,8 @@ def create_sankey_chart(df_outbreak):
                 "How Potential Outbreaks Changed This Week"
                 "<br>"
                 "<span style='font-size:16px'>"
-                f"{previous_total} previous-week signals "
-                f"→ {current_total} current-week signals"
+                f"{previous_total} previous week signals "
+                f"→ {current_total} latest-week signals"
                 "</span>"
             ),
             x=0.5,
