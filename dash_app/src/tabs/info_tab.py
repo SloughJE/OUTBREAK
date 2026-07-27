@@ -95,10 +95,6 @@ def info_view_tab_layout():
         create_collapsible_card("collapse-button-tab-info", "collapse-tab-info", tab_information_title, [
             html.H4(summary_tab_title, className="mt-4"),
             html.P(summary_tab_data, style={'white-space': 'pre-line'}),
-
-            html.H4(profiles_tab_title, className="mt-4"),
-            html.P(profiles_tab_data, style={'white-space': 'pre-line'}),
-
         
             html.H4(disease_tab_title, className="mt-4"),
             html.P(disease_tab_data, style={'white-space': 'pre-line'}),

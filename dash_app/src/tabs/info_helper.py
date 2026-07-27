@@ -17,10 +17,10 @@ summary_tab_data = (
 )
 
 # Profiles Tab
-profiles_tab_title = "Outbreak Profiles"
-profiles_tab_data = (
-    "Provides an analysis of the types of outbreaks based on pathogen type, affected bodily system, and transmission type. Additionally, a table of all potential outbreaks with details is provided."
-)
+#profiles_tab_title = "Outbreak Profiles"
+#profiles_tab_data = (
+#    "Provides an analysis of the types of outbreaks based on pathogen type, affected bodily system, and transmission type. Additionally, a table of all potential outbreaks with details is provided."
+#)
 
 # Disease History Tab
 disease_tab_title = "Disease History"
