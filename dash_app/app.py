@@ -522,12 +522,9 @@ def update_graph(selected_state, label_dropdown, selected_interval, history_peri
             fig.add_vrect(
                 x0=history_summary["period_start"],
                 x1=history_summary["period_end"],
-                fillcolor="rgba(255, 255, 255, 0.08)",
+                fillcolor="rgba(255, 255, 255, 0.10)",
                 line_width=0,
                 layer="below",
-                annotation_text="Selected summary period",
-                annotation_position="top left",
-                annotation_font_color="#BDBDBD"
             )
 
             fig.add_vline(
@@ -545,7 +542,7 @@ def update_graph(selected_state, label_dropdown, selected_interval, history_peri
                     "textAlign": "center"
                 }
             )
-            
+
         else:
             def metric_card(title, value):
                 return html.Div(
