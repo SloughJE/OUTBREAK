@@ -606,7 +606,7 @@ def create_sankey_chart(df_outbreak):
             y=[continuing_signals, continuing_signals],
             width=bar_width,
             name="Ongoing",
-            marker_color="#A50F15",
+            marker_color="#CB181D",
             hovertemplate=(
                 "%{customdata}<br>"
                 f"Ongoing: {continuing_signals} signals"
@@ -751,7 +751,7 @@ def create_sankey_chart(df_outbreak):
                 "<br>"
                 "<span style='font-size:16px'>"
                 f"{previous_total} previous week signals "
-                f"→ {current_total} latest-week signals"
+                f"→ {current_total} latest week signals"
                 "</span>"
             ),
             x=0.5,

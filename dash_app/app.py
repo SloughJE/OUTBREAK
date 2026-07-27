@@ -441,7 +441,7 @@ def update_kpi(selected_interval):
                         "filter_query": '{Status} = "Ongoing"',
                         "column_id": "Status"
                     },
-                    "color": "#A50F15",
+                    "color": "#CB181D",
                     "fontWeight": "bold"
                 }
             ],
