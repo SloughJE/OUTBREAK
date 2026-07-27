@@ -336,3 +336,56 @@ def plot_new_episode_trends(df_weekly):
     )
 
     return fig
+
+
+def filter_weekly_display_period(
+    df_weekly,
+    period_weeks,
+    end_date=None
+):
+    """
+    Restrict an already-aggregated weekly DataFrame to a
+    selected display period.
+
+    Episode detection and weekly aggregation should occur before
+    this function is called.
+    """
+    if df_weekly.empty:
+        return df_weekly.copy()
+
+    filtered = df_weekly.copy()
+
+    filtered["date"] = pd.to_datetime(
+        filtered["date"],
+        errors="coerce"
+    )
+
+    filtered = (
+        filtered
+        .dropna(subset=["date"])
+        .sort_values("date")
+        .copy()
+    )
+
+    if period_weeks in (None, "all"):
+        return filtered
+
+    period_weeks = int(period_weeks)
+
+    if end_date is None:
+        end_date = filtered["date"].max()
+    else:
+        end_date = pd.to_datetime(end_date)
+
+    # Subtract weeks - 1 so the range is inclusive:
+    # 52 reporting dates for a 52-week display period.
+    start_date = end_date - pd.Timedelta(
+        weeks=period_weeks - 1
+    )
+
+    return filtered.loc[
+        filtered["date"].between(
+            start_date,
+            end_date
+        )
+    ].copy()

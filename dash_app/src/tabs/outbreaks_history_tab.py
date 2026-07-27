@@ -73,8 +73,56 @@ def outbreaks_history_tab_layout():
                 }
             ),
 
+        html.Div(
+            [
+                html.Label(
+                    "Display period",
+                    style={
+                        "color": "white",
+                        "fontWeight": "bold",
+                        "marginRight": "12px"
+                    }
+                ),
 
-            dcc.Graph(id='outbreak_history_potential_resolved',style={**common_div_style,'padding': '20px'}),
+                dcc.Dropdown(
+                    id="trends_period_dropdown",
+                    options=[
+                        {
+                            "label": "Last 26 weeks",
+                            "value": 26
+                        },
+                        {
+                            "label": "Last 52 weeks",
+                            "value": 52
+                        },
+                        {
+                            "label": "Last 2 years",
+                            "value": 104
+                        },
+                        {
+                            "label": "All available data",
+                            "value": "all"
+                        }
+                    ],
+                    value=52,
+                    clearable=False,
+                    searchable=False,
+                    style={
+                        "width": "210px",
+                        "color": "black",
+                        "backgroundColor": "white"
+                    }
+                )
+            ],
+            style={
+                "display": "flex",
+                "alignItems": "center",
+                "justifyContent": "center",
+                "marginTop": "10px",
+                "marginBottom": "20px"
+            }
+        ),
+        dcc.Graph(id='outbreak_history_potential_resolved',style={**common_div_style,'padding': '20px'}),
             dcc.Checklist(
                 id='show_cumulative_toggle',
                 options=[

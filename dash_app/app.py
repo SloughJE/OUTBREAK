@@ -23,7 +23,8 @@ from src.tabs.outbreaks_history_tab_helper import (
     agg_outbreak_counts,
     plot_time_series,
     agg_new_episode_counts,
-    plot_new_episode_trends
+    plot_new_episode_trends,
+    filter_weekly_display_period
 )
 from src.tabs.info_tab import info_view_tab_layout
 
@@ -820,7 +821,7 @@ def update_graph(selected_state, label_dropdown, selected_interval, history_peri
         episode_table_content
     )
 
-###### OUTBREAK HISTORY TAB CALLBACK
+###### OUTBREAK TRENDS TAB CALLBACK
 @app.callback(
     [
         Output(
@@ -845,12 +846,17 @@ def update_graph(selected_state, label_dropdown, selected_interval, history_peri
             "interval_dropdown_outbreak",
             "value"
         ),
+        Input(
+            "trends_period_dropdown",
+            "value"
+        ),
     ],
 )
 def update_outbreak_history_graph(
     selected_states,
     show_cumulative_toggle,
-    selected_interval
+    selected_interval,
+    trends_period
 ):
 
     if selected_states:
@@ -866,6 +872,7 @@ def update_outbreak_history_graph(
             df_preds_all.copy()
         )
 
+    # Calculate outbreak status using the full available history.
     df_outbreak_history_filt = get_outbreaks_all(
         df_outbreak_history_filt,
         selected_interval
@@ -885,23 +892,65 @@ def update_outbreak_history_graph(
         ].copy()
     )
 
+    # The same end date is used for both charts.
+    if df_outbreak_history_filt.empty:
+        display_end_date = None
+    else:
+        display_end_date = (
+            df_outbreak_history_filt["date"].max()
+        )
+
     # -------------------------------------------------
-    # Upper chart: new episode starts by week
+    # Aggregate using the complete history first.
     # -------------------------------------------------
-    df_weekly_new_episodes = agg_new_episode_counts(
-        df_outbreak_history_filt
+    df_weekly_new_episodes_full = (
+        agg_new_episode_counts(
+            df_outbreak_history_filt
+        )
     )
+
+    df_weekly_ongoing_full = agg_outbreak_counts(
+        df_outbreak_history_filt,
+        condition="ongoing_outbreaks"
+    )
+
+    # -------------------------------------------------
+    # Only now restrict what is displayed.
+    # -------------------------------------------------
+    df_weekly_new_episodes = (
+        filter_weekly_display_period(
+            df_weekly_new_episodes_full,
+            period_weeks=trends_period,
+            end_date=display_end_date
+        )
+    )
+
+    df_weekly_ongoing = (
+        filter_weekly_display_period(
+            df_weekly_ongoing_full,
+            period_weeks=trends_period,
+            end_date=display_end_date
+        )
+    )
+
+    # Cumulative counts restart at zero for the selected
+    # display period.
+    if not df_weekly_ongoing.empty:
+        df_weekly_ongoing[
+            "cumulative_count"
+        ] = (
+            df_weekly_ongoing["count"]
+            .cumsum()
+        )
 
     fig_new_episodes = plot_new_episode_trends(
         df_weekly_new_episodes
     )
 
-    # -------------------------------------------------
-    # Lower chart: retain existing ongoing counts
-    # -------------------------------------------------
-    df_weekly_ongoing = agg_outbreak_counts(
-        df_outbreak_history_filt,
-        condition="ongoing_outbreaks"
+    display_start_date = (
+        df_weekly_new_episodes["date"].min()
+        if not df_weekly_new_episodes.empty
+        else None
     )
 
     if (
@@ -917,11 +966,7 @@ def update_outbreak_history_graph(
             display_col="cumulative_count",
             primary_name="Ongoing",
             primary_color="#A50A0A",
-            min_date=(
-                df_weekly_new_episodes["date"].min()
-                if not df_weekly_new_episodes.empty
-                else None
-            )
+            min_date=display_start_date
         )
 
     else:
@@ -931,11 +976,7 @@ def update_outbreak_history_graph(
             display_col="count",
             primary_name="Ongoing",
             primary_color="#A50A0A",
-            min_date=(
-                df_weekly_new_episodes["date"].min()
-                if not df_weekly_new_episodes.empty
-                else None
-            )
+            min_date=display_start_date
         )
 
     return fig_new_episodes, fig_ongoing
