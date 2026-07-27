@@ -517,6 +517,26 @@ def update_graph(selected_state, label_dropdown, selected_interval, history_peri
             weeks=history_period
         )
 
+        # Highlight on the chart the period summarized by the KPI cards.
+        if history_summary is not None:
+            fig.add_vrect(
+                x0=history_summary["period_start"],
+                x1=history_summary["period_end"],
+                fillcolor="rgba(255, 255, 255, 0.08)",
+                line_width=0,
+                layer="below",
+                annotation_text="Selected summary period",
+                annotation_position="top left",
+                annotation_font_color="#BDBDBD"
+            )
+
+            fig.add_vline(
+                x=history_summary["period_start"],
+                line_width=1,
+                line_dash="dot",
+                line_color="#888888"
+            )
+
         if history_summary is None:
             history_summary_content = html.Div(
                 "No data available for this period.",
@@ -525,7 +545,7 @@ def update_graph(selected_state, label_dropdown, selected_interval, history_peri
                     "textAlign": "center"
                 }
             )
-
+            
         else:
             def metric_card(title, value):
                 return html.Div(

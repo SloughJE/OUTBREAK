@@ -88,6 +88,7 @@ def details_tab_layout():
                             dcc.Dropdown(
                                 id="history_period_dropdown",
                                 options=[
+                                    {"label": "Last 4 weeks", "value": 4},
                                     {"label": "Last 12 weeks", "value": 12},
                                     {"label": "Last 26 weeks", "value": 26},
                                     {"label": "Last 52 weeks", "value": 52},
