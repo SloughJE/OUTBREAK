@@ -73,6 +73,56 @@ def details_tab_layout():
                     'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
                 }
                 ),
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.Label(
+                                "Summary period",
+                                style={
+                                    "color": "white",
+                                    "fontWeight": "bold",
+                                    "marginRight": "12px"
+                                }
+                            ),
+
+                            dcc.Dropdown(
+                                id="history_period_dropdown",
+                                options=[
+                                    {"label": "Last 12 weeks", "value": 12},
+                                    {"label": "Last 26 weeks", "value": 26},
+                                    {"label": "Last 52 weeks", "value": 52},
+                                ],
+                                value=12,
+                                clearable=False,
+                                searchable=False,
+                                style={
+                                    "width": "190px"
+                                }
+                            ),
+                        ],
+                        style={
+                            "display": "flex",
+                            "alignItems": "center",
+                            "justifyContent": "center",
+                            "marginTop": "18px",
+                            "marginBottom": "18px"
+                        }
+                    ),
+
+                    html.Div(
+                        id="history_summary_metrics",
+                        style={
+                            "display": "flex",
+                            "flexWrap": "wrap",
+                            "justifyContent": "center",
+                            "gap": "12px",
+                            "margin": "0 auto 20px auto",
+                            "maxWidth": "1050px"
+                        }
+                    ),
+                ]
+            ),
             dcc.Graph(id='outbreak_graph',style={**common_div_style}),
             
 
