@@ -7,7 +7,8 @@ import pandas as pd
 
 from src.tabs.history_tab_helper import (
     plot_outbreak,
-    summarize_history_period
+    summarize_history_period,
+    get_flagged_episodes
 )
 from src.tabs.summary_tab_helper import (
     get_outbreaks, create_us_map, 
@@ -464,14 +465,15 @@ def update_kpi(selected_interval):
     [
         Output("outbreak_graph", "figure"),
         Output("disease_info_display", "children"),
-        Output("history_summary_metrics", "children")
+        Output("history_summary_metrics", "children"),
+        Output("history_episodes_table", "children"),
     ],
     [
         Input("state_dropdown", "value"),
         Input("label_dropdown", "value"),
         Input("interval_dropdown_detail", "value"),
-        Input("history_period_dropdown", "value")
-    ]
+        Input("history_period_dropdown", "value"),
+    ],
 )
 
 
@@ -534,6 +536,164 @@ def update_graph(selected_state, label_dropdown, selected_interval, history_peri
                 line_color="#888888"
             )
 
+            episodes = get_flagged_episodes(
+                history_series,
+                period_start=history_summary["period_start"],
+                period_end=history_summary["period_end"]
+            )
+
+            if episodes.empty:
+                episode_table_content = html.Div(
+                    [
+                        html.H3(
+                            "Potential-Outbreak Episodes",
+                            style={
+                                "textAlign": "center",
+                                "color": "white",
+                                "fontSize": "22px",
+                                "marginBottom": "14px"
+                            }
+                        ),
+
+                        html.Div(
+                            (
+                                "No potential-outbreak episodes overlap "
+                                "the selected summary period."
+                            ),
+                            style={
+                                "color": "#C8C8C8",
+                                "textAlign": "center",
+                                "padding": "16px"
+                            }
+                        )
+                    ]
+                )
+
+            else:
+                episode_table_content = html.Div(
+                    [
+                        html.H3(
+                            "Potential-Outbreak Episodes",
+                            style={
+                                "textAlign": "center",
+                                "color": "white",
+                                "fontSize": "22px",
+                                "marginBottom": "14px"
+                            }
+                        ),
+
+                        dash_table.DataTable(
+                            columns=[
+                                {
+                                    "name": column,
+                                    "id": column
+                                }
+                                for column in episodes.columns
+                            ],
+
+                            data=episodes.to_dict("records"),
+
+                            style_as_list_view=True,
+                            sort_action="native",
+
+                            style_header={
+                                "backgroundColor": "rgb(50, 50, 50)",
+                                "color": "white",
+                                "fontWeight": "bold",
+                                "border": "1px solid white",
+                                "whiteSpace": "normal",
+                                "height": "3em",
+                                "textAlign": "center"
+                            },
+
+                            style_cell={
+                                "backgroundColor": "black",
+                                "color": "white",
+                                "border": "1px solid grey",
+                                "whiteSpace": "normal",
+                                "height": "auto",
+                                "padding": "8px",
+                                "textAlign": "center"
+                            },
+
+                            style_cell_conditional=[
+                                {
+                                    "if": {
+                                        "column_id": "Episode Started"
+                                    },
+                                    "width": "17%"
+                                },
+                                {
+                                    "if": {
+                                        "column_id": "Episode Ended"
+                                    },
+                                    "width": "17%"
+                                },
+                                {
+                                    "if": {
+                                        "column_id": "Weeks Flagged"
+                                    },
+                                    "width": "15%"
+                                },
+                                {
+                                    "if": {
+                                        "column_id": "Cases During Episode"
+                                    },
+                                    "width": "20%"
+                                },
+                                {
+                                    "if": {
+                                        "column_id": "Peak Weekly Cases"
+                                    },
+                                    "width": "18%"
+                                },
+                                {
+                                    "if": {
+                                        "column_id": "Status"
+                                    },
+                                    "width": "13%"
+                                }
+                            ],
+
+                            style_data_conditional=[
+                                {
+                                    "if": {
+                                        "filter_query":
+                                            '{Status} = "Ongoing"'
+                                    },
+                                    "backgroundColor":
+                                        "rgba(222, 45, 38, 0.55)",
+                                    "color": "white",
+                                    "fontWeight": "bold"
+                                }
+                            ],
+
+                            style_table={
+                                "width": "90%",
+                                "margin": "0 auto",
+                                "overflowX": "auto",
+                                "maxHeight": "280px",
+                                "overflowY": "auto"
+                            }
+                        ),
+
+                        html.Div(
+                            (
+                                "An episode is a contiguous run of flagged "
+                                "weekly observations. Episodes are shown when "
+                                "they overlap the selected period; dates and "
+                                "case totals describe the complete episode."
+                            ),
+                            style={
+                                "color": "#AFAFAF",
+                                "fontSize": "13px",
+                                "textAlign": "center",
+                                "marginTop": "10px"
+                            }
+                        )
+                    ]
+                )
+
         if history_summary is None:
             history_summary_content = html.Div(
                 "No data available for this period.",
@@ -542,6 +702,7 @@ def update_graph(selected_state, label_dropdown, selected_interval, history_peri
                     "textAlign": "center"
                 }
             )
+            episode_table_content = []
 
         else:
             def metric_card(title, value):
@@ -615,8 +776,12 @@ def update_graph(selected_state, label_dropdown, selected_interval, history_peri
                 )
             ]
     else:
-        fig = go.Figure(layout_template="plotly_dark")
+        fig = go.Figure(
+            layout_template="plotly_dark"
+        )
+
         history_summary_content = []
+        episode_table_content = []
 
     
     disease_group = disease_groups.get(label_dropdown, None)
@@ -643,8 +808,12 @@ def update_graph(selected_state, label_dropdown, selected_interval, history_peri
     else:
         disease_html = html.H4("")
     
-    return fig, disease_html, history_summary_content
-
+    return (
+        fig,
+        disease_html,
+        history_summary_content,
+        episode_table_content
+    )
 
 ###### OUTBREAK HISTORY TAB CALLBACK
 @app.callback(

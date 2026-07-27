@@ -82,7 +82,7 @@ def details_tab_layout():
                                 style={
                                     "color": "white",
                                     "fontWeight": "bold",
-                                    "marginRight": "12px"
+                                    "marginRight": "16px"
                                 }
                             ),
                             dcc.Dropdown(
@@ -126,7 +126,16 @@ def details_tab_layout():
                 ]
             ),
             dcc.Graph(id='outbreak_graph',style={**common_div_style}),
-            
+            html.Div(
+                id="history_episodes_table",
+                style={
+                    "backgroundColor": "black",
+                    "borderRadius": "10px",
+                    "marginTop": "18px",
+                    "marginBottom": "18px",
+                    "padding": "12px 18px 18px 18px"
+                }
+            ),
 
         ]),
         html.Div(id='disease_info_display',

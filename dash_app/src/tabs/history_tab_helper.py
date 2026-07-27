@@ -219,3 +219,177 @@ def summarize_history_period(df_outbreak_history, weeks):
             period_data["new_cases"].max()
         ),
     }
+
+def get_flagged_episodes(
+    df_outbreak_history,
+    period_start,
+    period_end,
+    max_gap_days=8
+):
+    """
+    Identify contiguous runs of potential-outbreak weeks.
+
+    An episode:
+      - begins when potential_outbreak changes from False to True
+      - continues while subsequent weekly observations remain True
+      - breaks when the flag becomes False or observations are
+        separated by more than max_gap_days
+
+    Only episodes overlapping the selected summary period are returned.
+    Episode dates and totals describe the complete episode, including
+    portions occurring before the selected period.
+    """
+    output_columns = [
+        "Episode Started",
+        "Episode Ended",
+        "Weeks Flagged",
+        "Cases During Episode",
+        "Peak Weekly Cases",
+        "Status"
+    ]
+
+    if df_outbreak_history.empty:
+        return pd.DataFrame(columns=output_columns)
+
+    history = (
+        df_outbreak_history
+        .sort_values("date")
+        .copy()
+    )
+
+    history["date"] = pd.to_datetime(
+        history["date"],
+        errors="coerce"
+    )
+
+    history["new_cases"] = pd.to_numeric(
+        history["new_cases"],
+        errors="coerce"
+    )
+
+    history["potential_outbreak"] = (
+        history["potential_outbreak"]
+        .fillna(False)
+        .astype(bool)
+    )
+
+    # Missing case observations are not treated as flagged weeks.
+    history = history.dropna(
+        subset=["date", "new_cases"]
+    ).copy()
+
+    if history.empty:
+        return pd.DataFrame(columns=output_columns)
+
+    flags = history["potential_outbreak"]
+
+    previous_flag = flags.shift(
+        1,
+        fill_value=False
+    )
+
+    date_gap = history["date"].diff()
+
+    gap_break = (
+        date_gap > pd.Timedelta(days=max_gap_days)
+    ).fillna(False)
+
+    # A new episode begins after either:
+    #   1. a non-flagged observation, or
+    #   2. a gap in the weekly series.
+    history["episode_start"] = (
+        flags
+        & (
+            ~previous_flag
+            | gap_break
+        )
+    )
+
+    history["episode_id"] = (
+        history["episode_start"].cumsum()
+    )
+
+    flagged = history.loc[
+        history["potential_outbreak"]
+    ].copy()
+
+    if flagged.empty:
+        return pd.DataFrame(columns=output_columns)
+
+    episodes = (
+        flagged
+        .groupby("episode_id", as_index=False)
+        .agg(
+            episode_start=("date", "min"),
+            episode_end=("date", "max"),
+            weeks_flagged=("date", "size"),
+            episode_cases=("new_cases", "sum"),
+            peak_weekly_cases=("new_cases", "max")
+        )
+    )
+
+    # An episode is ongoing only when the latest usable observation
+    # is itself flagged.
+    latest_observation = history.iloc[-1]
+
+    ongoing_episode_id = None
+
+    if bool(latest_observation["potential_outbreak"]):
+        ongoing_episode_id = int(
+            latest_observation["episode_id"]
+        )
+
+    episodes["Status"] = episodes["episode_id"].apply(
+        lambda episode_id:
+        "Ongoing"
+        if episode_id == ongoing_episode_id
+        else "Ended"
+    )
+
+    # Retain episodes that overlap the selected period.
+    episodes = episodes.loc[
+        (episodes["episode_end"] >= period_start)
+        & (episodes["episode_start"] <= period_end)
+    ].copy()
+
+    if episodes.empty:
+        return pd.DataFrame(columns=output_columns)
+
+    # Most recent episode first.
+    episodes = episodes.sort_values(
+        "episode_start",
+        ascending=False
+    )
+
+    episodes["Episode Started"] = (
+        episodes["episode_start"]
+        .dt.strftime("%Y-%m-%d")
+    )
+
+    episodes["Episode Ended"] = episodes.apply(
+        lambda row:
+        "—"
+        if row["Status"] == "Ongoing"
+        else row["episode_end"].strftime("%Y-%m-%d"),
+        axis=1
+    )
+
+    episodes["Weeks Flagged"] = (
+        episodes["weeks_flagged"].astype(int)
+    )
+
+    episodes["Cases During Episode"] = (
+        episodes["episode_cases"]
+        .round()
+        .astype(int)
+    )
+
+    episodes["Peak Weekly Cases"] = (
+        episodes["peak_weekly_cases"]
+        .round()
+        .astype(int)
+    )
+
+    return episodes[output_columns].reset_index(
+        drop=True
+    )
