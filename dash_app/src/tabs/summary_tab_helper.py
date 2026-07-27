@@ -319,8 +319,8 @@ def build_location_outbreak_summary(df_outbreak):
             f"<br>Total potential outbreaks: "
             f"<b>{outbreak_total:,}</b>"
             f"<br><br>"
-            f"<b>Disease — latest-week cases</b>"
-            f"<br>{disease_text}"
+            f"<b>Disease: latest week cases</b>"
+            f"<br><br>{disease_text}"
         )
 
     location_totals["hover_text"] = location_totals.apply(
@@ -433,8 +433,6 @@ def create_us_map(df_outbreak):
         "Potential Outbreaks"
     ]
     ].copy()
-
-    return fig, territory_output
 
     return fig, territory_output
 
