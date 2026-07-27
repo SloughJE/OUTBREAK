@@ -85,7 +85,6 @@ def details_tab_layout():
                                     "marginRight": "12px"
                                 }
                             ),
-
                             dcc.Dropdown(
                                 id="history_period_dropdown",
                                 options=[
@@ -97,7 +96,9 @@ def details_tab_layout():
                                 clearable=False,
                                 searchable=False,
                                 style={
-                                    "width": "190px"
+                                    "width": "190px",
+                                    "color": "black",
+                                    "backgroundColor": "white",
                                 }
                             ),
                         ],
