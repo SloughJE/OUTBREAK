@@ -606,7 +606,7 @@ def create_sankey_chart(df_outbreak):
             y=[continuing_signals, continuing_signals],
             width=bar_width,
             name="Ongoing",
-            marker_color="#CB181D",
+            marker_color="#B11226",
             hovertemplate=(
                 "%{customdata}<br>"
                 f"Ongoing: {continuing_signals} signals"
@@ -626,7 +626,7 @@ def create_sankey_chart(df_outbreak):
             y=[no_longer_flagged],
             width=bar_width,
             name="No longer flagged",
-            marker_color="#FCBBA1",
+            marker_color="#F7B399",
             text=[f"No longer flagged<br>{no_longer_flagged}"],
             textfont=dict(
                 size=14,
@@ -649,7 +649,7 @@ def create_sankey_chart(df_outbreak):
             y=[new_signals],
             width=bar_width,
             name="New this week",
-            marker_color="#EF3B2C",
+            marker_color="#FF7A00",
             text=[
                 f"New this week<br>{new_signals}"
             ],
