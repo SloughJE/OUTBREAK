@@ -17,6 +17,32 @@ outbreak_uncertainty_level_explanation = """• Indicates how certain we want to
 - Please note, the designation of values as "outbreaks" is solely for the purpose of entertainment and does not carry any official public health significance. It is a predictive tool intended for informational use only and should not be construed as medical or health advice.
 """
 
+DISEASE_DISPLAY_NAMES = {
+    (
+        "Salmonellosis (excluding Salmonella Typhi infection "
+        "and Salmonella Paratyphi infection)"
+    ): "Non-typhoidal salmonellosis",
+
+    (
+        "Vibriosis (any species of the family Vibrionaceae, "
+        "other than toxigenic Vibrio cholerae O1 or O139), Confirmed"
+    ): "Vibriosis",
+
+    "Q fever, Acute": "Q fever (acute)",
+    "Q fever, Total": "Q fever (total)"
+}
+
+
+def get_disease_display_name(label):
+    """
+    Return a concise disease name for charts and tooltips,
+    while leaving the original source label unchanged.
+    """
+    label = str(label).strip()
+
+    return DISEASE_DISPLAY_NAMES.get(label, label)
+
+
 def format_hover_disease_name(
     label,
     width=38,
