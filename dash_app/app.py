@@ -362,9 +362,9 @@ def update_kpi(selected_interval):
     ].copy()
 
     if latest_week_signals.empty:
-        table_title = "Latest-Week Potential Outbreak Signals: None"
+        table_title = "Latest Week Potential Outbreak Signals: None"
     else:
-        table_title = "Latest-Week Potential Outbreak Signals"
+        table_title = "Latest Week Potential Outbreak Signals"
         
     table_content_ongoing_outbreaks = html.Div([
         html.H3(table_title, style={'textAlign': 'center', 'color': 'white','fontSize':'22px'}),
@@ -433,18 +433,20 @@ def update_kpi(selected_interval):
                         "filter_query": '{Status} = "New"',
                         "column_id": "Status"
                     },
-                    "backgroundColor": "rgba(239, 59, 44, 0.85)",
-                    "color": "white",
-                    "fontWeight": "bold"
+                    "backgroundColor": "rgba(239, 59, 44, 0.14)",
+                    "color": "#FF8A80",
+                    "fontWeight": "bold",
+                    "borderLeft": "4px solid #EF3B2C"
                 },
                 {
                     "if": {
                         "filter_query": '{Status} = "Ongoing"',
                         "column_id": "Status"
                     },
-                    "backgroundColor": "rgba(165, 15, 21, 0.85)",
-                    "color": "white",
-                    "fontWeight": "bold"
+                    "backgroundColor": "rgba(165, 15, 21, 0.14)",
+                    "color": "#F0A0A5",
+                    "fontWeight": "bold",
+                    "borderLeft": "4px solid #A50F15"
                 }
             ],
             style_table={
