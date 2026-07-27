@@ -26,7 +26,7 @@ def outbreaks_history_tab_layout():
 
         html.Div([
                 html.H2(
-                    "Potential Outbreaks History", className='tab-title-long',
+                    "Potential Outbreak Trends", className='tab-title-long',
                     style={
                         'color': 'white',
                         'textAlign': 'center',
@@ -75,7 +75,6 @@ def outbreaks_history_tab_layout():
 
 
             dcc.Graph(id='outbreak_history_potential_resolved',style={**common_div_style,'padding': '20px'}),
-
             dcc.Checklist(
                 id='show_cumulative_toggle',
                 options=[
@@ -83,7 +82,7 @@ def outbreaks_history_tab_layout():
                 ],
                 value=[],
                 labelStyle={'display': 'block', 'color': 'white', 'fontSize': 22},  
-                style={'textAlign': 'center', 'marginBottom': '20px'}
+                style={'textAlign': 'center', 'marginBottom': '12px','marginTop': '30px'}
             ),
             dcc.Graph(id='outbreak_history_ongoing',style={**common_div_style,'padding': '20px'}),
     

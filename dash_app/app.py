@@ -142,7 +142,7 @@ app.layout = html.Div([
         dcc.Tabs(id="tabs", value='tab-1', className='tab-container', children=[
             dcc.Tab(label='Latest Week Summary', value='tab-1', className='custom-tab', selected_className='custom-tab-active', children=summary_tab_layout()),
             dcc.Tab(label='Disease History', value='tab-2', className='custom-tab', selected_className='custom-tab-active', children=details_tab_layout()),
-            dcc.Tab(label='Outbreaks History', value='tab-3', className='custom-tab', selected_className='custom-tab-active', children=outbreaks_history_tab_layout()),
+            dcc.Tab(label='Outbreak Trends', value='tab-3', className='custom-tab', selected_className='custom-tab-active', children=outbreaks_history_tab_layout()),
             dcc.Tab(label='About', value='tab-5', className='custom-tab', selected_className='custom-tab-active', children=info_view_tab_layout()),
         ], style={'position': 'sticky', 'top': '0', 'zIndex': '1000', 'width': '100%', 'display': 'block'}),
     ], className='full-width')
