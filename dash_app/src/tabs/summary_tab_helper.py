@@ -3,7 +3,7 @@ from dash import html, dcc
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 from html import escape
-
+import textwrap
 
 outbreak_uncertainty_level_explanation = """• Indicates how certain we want to be in identifying a "potential outbreak"
 • Corresponds to the model prediction interval
@@ -16,6 +16,55 @@ outbreak_uncertainty_level_explanation = """• Indicates how certain we want to
 - Model accuracy is contingent upon the quality and completeness of the training data. Sparse or missing data for specific time series may adversely affect predictions and identification of "outbreaks".
 - Please note, the designation of values as "outbreaks" is solely for the purpose of entertainment and does not carry any official public health significance. It is a predictive tool intended for informational use only and should not be construed as medical or health advice.
 """
+
+def format_hover_disease_name(
+    label,
+    width=38,
+    max_lines=2
+):
+    """
+    Format a disease label for a compact Plotly tooltip.
+
+    - Wraps at word boundaries.
+    - Shows at most `max_lines`.
+    - Adds an ellipsis when additional text is omitted.
+    - Escapes HTML after wrapping.
+    """
+    text = get_disease_display_name(label).strip()
+
+    wrapped_lines = textwrap.wrap(
+        text,
+        width=width,
+        break_long_words=False,
+        break_on_hyphens=False
+    )
+
+    if not wrapped_lines:
+        return ""
+
+    if len(wrapped_lines) <= max_lines:
+        visible_lines = wrapped_lines
+    else:
+        # Preserve the initial lines, then compress everything
+        # remaining into the final permitted line.
+        visible_lines = wrapped_lines[:max_lines - 1]
+
+        remaining_text = " ".join(
+            wrapped_lines[max_lines - 1:]
+        )
+
+        final_line = textwrap.shorten(
+            remaining_text,
+            width=width,
+            placeholder="…"
+        )
+
+        visible_lines.append(final_line)
+
+    return "<br>".join(
+        escape(line)
+        for line in visible_lines
+    )
 
 
 def filter_prediction_interval(df, interval_percentage):
@@ -231,7 +280,7 @@ def build_location_outbreak_summary(df_outbreak):
         if disease_rows:
             disease_text = "<br>".join(
                 (
-                    f"{escape(item['disease'])}: "
+                    f"{format_hover_disease_name(item['disease'])}: "
                     f"<b>{format_case_count(item['latest_cases'])}</b>"
                 )
                 for item in disease_rows
@@ -353,12 +402,13 @@ def create_us_map(df_outbreak):
     # disease_details is retained for constructing the table tooltip,
     # but it will not be displayed as a table column.
     territory_output = df_territories[
-        [
-            "US Territory / City",
-            "Potential Outbreaks",
-            "disease_details"
-        ]
+    [
+        "US Territory / City",
+        "Potential Outbreaks"
+    ]
     ].copy()
+
+    return fig, territory_output
 
     return fig, territory_output
 
