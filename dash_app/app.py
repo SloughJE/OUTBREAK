@@ -832,6 +832,10 @@ def update_graph(selected_state, label_dropdown, selected_interval, history_peri
             "outbreak_history_ongoing",
             "figure"
         ),
+        Output(
+            "trends_summary_metrics",
+            "children"
+        ),
     ],
     [
         Input(
@@ -943,6 +947,141 @@ def update_outbreak_history_graph(
             .cumsum()
         )
 
+    # -------------------------------------------------
+    # Summary metrics for the selected display period
+    # -------------------------------------------------
+    if df_weekly_new_episodes.empty:
+        trends_summary_content = html.Div(
+            "No outbreak trend data are available for this period.",
+            style={
+                "color": "#C8C8C8",
+                "textAlign": "center",
+                "width": "100%",
+                "padding": "12px"
+            }
+        )
+
+    else:
+        new_episodes_period = int(
+            df_weekly_new_episodes[
+                "new_episodes"
+            ].sum()
+        )
+
+        latest_new_episodes = int(
+            df_weekly_new_episodes.iloc[-1][
+                "new_episodes"
+            ]
+        )
+
+        latest_week_date = pd.to_datetime(
+            df_weekly_new_episodes.iloc[-1]["date"]
+        )
+
+        peak_index = (
+            df_weekly_new_episodes[
+                "new_episodes"
+            ].idxmax()
+        )
+
+        peak_row = df_weekly_new_episodes.loc[
+            peak_index
+        ]
+
+        peak_week_value = int(
+            peak_row["new_episodes"]
+        )
+
+        peak_week_date = pd.to_datetime(
+            peak_row["date"]
+        )
+
+        currently_ongoing = (
+            int(df_weekly_ongoing.iloc[-1]["count"])
+            if not df_weekly_ongoing.empty
+            else 0
+        )
+
+        def trend_metric_card(
+            title,
+            value,
+            subtitle=None
+        ):
+            card_children = [
+                html.Div(
+                    title,
+                    style={
+                        "fontSize": "15px",
+                        "color": "#D0D0D0",
+                        "marginBottom": "6px",
+                        "textAlign": "center"
+                    }
+                ),
+
+                html.Div(
+                    value,
+                    style={
+                        "fontSize": "28px",
+                        "fontWeight": "bold",
+                        "color": "white",
+                        "textAlign": "center"
+                    }
+                )
+            ]
+
+            if subtitle:
+                card_children.append(
+                    html.Div(
+                        subtitle,
+                        style={
+                            "fontSize": "12px",
+                            "color": "#AFAFAF",
+                            "marginTop": "4px",
+                            "textAlign": "center"
+                        }
+                    )
+                )
+
+            return html.Div(
+                card_children,
+                style={
+                    "backgroundColor": "black",
+                    "border": "1px solid #555555",
+                    "borderRadius": "8px",
+                    "padding": "14px 18px",
+                    "minWidth": "215px",
+                    "flex": "1 1 215px"
+                }
+            )
+
+        trends_summary_content = [
+            trend_metric_card(
+                "New episodes during period",
+                f"{new_episodes_period:,}"
+            ),
+
+            trend_metric_card(
+                "Peak new-episode week",
+                f"{peak_week_value:,}",
+                peak_week_date.strftime(
+                    "%Y-%m-%d"
+                )
+            ),
+
+            trend_metric_card(
+                "Latest week new episodes",
+                f"{latest_new_episodes:,}",
+                latest_week_date.strftime(
+                    "%Y-%m-%d"
+                )
+            ),
+
+            trend_metric_card(
+                "Currently ongoing signals",
+                f"{currently_ongoing:,}"
+            )
+        ]
+
     fig_new_episodes = plot_new_episode_trends(
         df_weekly_new_episodes
     )
@@ -979,8 +1118,11 @@ def update_outbreak_history_graph(
             min_date=display_start_date
         )
 
-    return fig_new_episodes, fig_ongoing
-    
+    return (
+        fig_new_episodes,
+        fig_ongoing,
+        trends_summary_content
+    )    
 
 def update_type_counts(selected_interval, analysis_type, states_selected):
     

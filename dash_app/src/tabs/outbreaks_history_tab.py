@@ -122,6 +122,17 @@ def outbreaks_history_tab_layout():
                 "marginBottom": "20px"
             }
         ),
+        html.Div(
+            id="trends_summary_metrics",
+            style={
+                "display": "flex",
+                "flexWrap": "wrap",
+                "justifyContent": "center",
+                "gap": "12px",
+                "maxWidth": "1100px",
+                "margin": "0 auto 20px auto"
+            }
+        ),
         dcc.Graph(id='outbreak_history_potential_resolved',style={**common_div_style,'padding': '20px'}),
             dcc.Checklist(
                 id='show_cumulative_toggle',
