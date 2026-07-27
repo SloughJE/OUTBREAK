@@ -821,14 +821,127 @@ def create_sankey_chart(df_outbreak):
         )
     )
 
+    # ------------------------------------------------------------
+    # Unified latest-week signal table
+    # ------------------------------------------------------------
+
+    latest_week_signals_table = week_2_data.loc[
+        current_flags,
+        [
+            "state",
+            "label",
+            "new_cases",
+            "potential_outbreak_past_week",
+        ]
+    ].copy()
+
+    # A signal is ongoing when it was also flagged the previous week.
+    # Otherwise, it is new this week.
+    latest_week_signals_table["Status"] = (
+        latest_week_signals_table[
+            "potential_outbreak_past_week"
+        ]
+        .fillna(False)
+        .astype(bool)
+        .map({
+            True: "Ongoing",
+            False: "New"
+        })
+    )
+
+    previous_week_cases = (
+        week_1_data[
+            [
+                "state",
+                "label",
+                "new_cases"
+            ]
+        ]
+        .rename(
+            columns={
+                "new_cases": "Previous Week"
+            }
+        )
+    )
+
+    latest_week_signals_table = (
+        latest_week_signals_table
+        .merge(
+            previous_week_cases,
+            on=["state", "label"],
+            how="left"
+        )
+        .rename(
+            columns={
+                "state": "US State / Territory",
+                "label": "Disease",
+                "new_cases": "Latest Week"
+            }
+        )
+    )
+
+    # Convert case counts to ordinary Python integers where available.
+    # Using None for missing values keeps the DataFrame JSON-serializable
+    # when passed to Dash DataTable.
+    for column in [
+        "Previous Week",
+        "Latest Week"
+    ]:
+        latest_week_signals_table[column] = (
+            latest_week_signals_table[column]
+            .apply(
+                lambda value:
+                None
+                if pd.isna(value)
+                else int(round(value))
+            )
+        )
+
+    # Put new signals first, then ongoing signals.
+    # Within each group, show the largest latest-week counts first.
+    latest_week_signals_table["_status_order"] = (
+        latest_week_signals_table["Status"]
+        .map({
+            "New": 0,
+            "Ongoing": 1
+        })
+    )
+
+    latest_week_signals_table = (
+        latest_week_signals_table
+        .sort_values(
+            [
+                "_status_order",
+                "Latest Week"
+            ],
+            ascending=[
+                True,
+                False
+            ]
+        )
+        .drop(
+            columns=[
+                "_status_order",
+                "potential_outbreak_past_week"
+            ]
+        )
+        [
+            [
+                "US State / Territory",
+                "Disease",
+                "Status",
+                "Previous Week",
+                "Latest Week"
+            ]
+        ]
+        .reset_index(drop=True)
+    )
+
     resolved_outbreaks_week_2 = no_longer_flagged
 
-    ongoing_outbreaks_table = week_2_data[(week_2_data.Potential_Outbreak_Resolved==False)][['state','label','new_cases']]
-    ongoing_outbreaks_table = pd.merge(week_1_data[['state','label','new_cases']], ongoing_outbreaks_table, 
-                                            on=['state','label'], how='inner',suffixes=['_previous','_latest'])
-    ongoing_outbreaks_table = ongoing_outbreaks_table.sort_values('new_cases_latest',ascending=False)
-    #print(ongoing_outbreaks_table.head())
-    #print(ongoing_outbreaks_table_test.head(3))
-    ongoing_outbreaks_table.columns = ['US State / Territory','Disease','Previous Week','Latest Week']
+    return (
+        fig,
+        latest_week_signals_table,
+        resolved_outbreaks_week_2
+    )
 
-    return fig, ongoing_outbreaks_table, resolved_outbreaks_week_2

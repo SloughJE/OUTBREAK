@@ -351,18 +351,35 @@ def update_kpi(selected_interval):
         ], style={'marginBottom': '20px'})
 
     df_outbreak_all = get_outbreaks_all(df_preds_all, selected_interval)
-    sankey_chart, ongoing_outbreaks, resolved_outbreaks_week_2 = create_sankey_chart(df_outbreak_all)
 
-    if ongoing_outbreaks.empty:
-        table_title = "Ongoing Outbreaks: None"
+    sankey_chart, latest_week_signals, resolved_outbreaks_week_2 = (
+        create_sankey_chart(df_outbreak_all)
+    )
+
+    # Retain a separate ongoing-only subset for the KPI calculations.
+    ongoing_outbreaks = latest_week_signals.loc[
+        latest_week_signals["Status"].eq("Ongoing")
+    ].copy()
+
+    if latest_week_signals.empty:
+        table_title = "Latest-Week Potential Outbreak Signals: None"
     else:
-        table_title = "Ongoing Outbreaks"
+        table_title = "Latest-Week Potential Outbreak Signals"
         
     table_content_ongoing_outbreaks = html.Div([
         html.H3(table_title, style={'textAlign': 'center', 'color': 'white','fontSize':'22px'}),
         dash_table.DataTable(
-            columns=[{"name": i, "id": i} for i in ongoing_outbreaks.columns],
-            data=ongoing_outbreaks.to_dict('records'),
+            columns=[
+                {
+                    "name": column,
+                    "id": column
+                }
+                for column in latest_week_signals.columns
+            ],
+
+            data=latest_week_signals.to_dict("records"),
+
+            sort_action="native",
             style_as_list_view=True,
             style_header={'backgroundColor': 'rgb(50, 50, 50)', 'color': 'white', 'fontWeight': 'bold', 'border': '1px solid white',
                           'whiteSpace': 'normal','height':'3em'},
@@ -376,15 +393,60 @@ def update_kpi(selected_interval):
                     }
                 ],
             style_cell_conditional=[
-                    {
-                    'if': {'column_id': 'Latest Week'}, 
-                        'paddingRight': '5px'},  
-                    {'if': {'column_id': 'US State / Territory'}, 'width': '22.5%'},
-                    {'if': {'column_id': 'Disease'}, 'width': '52.5%'},  # Wide column for variable content
-                    {'if': {'column_id': 'Previous Week'}, 'width': '12.5%'},
-                    {'if': {'column_id': 'Latest Week'}, 'width': '12.5%'},
-                    
-                ],
+                {
+                    "if": {
+                        "column_id": "US State / Territory"
+                    },
+                    "width": "20%"
+                },
+                {
+                    "if": {
+                        "column_id": "Disease"
+                    },
+                    "width": "43%"
+                },
+                {
+                    "if": {
+                        "column_id": "Status"
+                    },
+                    "width": "13%",
+                    "textAlign": "center"
+                },
+                {
+                    "if": {
+                        "column_id": "Previous Week"
+                    },
+                    "width": "12%",
+                    "paddingRight": "5px"
+                },
+                {
+                    "if": {
+                        "column_id": "Latest Week"
+                    },
+                    "width": "12%",
+                    "paddingRight": "5px"
+                },
+            ],
+            style_data_conditional=[
+                {
+                    "if": {
+                        "filter_query": '{Status} = "New"',
+                        "column_id": "Status"
+                    },
+                    "backgroundColor": "rgba(239, 59, 44, 0.85)",
+                    "color": "white",
+                    "fontWeight": "bold"
+                },
+                {
+                    "if": {
+                        "filter_query": '{Status} = "Ongoing"',
+                        "column_id": "Status"
+                    },
+                    "backgroundColor": "rgba(165, 15, 21, 0.85)",
+                    "color": "white",
+                    "fontWeight": "bold"
+                }
+            ],
             style_table={
                 'maxHeight': '230px',  
                 'overflowY': 'auto',  
