@@ -220,11 +220,64 @@ def update_kpi(selected_interval):
     df_outbreak = is_outbreak_resolved(df_outbreak)
     map_content, df_territories = create_us_map(df_outbreak)
 
+    territory_columns = [
+        "US Territory / City",
+        "Potential Outbreaks"
+    ]
+
+    territory_records = df_territories.to_dict(
+        "records"
+    )
+
+    territory_tooltip_data = [
+        {
+            column: {
+                "value": row["_tooltip"],
+                "type": "markdown"
+            }
+            for column in territory_columns
+        }
+        for row in territory_records
+    ]
+
     table_content = html.Div([
             html.H3("US Territories Potential Outbreaks", style={'textAlign': 'center', 'color': 'white','fontSize':'22px'}),
             dash_table.DataTable(
-                columns=[{"name": i, "id": i} for i in df_territories.columns],
-                data=df_territories.to_dict('records'),
+                columns=[
+                    {"name": column, "id": column}
+                    for column in territory_columns
+                ],
+
+                data=df_territories[
+                    territory_columns
+                ].to_dict("records"),
+
+                tooltip_data=territory_tooltip_data,
+
+                tooltip_delay=150,
+
+                # Keep the tooltip visible for as long as
+                # the user remains over the cell.
+                tooltip_duration=None,
+
+                css=[
+                    {
+                        "selector": ".dash-table-tooltip",
+                        "rule": """
+                            background-color: #222222;
+                            color: white;
+                            border: 1px solid #777777;
+                            border-radius: 4px;
+                            max-width: 420px;
+                            white-space: normal;
+                            overflow-wrap: anywhere;
+                            font-family: Arial, sans-serif;
+                            font-size: 14px;
+                            text-align: left;
+                            padding: 10px;
+                        """
+                    }
+                ],
                 style_as_list_view=True,
                 style_header={'backgroundColor': 'rgb(50, 50, 50)', 'color': 'white','fontWeight':'bold','border':'1px solid white',
                               'whiteSpace': 'normal','height':'3em'},

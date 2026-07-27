@@ -93,6 +93,65 @@ def format_hover_disease_name(
     )
 
 
+def build_territory_table_tooltip(row):
+    """
+    Build Markdown tooltip content for a territory/city row.
+
+    Assumes these columns are present:
+      - US Territory / City
+      - Potential Outbreaks
+      - disease_details
+    """
+    location_name = str(
+        row["US Territory / City"]
+    ).title()
+
+    outbreak_total = int(
+        row["Potential Outbreaks"]
+    )
+
+    outbreak_word = (
+        "outbreak"
+        if outbreak_total == 1
+        else "outbreaks"
+    )
+
+    disease_rows = row["disease_details"]
+
+    lines = [
+        f"**{location_name}**",
+        "",
+        f"**{outbreak_total:,} potential {outbreak_word}**"
+    ]
+
+    if disease_rows:
+        lines.extend([
+            "",
+            "**Latest-week cases**",
+            ""
+        ])
+
+        for item in disease_rows:
+            disease_name = get_disease_display_name(
+                item["disease"]
+            )
+
+            case_count = format_case_count(
+                item["latest_cases"]
+            )
+
+            lines.append(
+                f"- {disease_name}: **{case_count}**"
+            )
+    else:
+        lines.extend([
+            "",
+            "No potential outbreaks."
+        ])
+
+    return "\n".join(lines)
+
+
 def filter_prediction_interval(df, interval_percentage):
     """
     Filters the DataFrame for a specific prediction interval, retrieving the corresponding
@@ -425,13 +484,16 @@ def create_us_map(df_outbreak):
         )
     )
 
-    # disease_details is retained for constructing the table tooltip,
-    # but it will not be displayed as a table column.
+    df_territories["_tooltip"] = df_territories.apply(
+        build_territory_table_tooltip,
+        axis=1
+    )
     territory_output = df_territories[
-    [
-        "US Territory / City",
-        "Potential Outbreaks"
-    ]
+        [
+            "US Territory / City",
+            "Potential Outbreaks",
+            "_tooltip"
+        ]
     ].copy()
 
     return fig, territory_output
