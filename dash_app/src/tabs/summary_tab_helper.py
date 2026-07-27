@@ -614,7 +614,7 @@ def create_sankey_chart(df_outbreak):
             ),
             customdata=[
                 "Previous week",
-                "Current week"
+                "Latest week"
             ]
         )
     )
@@ -656,7 +656,7 @@ def create_sankey_chart(df_outbreak):
             textposition="inside",
             insidetextanchor="middle",
             hovertemplate=(
-                "Current week"
+                "Latest week"
                 "<br>New this week: %{y} signals"
                 "<extra></extra>"
             )
@@ -795,7 +795,7 @@ def create_sankey_chart(df_outbreak):
             tickvals=[0, 1],
             ticktext=[
                 "Previous week",
-                "Current week"
+                "Latest week"
             ],
             range=[-0.55, 1.55],
             showgrid=False,
