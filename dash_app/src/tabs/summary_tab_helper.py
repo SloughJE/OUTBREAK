@@ -477,7 +477,7 @@ def create_us_map(df_outbreak):
     )
 
     fig.update_layout(
-        height=360,
+        height=720,
         title_text="Potential Outbreaks by State",
         title_x=0.5,
         title_y=0.97,
@@ -759,7 +759,7 @@ def create_sankey_chart(df_outbreak):
             )
         ),
 
-        height=360,
+        height=720,
 
         paper_bgcolor="black",
         plot_bgcolor="black",

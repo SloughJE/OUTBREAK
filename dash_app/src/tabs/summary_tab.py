@@ -11,7 +11,7 @@ common_div_style = {
     'marginBottom': '20px'  
 }
 
-SUMMARY_GRAPH_HEIGHT = "360px"
+SUMMARY_GRAPH_HEIGHT = "720px"
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc.icons.BOOTSTRAP])
 
