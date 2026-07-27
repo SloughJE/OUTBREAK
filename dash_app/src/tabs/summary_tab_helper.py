@@ -477,6 +477,7 @@ def create_us_map(df_outbreak):
     )
 
     fig.update_layout(
+        height=360,
         title_text="Potential Outbreaks by State",
         title_x=0.5,
         title_y=0.97,

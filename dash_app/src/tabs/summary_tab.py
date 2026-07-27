@@ -11,7 +11,7 @@ common_div_style = {
     'marginBottom': '20px'  
 }
 
-
+SUMMARY_GRAPH_HEIGHT = "360px"
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc.icons.BOOTSTRAP])
 
@@ -70,7 +70,21 @@ def summary_tab_layout():
                 dbc.Row([
                     dbc.Col(
                         html.Div([  
-                            dcc.Graph(id='us-map', style={**common_div_style, 'width': '100%', 'display': 'block', 'marginBottom': '0px', 'margin-left': 'auto', 'margin-right': 'auto'}),
+                            dcc.Graph(
+                                id="us-map",
+                                style={
+                                    **common_div_style,
+                                    "width": "100%",
+                                    "height": SUMMARY_GRAPH_HEIGHT,
+                                    "display": "block",
+                                    "marginBottom": "0px",
+                                    "marginLeft": "auto",
+                                    "marginRight": "auto"
+                                },
+                                config={
+                                    "responsive": True
+                                }
+                            ),                            
                             html.Div(id='territories-table', style={'color': 'white', 'padding': '0px', 'marginTop': '0px'})
                         ], style={**common_div_style}),  
                         xs=12, lg=6
@@ -78,7 +92,21 @@ def summary_tab_layout():
 
                     dbc.Col(
                         html.Div([  
-                            dcc.Graph(id='sankey-chart', style={**common_div_style, 'width': '100%', 'display': 'block', 'marginBottom': '0px', 'margin-left': 'auto', 'margin-right': 'auto'}),
+                            dcc.Graph(
+                                id="sankey-chart",
+                                style={
+                                    **common_div_style,
+                                    "width": "100%",
+                                    "height": SUMMARY_GRAPH_HEIGHT,
+                                    "display": "block",
+                                    "marginBottom": "0px",
+                                    "marginLeft": "auto",
+                                    "marginRight": "auto"
+                                },
+                                config={
+                                    "responsive": True
+                                }
+                            ),                            
                             html.Div(id='ongoing-outbreaks-table', style={'color': 'white', 'padding': '0px', 'marginTop': '0px'})                             
                         ], style={**common_div_style}),  
                         xs=12, lg=6
