@@ -478,14 +478,19 @@ def create_us_map(df_outbreak):
 
     fig.update_layout(
         height=720,
-        title_text="Potential Outbreaks by State",
+        title=dict(
+            text=("Potential Outbreaks by State")),        
         title_x=0.5,
         title_y=0.97,
         geo_scope="usa",
         paper_bgcolor="black",
         plot_bgcolor="black",
         template="plotly_dark",
-
+        font=dict(
+                size=22,
+                color="white",
+                family="Arial, sans-serif"
+            ),
         hoverlabel=dict(
             align="left",
             bgcolor="#242424",
@@ -742,7 +747,7 @@ def create_sankey_chart(df_outbreak):
 
         title=dict(
             text=(
-                "How Potential-Outbreak Signals Changed This Week"
+                "How Potential Outbreaks Changed This Week"
                 "<br>"
                 "<span style='font-size:16px'>"
                 f"{previous_total} previous-week signals "
@@ -754,7 +759,7 @@ def create_sankey_chart(df_outbreak):
             y=0.97,
             yanchor="top",
             font=dict(
-                size=20,
+                size=22,
                 color="white",
                 family="Arial, sans-serif"
             )
