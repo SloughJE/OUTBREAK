@@ -21,7 +21,9 @@ from src.tabs.disease_info import disease_groups, disease_details
 from src.tabs.outbreaks_history_tab import outbreaks_history_tab_layout
 from src.tabs.outbreaks_history_tab_helper import (
     agg_outbreak_counts,
-    plot_time_series
+    plot_time_series,
+    agg_new_episode_counts,
+    plot_new_episode_trends
 )
 from src.tabs.info_tab import info_view_tab_layout
 
