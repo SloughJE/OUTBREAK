@@ -82,7 +82,7 @@ def outbreaks_history_tab_layout():
                 ],
                 value=[],
                 labelStyle={'display': 'block', 'color': 'white', 'fontSize': 22},  
-                style={'textAlign': 'center', 'marginBottom': '12px','marginTop': '30px'}
+                style={'textAlign': 'center', 'marginBottom': '6px','marginTop': '50px'}
             ),
             dcc.Graph(id='outbreak_history_ongoing',style={**common_div_style,'padding': '20px'}),
     

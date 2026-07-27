@@ -82,7 +82,7 @@ def details_tab_layout():
                                 style={
                                     "color": "white",
                                     "fontWeight": "bold",
-                                    "marginRight": "16px"
+                                    "marginRight": "22px"
                                 }
                             ),
                             dcc.Dropdown(
