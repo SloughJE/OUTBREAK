@@ -19,7 +19,10 @@ from src.tabs.summary_tab import summary_tab_layout
 from src.tabs.history_tab import details_tab_layout 
 from src.tabs.disease_info import disease_groups, disease_details
 from src.tabs.outbreaks_history_tab import outbreaks_history_tab_layout
-from src.tabs.outbreaks_history_tab_helper import agg_outbreak_counts, plot_time_series
+from src.tabs.outbreaks_history_tab_helper import (
+    agg_outbreak_counts,
+    plot_time_series
+)
 from src.tabs.info_tab import info_view_tab_layout
 
 
@@ -817,51 +820,124 @@ def update_graph(selected_state, label_dropdown, selected_interval, history_peri
 
 ###### OUTBREAK HISTORY TAB CALLBACK
 @app.callback(
-        [
-        Output('outbreak_history_potential_resolved', 'figure'),
-        Output('outbreak_history_ongoing', 'figure')
-        ],
     [
-        Input('state_dropdown_outbreak_history', 'value'),
-        Input('show_cumulative_toggle', 'value'),
-        Input('interval_dropdown_outbreak', 'value')
-        ]  
+        Output(
+            "outbreak_history_potential_resolved",
+            "figure"
+        ),
+        Output(
+            "outbreak_history_ongoing",
+            "figure"
+        ),
+    ],
+    [
+        Input(
+            "state_dropdown_outbreak_history",
+            "value"
+        ),
+        Input(
+            "show_cumulative_toggle",
+            "value"
+        ),
+        Input(
+            "interval_dropdown_outbreak",
+            "value"
+        ),
+    ],
 )
-def update_outbreak_history_graph(selected_states, show_cumulative_toggle, selected_interval):
-    
+def update_outbreak_history_graph(
+    selected_states,
+    show_cumulative_toggle,
+    selected_interval
+):
 
     if selected_states:
-        df_outbreak_history_filt = df_preds_all[df_preds_all.state.isin(selected_states)]
+        df_outbreak_history_filt = (
+            df_preds_all.loc[
+                df_preds_all["state"].isin(
+                    selected_states
+                )
+            ].copy()
+        )
     else:
-        df_outbreak_history_filt = df_preds_all
-    
-    df_outbreak_history_filt = get_outbreaks_all(df_outbreak_history_filt, selected_interval)
-    df_outbreak_history_filt = df_outbreak_history_filt[['item_id','state','label','date','potential_outbreak','potential_outbreak_past_week','Potential_Outbreak_Resolved']]
-    df_weekly_resolved = agg_outbreak_counts(df_outbreak_history_filt, condition='resolved_outbreaks')
-    df_weekly_potential = agg_outbreak_counts(df_outbreak_history_filt,  condition='potential_outbreak')
-    df_weekly_ongoing = agg_outbreak_counts(df_outbreak_history_filt,  condition='ongoing_outbreaks')
+        df_outbreak_history_filt = (
+            df_preds_all.copy()
+        )
 
-    fig_potential_resolved = plot_time_series(df_weekly_potential, title="Potential vs Resolved Outbreaks", 
-                display_col='count', primary_name = 'Potential', primary_color='#DE2D26', df_secondary=df_weekly_resolved, 
-                secondary_display_col='count', secondary_name='Resolved',min_date=df_weekly_potential.date.min())
-        
-    if "cumulative" in show_cumulative_toggle:
-        #fig_potential_resolved = plot_time_series(df_weekly_potential, title="Cumulative Potential vs Resolved Outbreaks", 
-        #                display_col='cumulative_count', primary_name = 'Potential', primary_color='#DE2D26', df_secondary=df_weekly_resolved, 
-        #                secondary_display_col='cumulative_count', secondary_name='Resolved',min_date=df_weekly_potential.date.min())
-        
-        fig_ongoing = plot_time_series(df_weekly_ongoing, title="Cumulative Ongoing Potential Outbreaks", 
-                        display_col='cumulative_count', primary_name = 'Ongoing', primary_color='#A50A0A', min_date=df_weekly_potential.date.min())
+    df_outbreak_history_filt = get_outbreaks_all(
+        df_outbreak_history_filt,
+        selected_interval
+    )
+
+    df_outbreak_history_filt = (
+        df_outbreak_history_filt[
+            [
+                "item_id",
+                "state",
+                "label",
+                "date",
+                "potential_outbreak",
+                "potential_outbreak_past_week",
+                "Potential_Outbreak_Resolved",
+            ]
+        ].copy()
+    )
+
+    # -------------------------------------------------
+    # Upper chart: new episode starts by week
+    # -------------------------------------------------
+    df_weekly_new_episodes = agg_new_episode_counts(
+        df_outbreak_history_filt
+    )
+
+    fig_new_episodes = plot_new_episode_trends(
+        df_weekly_new_episodes
+    )
+
+    # -------------------------------------------------
+    # Lower chart: retain existing ongoing counts
+    # -------------------------------------------------
+    df_weekly_ongoing = agg_outbreak_counts(
+        df_outbreak_history_filt,
+        condition="ongoing_outbreaks"
+    )
+
+    if (
+        show_cumulative_toggle
+        and "cumulative" in show_cumulative_toggle
+    ):
+        fig_ongoing = plot_time_series(
+            df_weekly_ongoing,
+            title=(
+                "Cumulative Ongoing "
+                "Potential Outbreaks"
+            ),
+            display_col="cumulative_count",
+            primary_name="Ongoing",
+            primary_color="#A50A0A",
+            min_date=(
+                df_weekly_new_episodes["date"].min()
+                if not df_weekly_new_episodes.empty
+                else None
+            )
+        )
+
     else:
-        #fig_potential_resolved = plot_time_series(df_weekly_potential, title="Potential vs Resolved Outbreaks", 
-        #        display_col='count', primary_name = 'Potential', primary_color='#DE2D26', df_secondary=df_weekly_resolved, 
-        #        secondary_display_col='count', secondary_name='Resolved',min_date=df_weekly_potential.date.min())
-        
-        fig_ongoing = plot_time_series(df_weekly_ongoing, title="Ongoing Potential Outbreaks", 
-                        display_col='count', primary_name = 'Ongoing', primary_color='#A50A0A', min_date=df_weekly_potential.date.min())
-    
-    return fig_potential_resolved, fig_ongoing
+        fig_ongoing = plot_time_series(
+            df_weekly_ongoing,
+            title="Ongoing Potential Outbreaks",
+            display_col="count",
+            primary_name="Ongoing",
+            primary_color="#A50A0A",
+            min_date=(
+                df_weekly_new_episodes["date"].min()
+                if not df_weekly_new_episodes.empty
+                else None
+            )
+        )
 
+    return fig_new_episodes, fig_ongoing
+    
 
 def update_type_counts(selected_interval, analysis_type, states_selected):
     
