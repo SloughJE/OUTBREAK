@@ -11,29 +11,40 @@ dashboard_info_title = "Dashboard Overview"
 tab_information_title = "Tabs Information"
 
 # Summary Tab
-summary_tab_title = "Latest Week Summary"
+summary_tab_title = "Latest Week"
+
 summary_tab_data = (
-    "Provides Summaries of Potential Outbreaks and Ongoing Potential Outbreaks in the USA (including territories) for the latest week the data is available. Note that in the source data New York City is defined as a separate entity from the state of New York."
+    "Summarizes potential-outbreak signals for the latest available reporting week. "
+    "The tab includes total signals, diseases, and jurisdictions flagged; a map of "
+    "signals by state; a comparison of previous-week and latest-week signals; and a "
+    "table of all latest-week signals classified as New or Ongoing. New York City is "
+    "represented separately from New York State in the source data."
 )
 
-# Profiles Tab
-#profiles_tab_title = "Outbreak Profiles"
-#profiles_tab_data = (
-#    "Provides an analysis of the types of outbreaks based on pathogen type, affected bodily system, and transmission type. Additionally, a table of all potential outbreaks with details is provided."
-#)
 
-# Disease History Tab
-disease_tab_title = "Disease History"
+# Disease Explorer Tab
+disease_tab_title = "Disease Explorer"
 
 disease_tab_data = (
-    "Displays a time series chart of the number of cases for a chosen disease, with the identification of Potential Outbreaks for the latest week. The model median and certainty interval is shown as well"
+    "Allows the user to examine a selected state/territory–disease series. The tab "
+    "displays historical weekly case counts, the model median and certainty interval, "
+    "and the latest potential-outbreak status. It also provides summary statistics for "
+    "a selected 12-, 26-, or 52-week period, including total reported cases, flagged "
+    "weeks, potential-outbreak episodes, and peak weekly cases. Disease classification "
+    "and transmission information are also provided."
 )
 
-# Outbreaks History Tab
-outbreaks_tab_title = "Outbreaks History"
+
+# Outbreak Trends Tab
+outbreaks_tab_title = "Outbreak Trends"
 
 outbreaks_tab_data = (
-"Displays a time series chart of the number of Potential vs Resolved Outbreaks, and Ongoing Potential Outbreaks.")
+    "Summarizes how model-generated potential-outbreak signals have changed over time. "
+    "The tab displays weekly counts of newly started potential-outbreak episodes, a "
+    "four-week rolling average, and counts of ongoing signals. Users may select a "
+    "display period and optionally filter the results by state or territory. Summary "
+    "metrics are provided for the selected period."
+)
 
 # Section Titles
 data_title = "Data"

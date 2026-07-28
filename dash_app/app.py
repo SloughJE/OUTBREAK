@@ -134,15 +134,15 @@ app.layout = html.Div([
                 'borderRadius': '50px'
             }),
         ], style={'textAlign': 'center', 'width': '100%', 'marginTop': '0px', 'backgroundColor': 'black'}),
-        html.Div("Automatic Weekly Identification of Potential Outbreaks of CDC Nationally Notifiable Diseases", className='main-subtitle',
+        html.Div("Automatic Weekly Identification of Potential Outbreaks Signals for CDC Nationally Notifiable Diseases", className='main-subtitle',
                  style={'justifyContent': 'center', 'color': 'white',
                         'fontSize': '26px', 'color': '#F08080',
                         'alignItems': 'center', 'textAlign': 'center', 'paddingBottom': '20px',
                         'backgroundColor': 'black'}),
 
         dcc.Tabs(id="tabs", value='tab-1', className='tab-container', children=[
-            dcc.Tab(label='Latest Week Summary', value='tab-1', className='custom-tab', selected_className='custom-tab-active', children=summary_tab_layout()),
-            dcc.Tab(label='Disease History', value='tab-2', className='custom-tab', selected_className='custom-tab-active', children=details_tab_layout()),
+            dcc.Tab(label='Latest Week', value='tab-1', className='custom-tab', selected_className='custom-tab-active', children=summary_tab_layout()),
+            dcc.Tab(label='Disease Explorer', value='tab-2', className='custom-tab', selected_className='custom-tab-active', children=details_tab_layout()),
             dcc.Tab(label='Outbreak Trends', value='tab-3', className='custom-tab', selected_className='custom-tab-active', children=outbreaks_history_tab_layout()),
             dcc.Tab(label='About', value='tab-5', className='custom-tab', selected_className='custom-tab-active', children=info_view_tab_layout()),
         ], style={'position': 'sticky', 'top': '0', 'zIndex': '1000', 'width': '100%', 'display': 'block'}),

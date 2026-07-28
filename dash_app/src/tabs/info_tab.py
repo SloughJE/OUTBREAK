@@ -60,7 +60,7 @@ def info_view_tab_layout():
                 html.Strong("Data Granularity"),
                 ": Data is modeled on the State/Territory-disease level, with Potential Outbreaks identified at this same level.\n\n",
 
-                html.Strong("Definitions:\n"),
+                html.Strong("Definitions and Interpretation:\n"),
                 html.Strong("Notifiable Disease"),
                 ": The ",
                 html.A("CDC", href="https://www.cdc.gov/nchs/hus/sources-definitions/notifiable-disease.html", target="_blank"),
@@ -68,17 +68,48 @@ def info_view_tab_layout():
                 Notifiable diseases are of public interest by reason of their contagiousness, severity, or frequency.' The list of nationally notifiable diseases is determined by the Centers for \
                     Disease Control and Prevention (CDC) in collaboration with the Council of State and Territorial Epidemiologists (CSTE)\n\n",
                 html.Strong("Potential Outbreak"),
-                ": an identification of a possible future disease outbreak by our model. This is not meant to identify an actual outbreak of a disease, rather it should be thought of as an early\
-                      warning that a disease may develop into an outbreak in the future. The user can selected the desired model certainty. See the Potential Outbreaks Model section for more information.\
-                      Note that there is no single specific mathematical definition of an outbreak of a disease. The ",
+                ": a state/territory–disease observation for which the reported weekly \
+                case count exceeds the upper bound of the model certainty interval selected by the user. A signal indicates that the observed count is \
+                unusually high relative to the model estimate. It is an automated statistical flag and should not be interpreted as confirmation that \
+                an epidemiological outbreak is occurring. This is not meant to identify an actual outbreak of a disease, rather it should be thought of as an early\
+                warning that a disease may develop into an outbreak in the future. The user can selected the desired model certainty. See the Potential Outbreaks Model section for more information.\n\
+                Note that there is no single specific mathematical definition of an outbreak of a disease. The ",
                 html.A("WHO", href="https://www.emro.who.int/health-topics/disease-outbreaks/index.html", target="_blank"),
                 " defines an outbreak as the occurrence of cases of a disease in excess of what would normally be expected in a defined community, geographical area or season.\n\n",
-                html.Strong("Ongoing Potential Outbreak"),
-                ": if a specific disease in a specific state or territory has been identified as a potential outbreak for at least 2 weeks in a row it is considered an 'ongoing potential outbreak'. \
-                    This indicates a higher likelihood that this could be an actual outbreak.\n\n",
-                html.Strong("Resolved Potential Outbreak"),
-                ": if a specific disease was identified as a potential outbreak in week 1, but then it week 2 is not identified as a potential outbreak, it is considered resolved. \
-                    This indicates a the potential outbreak did not develop into an actual outbreak.\n"
+
+                html.Strong("New Signal / Potential Outbreak"),
+                    (
+                        ": a potential outbreak signal identified in the latest week that was "
+                        "not flagged in the preceding week. “New” refers to the model status; "
+                        "it does not necessarily indicate a newly emerging disease or the first "
+                        "reported cases of that disease.\n\n"
+                    ),
+
+                html.Strong("Ongoing Signal / Ongoing Potential Outbreak"),
+                (
+                    ": a state/territory–disease series identified as a potential outbreak "
+                    "signal in both the preceding week and the latest week. An ongoing "
+                    "signal indicates persistence across consecutive reporting weeks. It "
+                    "does not by itself confirm that a public-health outbreak exists.\n\n"
+                ),
+                
+                html.Strong("No Longer Flagged / Resolved Potential Outbreak"),
+                (
+                    ": a state/territory–disease series that was identified as a "
+                    "potential outbreak signal in the preceding week but is not identified as a potential outbreak in "
+                    "the latest week. This means only that the latest observation no longer "
+                    "exceeds the selected model threshold. It should not be interpreted as "
+                    "confirmation that an outbreak has been resolved.\n\n"
+                ),
+                html.Strong("Potential Outbreak Episode"),
+                (
+                    ": a contiguous sequence of flagged weekly observations for the same "
+                    "state/territory–disease series. An episode begins when the series "
+                    "changes from not flagged to flagged and ends when it is no longer "
+                    "flagged. Episodes are statistical groupings of consecutive model "
+                    "signals, not confirmed epidemiological outbreaks.\n"
+                )
+
             ], style={'white-space': 'pre-line'}),
 
             html.Div([

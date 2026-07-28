@@ -20,7 +20,7 @@ def details_tab_layout():
 
         html.Div([
                 html.H2(
-                    "Disease History with Latest Week Potential Outbreak", className='tab-title-long',
+                    "Explore Disease Potential Outbreaks and History", className='tab-title-long',
                     style={
                         'color': 'white',
                         'textAlign': 'center',
