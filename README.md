@@ -7,12 +7,14 @@ This repository contains a dashboard and accompanying code that automatically re
 ---
 
 ## Table of Contents
-1. [Project Overview](#project-overview)  
-2. [Key Features](#key-features)  
-3. [Repository Structure](#repository-structure)  
-4. [DeepAR Model and Outbreak Detection](#deepar-model-and-outbreak-detection)  
-5. [CDC NNDSS Data Source](#cdc-nndss-data-source)  
-6. [License and Credits](#license-and-credits)  
+- [OUTBREAK!](#outbreak)
+  - [Table of Contents](#table-of-contents)
+  - [Project Overview](#project-overview)
+  - [Key Features](#key-features)
+  - [Repository Structure](#repository-structure)
+  - [DeepAR Model and Outbreak Detection](#deepar-model-and-outbreak-detection)
+  - [CDC NNDSS Data Source](#cdc-nndss-data-source)
+  - [License and Credits](#license-and-credits)
 
 ---
 
@@ -40,10 +42,11 @@ The system regularly pulls the latest CDC NNDSS data, retrains the DeepAR model 
    Tracks and forecasts at the state/territory-disease level (including NYC as a separate entity), creating thousands of individual time series.
 
 4. **Dashboard Visualizations**  
-   - **Latest Week Summary**: Overview of newly flagged Potential Outbreaks and Ongoing Potential Outbreaks.  
-   - **Outbreaks Profiles**: Analysis by pathogen type, affected bodily system, and transmission type, plus a detailed table of all flagged outbreaks.  
-   - **Disease History**: Historical time series charts for specific diseases with forecast intervals and outbreak flags.  
-   - **Outbreaks History**: Visualization of the number of Potential vs. Resolved Outbreaks and Ongoing Potential Outbreaks over time.  
+   - **Latest Week:** Summary of potential-outbreak signals for the latest available reporting week, including signals by state, new and ongoing signals, signals no longer flagged, and latest-week case counts.
+
+   - **Disease Explorer:** Historical weekly case counts for a selected state/territory–disease series, including model estimates, certainty intervals, flagged weeks, summary metrics, and potential-outbreak episodes.
+
+   - **Outbreak Trends:** Trends in newly started potential-outbreak episodes and ongoing signals over time, with selectable display periods, state or territory filtering, and summary metrics.
 
 ---
 
