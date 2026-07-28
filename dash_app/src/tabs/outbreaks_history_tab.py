@@ -1,4 +1,3 @@
-import dash
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
@@ -18,7 +17,6 @@ common_div_style = {
     'marginBottom': '20px'  
 }
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc.icons.BOOTSTRAP])
 
 def outbreaks_history_tab_layout():
 

@@ -1,4 +1,3 @@
-import dash
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
@@ -19,7 +18,6 @@ SUMMARY_FILTER_ROW_STYLE = {
     "marginBottom": "4px"
 }
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc.icons.BOOTSTRAP])
 
 def summary_tab_layout():
 
