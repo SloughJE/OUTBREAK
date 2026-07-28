@@ -539,48 +539,216 @@ def create_us_map(df_outbreak):
     return fig, territory_output
 
 
-def create_sankey_chart(df_outbreak):
-
-    date_arr = df_outbreak.date.unique()
-
-    date_latest = date_arr[-1]
-    date_previous = date_arr[-2]
-
-    date_previous_str = date_previous.strftime('%Y-%m-%d')
-    date_latest_str = date_latest.strftime('%Y-%m-%d')
-
-    week_1_data = df_outbreak[df_outbreak['date'] == date_previous]
-    week_2_data = df_outbreak[df_outbreak['date'] == date_latest]
+NEW_SIGNAL_COLOR = "#FF7A00"
+ONGOING_SIGNAL_COLOR = "#C6283D"
+NO_LONGER_FLAGGED_COLOR = "#F7B399"
 
 
-    # ------------------------------------------------------------
-    # Weekly signal transition counts
-    # ------------------------------------------------------------
+def create_sankey_chart(
+    df_outbreak,
+    selected_state=None,
+    scope_label="United States"
+):
+    """
+    Create the previous-week/current-week transition chart and
+    unified latest-week signal table.
+
+    Parameters
+    ----------
+    df_outbreak:
+        Full historical outbreak-status DataFrame.
+
+    selected_state:
+        Optional uppercase source state name, such as "OHIO".
+        The reporting dates are determined before this filter is
+        applied so all views use the same latest reporting week.
+
+    scope_label:
+        Human-readable label used in the chart subtitle.
+
+    Returns
+    -------
+    fig:
+        Plotly transition figure.
+
+    latest_week_signals_table:
+        New and ongoing signals for the latest reporting week,
+        optionally restricted to selected_state.
+
+    no_longer_flagged:
+        Number of preceding-week signals that are not flagged in
+        the latest reporting week.
+    """
+    output_columns = [
+        "US State / Territory",
+        "Disease",
+        "Status",
+        "Previous Week",
+        "Latest Week"
+    ]
+
+    empty_table = pd.DataFrame(
+        columns=output_columns
+    )
+
+    def create_empty_figure(message):
+        fig = go.Figure()
+
+        fig.add_annotation(
+            text=message,
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=0.5,
+            showarrow=False,
+            align="center",
+            font=dict(
+                size=17,
+                color="#D0D0D0"
+            )
+        )
+
+        fig.update_layout(
+            title=dict(
+                text=(
+                    "How Potential-Outbreak Signals "
+                    "Changed This Week"
+                    "<br>"
+                    f"<span style='font-size:14px'>"
+                    f"{scope_label}"
+                    "</span>"
+                ),
+                x=0.5,
+                xanchor="center",
+                y=0.97,
+                yanchor="top",
+                font=dict(
+                    size=20,
+                    color="white",
+                    family="Arial, sans-serif"
+                )
+            ),
+            height=720,
+            paper_bgcolor="black",
+            plot_bgcolor="black",
+            font=dict(
+                color="white"
+            ),
+            margin=dict(
+                l=55,
+                r=20,
+                t=75,
+                b=40
+            )
+        )
+
+        return fig
+
+    if df_outbreak is None or df_outbreak.empty:
+        return (
+            create_empty_figure(
+                "No reporting data are available."
+            ),
+            empty_table,
+            0
+        )
+
+    data = df_outbreak.copy()
+
+    data["date"] = pd.to_datetime(
+        data["date"],
+        errors="coerce"
+    )
+
+    data = data.dropna(
+        subset=["date"]
+    ).copy()
+
+    reporting_dates = sorted(
+        data["date"].unique()
+    )
+
+    if len(reporting_dates) < 2:
+        return (
+            create_empty_figure(
+                "At least two reporting weeks are required."
+            ),
+            empty_table,
+            0
+        )
+
+    # Choose dates from the complete dataset before state filtering.
+    date_previous = pd.Timestamp(
+        reporting_dates[-2]
+    )
+
+    date_latest = pd.Timestamp(
+        reporting_dates[-1]
+    )
+
+    if selected_state:
+        scoped_data = data.loc[
+            data["state"].eq(selected_state)
+        ].copy()
+    else:
+        scoped_data = data.copy()
+
+    week_1_data = scoped_data.loc[
+        scoped_data["date"].eq(date_previous)
+    ].copy()
+
+    week_2_data = scoped_data.loc[
+        scoped_data["date"].eq(date_latest)
+    ].copy()
 
     previous_total = int(
-        week_1_data["potential_outbreak"]
+        week_1_data.get(
+            "potential_outbreak",
+            pd.Series(dtype=bool)
+        )
         .fillna(False)
+        .astype(bool)
         .sum()
     )
 
     current_flags = (
-        week_2_data["potential_outbreak"]
+        week_2_data.get(
+            "potential_outbreak",
+            pd.Series(
+                False,
+                index=week_2_data.index,
+                dtype=bool
+            )
+        )
         .fillna(False)
         .astype(bool)
     )
 
     previous_flags = (
-        week_2_data["potential_outbreak_past_week"]
+        week_2_data.get(
+            "potential_outbreak_past_week",
+            pd.Series(
+                False,
+                index=week_2_data.index,
+                dtype=bool
+            )
+        )
         .fillna(False)
         .astype(bool)
     )
 
     continuing_signals = int(
-        (current_flags & previous_flags).sum()
+        (
+            current_flags
+            & previous_flags
+        ).sum()
     )
 
     new_signals = int(
-        (current_flags & ~previous_flags).sum()
+        (
+            current_flags
+            & ~previous_flags
+        ).sum()
     )
 
     no_longer_flagged = max(
@@ -588,136 +756,169 @@ def create_sankey_chart(df_outbreak):
         0
     )
 
-    current_total = int(current_flags.sum())
+    current_total = int(
+        current_flags.sum()
+    )
 
-# ------------------------------------------------------------
-# Two-period stacked transition chart
-# ------------------------------------------------------------
+    # ---------------------------------------------------------
+    # Transition chart
+    # ---------------------------------------------------------
 
     bar_width = 0.42
-    ongoing_midpoint = continuing_signals / 2
+    maximum_total = max(
+        previous_total,
+        current_total,
+        1
+    )
 
     fig = go.Figure()
 
-    # Same ongoing signals form the bottom of both bars.
+    # The same ongoing signals form the bottom of both bars.
     fig.add_trace(
         go.Bar(
             x=[0, 1],
-            y=[continuing_signals, continuing_signals],
+            y=[
+                continuing_signals,
+                continuing_signals
+            ],
             width=bar_width,
             name="Ongoing",
-            marker_color="#B11226",
+            marker_color=ONGOING_SIGNAL_COLOR,
             hovertemplate=(
-                "%{customdata}<br>"
-                f"Ongoing: {continuing_signals} signals"
+                "%{customdata}"
+                "<br>Ongoing: %{y:,} signals"
                 "<extra></extra>"
             ),
             customdata=[
                 "Previous week",
-                "Latest week"
+                "Current week"
             ]
         )
     )
 
-    # Previous-week signals that did not continue.
+    # Previous-week signals that are no longer flagged.
     fig.add_trace(
         go.Bar(
             x=[0],
             y=[no_longer_flagged],
             width=bar_width,
             name="No longer flagged",
-            marker_color="#F7B399",
-            text=[f"No longer flagged<br>{no_longer_flagged}"],
+            marker_color=NO_LONGER_FLAGGED_COLOR,
+            text=[
+                (
+                    f"No longer flagged"
+                    f"<br>{no_longer_flagged}"
+                    if no_longer_flagged > 0
+                    else ""
+                )
+            ],
             textfont=dict(
                 size=14,
-                color="#333333"
+                color="#222222"
             ),
             textposition="inside",
             insidetextanchor="middle",
             hovertemplate=(
                 "Previous week"
-                "<br>No longer flagged: %{y} signals"
+                "<br>No longer flagged: %{y:,} signals"
                 "<extra></extra>"
             )
         )
     )
 
-    # Current-week signals that are new.
+    # Latest-week signals newly entering the flagged group.
     fig.add_trace(
         go.Bar(
             x=[1],
             y=[new_signals],
             width=bar_width,
             name="New this week",
-            marker_color="#FF7A00",
+            marker_color=NEW_SIGNAL_COLOR,
             text=[
-                f"New this week<br>{new_signals}"
+                (
+                    f"New this week"
+                    f"<br>{new_signals}"
+                    if new_signals > 0
+                    else ""
+                )
             ],
+            textfont=dict(
+                size=14,
+                color="white"
+            ),
             textposition="inside",
             insidetextanchor="middle",
             hovertemplate=(
-                "Latest week"
-                "<br>New this week: %{y} signals"
+                "Current week"
+                "<br>New this week: %{y:,} signals"
                 "<extra></extra>"
             )
         )
     )
 
-    # Direct labels inside both ongoing segments.
-    for x_position in [0, 1]:
-        fig.add_annotation(
-            x=x_position,
-            y=ongoing_midpoint,
-            text=f"Ongoing<br>{continuing_signals}",
-            showarrow=False,
-            font=dict(
-                color="white",
-                size=14
-            ),
-            align="center"
+    # Add ongoing labels and connector only when ongoing signals exist.
+    if continuing_signals > 0:
+        ongoing_midpoint = (
+            continuing_signals / 2
         )
 
-    # Connect the top boundaries of the two ongoing segments.
-    # This explicitly indicates that these are the same signals.
-    fig.add_shape(
-        type="line",
-        xref="x",
-        yref="y",
-        x0=bar_width / 2,
-        x1=1 - bar_width / 2,
-        y0=continuing_signals,
-        y1=continuing_signals,
-        line=dict(
-            color="rgba(255,255,255,0.75)",
-            width=2,
-            dash="dot"
-        ),
-        layer="above"
-    )
+        for x_position in [0, 1]:
+            fig.add_annotation(
+                x=x_position,
+                y=ongoing_midpoint,
+                text=(
+                    f"Ongoing"
+                    f"<br>{continuing_signals}"
+                ),
+                showarrow=False,
+                align="center",
+                font=dict(
+                    color="white",
+                    size=14
+                )
+            )
 
-    fig.add_annotation(
-        x=0.5,
-        y=continuing_signals,
-        text=(
-            f"{continuing_signals} ongoing signals"),
-        showarrow=False,
-        yshift=12,
-        font=dict(
-            color="#E0E0E0",
-            size=14
-        ),
-        bgcolor="rgba(0,0,0,0.65)",
-        borderpad=2
-    )
+        fig.add_shape(
+            type="line",
+            xref="x",
+            yref="y",
+            x0=bar_width / 2,
+            x1=1 - bar_width / 2,
+            y0=continuing_signals,
+            y1=continuing_signals,
+            line=dict(
+                color="rgba(255,255,255,0.75)",
+                width=2,
+                dash="dot"
+            ),
+            layer="above"
+        )
 
-    # Total labels above each bar.
+        fig.add_annotation(
+            x=0.5,
+            y=continuing_signals,
+            text=(
+                f"Same {continuing_signals} "
+                f"ongoing signals"
+            ),
+            showarrow=False,
+            yshift=14,
+            font=dict(
+                color="#E0E0E0",
+                size=13
+            ),
+            bgcolor="rgba(0,0,0,0.70)",
+            borderpad=3
+        )
+
+    # Total labels remain visible even if a total is zero.
     fig.add_annotation(
         x=0,
         y=previous_total,
         text=f"Total: {previous_total}",
         showarrow=False,
         yanchor="bottom",
-        yshift=5,
+        yshift=6,
         font=dict(
             color="white",
             size=14
@@ -730,28 +931,41 @@ def create_sankey_chart(df_outbreak):
         text=f"Total: {current_total}",
         showarrow=False,
         yanchor="bottom",
-        yshift=5,
+        yshift=6,
         font=dict(
             color="white",
             size=14
         )
     )
 
-    maximum_total = max(
-        previous_total,
-        current_total
-    )
+    if previous_total == 0 and current_total == 0:
+        fig.add_annotation(
+            x=0.5,
+            y=0.5,
+            xref="paper",
+            yref="paper",
+            text=(
+                "No potential-outbreak signals were "
+                "identified in either week."
+            ),
+            showarrow=False,
+            font=dict(
+                color="#D0D0D0",
+                size=16
+            )
+        )
 
     fig.update_layout(
         barmode="stack",
-
         title=dict(
             text=(
-                "How Potential Outbreaks Changed This Week"
+                "How Potential-Outbreak Signals "
+                "Changed This Week"
                 "<br>"
-                "<span style='font-size:16px'>"
-                f"{previous_total} previous week signals "
-                f"→ {current_total} latest week signals"
+                "<span style='font-size:14px'>"
+                f"{scope_label}: "
+                f"{previous_total} previous-week signals "
+                f"→ {current_total} current-week signals"
                 "</span>"
             ),
             x=0.5,
@@ -759,85 +973,99 @@ def create_sankey_chart(df_outbreak):
             y=0.97,
             yanchor="top",
             font=dict(
-                size=22,
+                size=20,
                 color="white",
                 family="Arial, sans-serif"
             )
         ),
-
         height=720,
-
         paper_bgcolor="black",
         plot_bgcolor="black",
-
         font=dict(
             color="white",
             size=14
         ),
-
-        # Direct labels already identify every segment.
         showlegend=False,
-
-        uniformtext_minsize=10,
+        uniformtext_minsize=11,
         uniformtext_mode="hide",
-
         margin=dict(
             l=55,
             r=20,
-            t=65,
-            b=40
+            t=75,
+            b=45
         ),
-
         xaxis=dict(
             title="",
-            tickfont=dict(size=14),
             tickmode="array",
             tickvals=[0, 1],
             ticktext=[
                 "Previous week",
-                "Latest week"
+                "Current week"
             ],
-            range=[-0.55, 1.55],
+            tickfont=dict(
+                size=14
+            ),
+            range=[
+                -0.55,
+                1.55
+            ],
             showgrid=False,
             zeroline=False,
             fixedrange=True
         ),
-
         yaxis=dict(
             title=dict(
-                text="Potential Outbreaks",
-                font=dict(size=14)
+                text="Signals",
+                font=dict(
+                    size=14
+                )
             ),
-            tickfont=dict(size=13),
-        
+            tickfont=dict(
+                size=13
+            ),
             range=[
                 0,
-                maximum_total * 1.16
+                maximum_total * 1.18
             ],
             showgrid=True,
-            gridcolor="rgba(70, 90, 105, 0.35)",
+            gridcolor=(
+                "rgba(70, 90, 105, 0.35)"
+            ),
             zeroline=False,
             fixedrange=True
         )
     )
 
-    # ------------------------------------------------------------
-    # Unified latest-week signal table
-    # ------------------------------------------------------------
+    # ---------------------------------------------------------
+    # Unified latest-week table
+    # ---------------------------------------------------------
 
-    latest_week_signals_table = week_2_data.loc[
-        current_flags,
-        [
-            "state",
-            "label",
-            "new_cases",
-            "potential_outbreak_past_week",
+    if week_2_data.empty or not current_flags.any():
+        return (
+            fig,
+            empty_table,
+            no_longer_flagged
+        )
+
+    table_columns = [
+        "item_id",
+        "state",
+        "label",
+        "new_cases",
+        "potential_outbreak_past_week"
+    ]
+
+    latest_week_signals_table = (
+        week_2_data.loc[
+            current_flags,
+            table_columns
         ]
-    ].copy()
+        .copy()
+    )
 
-    # A signal is ongoing when it was also flagged the previous week.
-    # Otherwise, it is new this week.
-    latest_week_signals_table["Status"] = (
+    latest_week_signals_table[
+        "Status"
+    ] = (
         latest_week_signals_table[
             "potential_outbreak_past_week"
         ]
@@ -852,8 +1080,7 @@ def create_sankey_chart(df_outbreak):
     previous_week_cases = (
         week_1_data[
             [
-                "state",
-                "label",
+                "item_id",
                 "new_cases"
             ]
         ]
@@ -868,7 +1095,7 @@ def create_sankey_chart(df_outbreak):
         latest_week_signals_table
         .merge(
             previous_week_cases,
-            on=["state", "label"],
+            on="item_id",
             how="left"
         )
         .rename(
@@ -880,26 +1107,9 @@ def create_sankey_chart(df_outbreak):
         )
     )
 
-    # Convert case counts to ordinary Python integers where available.
-    # Using None for missing values keeps the DataFrame JSON-serializable
-    # when passed to Dash DataTable.
-    for column in [
-        "Previous Week",
-        "Latest Week"
-    ]:
-        latest_week_signals_table[column] = (
-            latest_week_signals_table[column]
-            .apply(
-                lambda value:
-                None
-                if pd.isna(value)
-                else int(round(value))
-            )
-        )
-
-    # Put new signals first, then ongoing signals.
-    # Within each group, show the largest latest-week counts first.
-    latest_week_signals_table["_status_order"] = (
+    latest_week_signals_table[
+        "_status_order"
+    ] = (
         latest_week_signals_table["Status"]
         .map({
             "New": 0,
@@ -907,41 +1117,67 @@ def create_sankey_chart(df_outbreak):
         })
     )
 
+    latest_week_signals_table[
+        "_latest_sort"
+    ] = pd.to_numeric(
+        latest_week_signals_table[
+            "Latest Week"
+        ],
+        errors="coerce"
+    )
+
     latest_week_signals_table = (
         latest_week_signals_table
         .sort_values(
             [
                 "_status_order",
-                "Latest Week"
+                "_latest_sort"
             ],
             ascending=[
                 True,
                 False
-            ]
+            ],
+            na_position="last"
         )
-        .drop(
-            columns=[
-                "_status_order",
-                "potential_outbreak_past_week"
-            ]
+        .copy()
+    )
+
+    for column in [
+        "Previous Week",
+        "Latest Week"
+    ]:
+        converted_values = [
+            (
+                None
+                if pd.isna(value)
+                else int(round(value))
+            )
+            for value in (
+                latest_week_signals_table[
+                    column
+                ]
+            )
+        ]
+
+        latest_week_signals_table[
+            column
+        ] = pd.Series(
+            converted_values,
+            index=(
+                latest_week_signals_table.index
+            ),
+            dtype="object"
         )
-        [
-            [
-                "US State / Territory",
-                "Disease",
-                "Status",
-                "Previous Week",
-                "Latest Week"
-            ]
+
+    latest_week_signals_table = (
+        latest_week_signals_table[
+            output_columns
         ]
         .reset_index(drop=True)
     )
 
-    resolved_outbreaks_week_2 = no_longer_flagged
-
     return (
         fig,
         latest_week_signals_table,
-        resolved_outbreaks_week_2
+        no_longer_flagged
     )
-

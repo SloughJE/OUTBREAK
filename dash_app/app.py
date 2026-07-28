@@ -11,9 +11,13 @@ from src.tabs.history_tab_helper import (
     get_flagged_episodes
 )
 from src.tabs.summary_tab_helper import (
-    get_outbreaks, create_us_map, 
-    is_outbreak_resolved, create_sankey_chart,
-    get_outbreaks_all)
+    get_outbreaks,
+    create_us_map,
+    is_outbreak_resolved,
+    create_sankey_chart,
+    get_outbreaks_all,
+    state_code_mapping
+)
 from src.tabs.load_data import load_preds
 from src.tabs.summary_tab import summary_tab_layout
 from src.tabs.history_tab import details_tab_layout 
@@ -35,6 +39,43 @@ server = app.server # Expose the Flask server for Gunicorn
 app.title = "Outbreak Dashboard"
 
 ###################################################
+
+NEW_SIGNAL_COLOR = "#FF7A00"
+ONGOING_SIGNAL_COLOR = "#C6283D"
+
+
+# Jurisdictions intentionally excluded from map-click filtering.
+# The initial implementation supports the 50 states plus DC only.
+SUMMARY_MAP_EXCLUDED_CODES = {
+    "PR",
+    "GU",
+    "VI",
+    "AS",
+    "MP",
+    "NYC"
+}
+
+
+STATE_NAME_BY_CODE = {
+    code: state_name
+    for state_name, code in state_code_mapping.items()
+    if code not in SUMMARY_MAP_EXCLUDED_CODES
+}
+
+
+def format_summary_state_name(state_name):
+    """
+    Convert uppercase source names to readable display names.
+    """
+    if not state_name:
+        return "United States"
+
+    return (
+        str(state_name)
+        .title()
+        .replace(" Of ", " of ")
+    )
+
 
 cols_wanted = ['item_id', 'state', 'date', 'label', 'new_cases']
 date_filter_hist = [('date', '>=', pd.to_datetime('2024-01-01'))]
@@ -154,6 +195,109 @@ app.layout = html.Div([
 ##############################
 ##### CALLBACKS###############
 ##############################
+
+@app.callback(
+    Output(
+        "selected-summary-state-code",
+        "data"
+    ),
+    Input(
+        "us-map",
+        "clickData"
+    ),
+    Input(
+        "reset-summary-state-button",
+        "n_clicks"
+    ),
+    State(
+        "selected-summary-state-code",
+        "data"
+    ),
+    prevent_initial_call=True
+)
+def update_selected_summary_state(
+    map_click_data,
+    reset_clicks,
+    current_state_code
+):
+    """
+    Save the clicked map state in dcc.Store.
+
+    The reset button clears the selection. Territory and NYC
+    codes are intentionally ignored for this initial version.
+    """
+    trigger_id = ctx.triggered_id
+
+    if trigger_id == "reset-summary-state-button":
+        return None
+
+    if trigger_id == "us-map" and map_click_data:
+        points = map_click_data.get(
+            "points",
+            []
+        )
+
+        if points:
+            clicked_code = points[0].get(
+                "location"
+            )
+
+            if clicked_code in STATE_NAME_BY_CODE:
+                return clicked_code
+
+    # Preserve the current selection for invalid or empty clicks.
+    return current_state_code
+
+@app.callback(
+    Output(
+        "summary-state-filter-label",
+        "children"
+    ),
+    Output(
+        "reset-summary-state-button",
+        "style"
+    ),
+    Input(
+        "selected-summary-state-code",
+        "data"
+    )
+)
+def update_summary_state_filter_controls(
+    selected_state_code
+):
+    reset_button_base_style = {
+        "marginLeft": "12px"
+    }
+
+    selected_state_name = STATE_NAME_BY_CODE.get(
+        selected_state_code
+    )
+
+    if not selected_state_name:
+        return (
+            (
+                "Showing: All states — click a state "
+                "on the map to filter"
+            ),
+            {
+                **reset_button_base_style,
+                "display": "none"
+            }
+        )
+
+    display_name = format_summary_state_name(
+        selected_state_name
+    )
+
+    return (
+        f"Showing: {display_name}",
+        {
+            **reset_button_base_style,
+            "display": "inline-block"
+        }
+    )
+
+
 @app.callback(
     Output('state_dropdown', 'options'),
     [Input('show_outbreaks_toggle', 'value'),
@@ -197,23 +341,30 @@ def set_item_options(selected_state, toggle_values, selected_interval):
 
 
 @app.callback(
-  [
-    Output('outbreak_kpi', 'children'),
-    Output('left_column_metrics','children'),
-    Output('right_column_metrics','children'),
-    Output('us-map', 'figure'),
-    Output('territories-table', 'children'),
-    Output('sankey-chart', 'figure'),
-    #Output('pathogen-chart', 'figure'),
-    #Output('bodily-chart', 'figure'),
-    #Output('transmission-chart', 'figure'),
-    Output('ongoing-outbreaks-table', 'children'),
+    [
+        Output("outbreak_kpi", "children"),
+        Output("left_column_metrics", "children"),
+        Output("right_column_metrics", "children"),
+        Output("us-map", "figure"),
+        Output("territories-table", "children"),
+        Output("sankey-chart", "figure"),
+        Output("ongoing-outbreaks-table", "children"),
     ],
     [
-    Input('interval_dropdown', 'value'),
-    ]  
+        Input(
+            "interval_dropdown",
+            "value"
+        ),
+        Input(
+            "selected-summary-state-code",
+            "data"
+        ),
+    ]
 )
-def update_kpi(selected_interval):
+def update_kpi(
+    selected_interval,
+    selected_summary_state_code
+):
     
     df_outbreak = get_outbreaks(df_preds, chosen_interval=selected_interval)
 
@@ -350,112 +501,262 @@ def update_kpi(selected_interval):
             )
         ], style={'marginBottom': '20px'})
 
-    df_outbreak_all = get_outbreaks_all(df_preds_all, selected_interval)
 
-    sankey_chart, latest_week_signals, resolved_outbreaks_week_2 = (
-        create_sankey_chart(df_outbreak_all)
+    df_outbreak_all = get_outbreaks_all(
+        df_preds_all,
+        selected_interval
     )
 
-    # Retain a separate ongoing-only subset for the KPI calculations.
-    ongoing_outbreaks = latest_week_signals.loc[
-        latest_week_signals["Status"].eq("Ongoing")
-    ].copy()
+
+    # --------------------------------------------------
+    # National ongoing signals for the top KPI cards
+    # --------------------------------------------------
+    # These remain national even when the transition
+    # chart and latest-week table are filtered by state.
+
+    if df_outbreak_all.empty:
+        ongoing_outbreaks = df_outbreak_all.copy()
+
+    else:
+        national_data = df_outbreak_all.copy()
+
+        national_data["date"] = pd.to_datetime(
+            national_data["date"],
+            errors="coerce"
+        )
+
+        national_data = national_data.dropna(
+            subset=["date"]
+        )
+
+        if national_data.empty:
+            ongoing_outbreaks = national_data.copy()
+
+        else:
+            latest_reporting_date = national_data["date"].max()
+
+            national_latest_week = national_data.loc[
+                national_data["date"].eq(
+                    latest_reporting_date
+                )
+            ].copy()
+
+            current_flags = (
+                national_latest_week[
+                    "potential_outbreak"
+                ]
+                .fillna(False)
+                .astype(bool)
+            )
+
+            previous_week_flags = (
+                national_latest_week[
+                    "potential_outbreak_past_week"
+                ]
+                .fillna(False)
+                .astype(bool)
+            )
+
+            ongoing_outbreaks = national_latest_week.loc[
+                current_flags & previous_week_flags
+            ].copy()
+
+
+    # --------------------------------------------------
+    # Selected-state transition chart and table
+    # --------------------------------------------------
+
+    selected_state_name = STATE_NAME_BY_CODE.get(
+        selected_summary_state_code
+    )
+
+    scope_label = format_summary_state_name(
+        selected_state_name
+    )
+
+    sankey_chart, latest_week_signals, resolved_outbreaks_week_2 = (
+        create_sankey_chart(
+            df_outbreak_all,
+            selected_state=selected_state_name,
+            scope_label=scope_label
+        )
+    )
 
     if latest_week_signals.empty:
         table_title = "Latest Week Potential Outbreak Signals: None"
     else:
         table_title = "Latest Week Potential Outbreak Signals"
-        
-    table_content_ongoing_outbreaks = html.Div([
-        html.H3(table_title, style={'textAlign': 'center', 'color': 'white','fontSize':'22px'}),
-        dash_table.DataTable(
-            columns=[
-                {
-                    "name": column,
-                    "id": column
-                }
-                for column in latest_week_signals.columns
-            ],
 
-            data=latest_week_signals.to_dict("records"),
-
-            sort_action="native",
-            style_as_list_view=True,
-            style_header={'backgroundColor': 'rgb(50, 50, 50)', 'color': 'white', 'fontWeight': 'bold', 'border': '1px solid white',
-                          'whiteSpace': 'normal','height':'3em'},
-            style_cell={'backgroundColor': 'rgb(0, 0, 0)', 'color': 'white', 'border': '1px solid grey',
-                    'whiteSpace': 'normal',
-                    'height': 'auto'},
-            style_header_conditional=[
-                    {
-                        'if': {'column_id': 'Latest Week'},  
-                        'paddingRight': '5px'  
-                    }
-                ],
-            style_cell_conditional=[
-                {
-                    "if": {
-                        "column_id": "US State / Territory"
-                    },
-                    "width": "20%"
-                },
-                {
-                    "if": {
-                        "column_id": "Disease"
-                    },
-                    "width": "43%"
-                },
-                {
-                    "if": {
-                        "column_id": "Status"
-                    },
-                    "width": "13%",
-                    "textAlign": "center"
-                },
-                {
-                    "if": {
-                        "column_id": "Previous Week"
-                    },
-                    "width": "12%",
-                    "paddingRight": "5px"
-                },
-                {
-                    "if": {
-                        "column_id": "Latest Week"
-                    },
-                    "width": "12%",
-                    "paddingRight": "5px"
-                },
-            ],
-            style_data_conditional=[
-                {
-                    "if": {
-                        "filter_query": '{Status} = "New"',
-                        "column_id": "Status"
-                    },
-                    "color": "#FF7A00",
-                    "fontWeight": "bold"
-                },
-                {
-                    "if": {
-                        "filter_query": '{Status} = "Ongoing"',
-                        "column_id": "Status"
-                    },
-                    "color": "#B11226",
-                    "fontWeight": "bold"
-                }
-            ],
-            style_table={
-                'maxHeight': '230px',  
-                'overflowY': 'auto',  
-                'width': '90%',  
-                'margin': '0 auto',  
-                'padding': '0px',
-                'marginTop': '0px',
-                'overflowX': 'auto', 
-            },
+    if selected_state_name:
+        table_title = (
+            "Latest-Week Potential-Outbreak Signals"
+            f" — {scope_label}"
         )
-    ], style={'marginBottom': '20px'})
+    else:
+        table_title = (
+            "Latest-Week Potential-Outbreak Signals"
+        )
+    
+    if latest_week_signals.empty:
+        table_content_ongoing_outbreaks = html.Div(
+            [
+                html.H3(
+                    table_title,
+                    style={
+                        "textAlign": "center",
+                        "color": "white",
+                        "fontSize": "22px"
+                    }
+                ),
+
+                html.Div(
+                    (
+                        "No latest-week potential-outbreak "
+                        f"signals were identified for "
+                        f"{scope_label}."
+                    ),
+                    style={
+                        "color": "#C8C8C8",
+                        "textAlign": "center",
+                        "padding": "24px",
+                        "fontSize": "15px"
+                    }
+                )
+            ],
+            style={
+                "marginBottom": "20px"
+            }
+        )
+
+    else:
+        table_content_ongoing_outbreaks = html.Div(
+            [
+                html.H3(
+                    table_title,
+                    style={
+                        "textAlign": "center",
+                        "color": "white",
+                        "fontSize": "22px"
+                    }
+                ),
+
+                dash_table.DataTable(
+                    columns=[
+                        {
+                            "name": column,
+                            "id": column
+                        }
+                        for column in (
+                            latest_week_signals.columns
+                        )
+                    ],
+
+                    data=latest_week_signals.to_dict(
+                        "records"
+                    ),
+
+                    sort_action="native",
+                    style_as_list_view=True,
+
+                    style_header={
+                        "backgroundColor": (
+                            "rgb(50, 50, 50)"
+                        ),
+                        "color": "white",
+                        "fontWeight": "bold",
+                        "border": "1px solid white",
+                        "whiteSpace": "normal",
+                        "height": "3em"
+                    },
+
+                    style_cell={
+                        "backgroundColor": "black",
+                        "color": "white",
+                        "border": "1px solid grey",
+                        "whiteSpace": "normal",
+                        "height": "auto",
+                        "padding": "8px"
+                    },
+
+                    style_cell_conditional=[
+                        {
+                            "if": {
+                                "column_id":
+                                    "US State / Territory"
+                            },
+                            "width": "20%"
+                        },
+                        {
+                            "if": {
+                                "column_id": "Disease"
+                            },
+                            "width": "43%"
+                        },
+                        {
+                            "if": {
+                                "column_id": "Status"
+                            },
+                            "width": "13%",
+                            "textAlign": "center"
+                        },
+                        {
+                            "if": {
+                                "column_id":
+                                    "Previous Week"
+                            },
+                            "width": "12%",
+                            "textAlign": "right",
+                            "paddingRight": "5px"
+                        },
+                        {
+                            "if": {
+                                "column_id":
+                                    "Latest Week"
+                            },
+                            "width": "12%",
+                            "textAlign": "right",
+                            "paddingRight": "5px"
+                        }
+                    ],
+
+                    style_data_conditional=[
+                        {
+                            "if": {
+                                "filter_query":
+                                    '{Status} = "New"',
+                                "column_id": "Status"
+                            },
+                            "color": NEW_SIGNAL_COLOR,
+                            "fontWeight": "bold"
+                        },
+                        {
+                            "if": {
+                                "filter_query":
+                                    '{Status} = "Ongoing"',
+                                "column_id": "Status"
+                            },
+                            "color": (
+                                ONGOING_SIGNAL_COLOR
+                            ),
+                            "fontWeight": "bold"
+                        }
+                    ],
+
+                    style_table={
+                        "maxHeight": "320px",
+                        "overflowY": "auto",
+                        "width": "95%",
+                        "margin": "0 auto",
+                        "padding": "0px",
+                        "marginTop": "0px",
+                        "overflowX": "auto"
+                    }
+                )
+            ],
+            style={
+                "marginBottom": "20px"
+            }
+        )
     
     kpi_content = [
         html.H2(f"Latest Week: {current_week}", className='latest-week', style={'fontSize':'26px'}),
@@ -481,21 +782,45 @@ def update_kpi(selected_interval):
 
     # Right column metrics
     right_column_metrics = [
+        html.Div([
+            html.Div(
+                (
+                    "Ongoing Potential-Outbreak "
+                    "Signals by State and Disease:"
+                ),
+                className="metric-label"
+            ),
+            html.Div(
+                f"{len(national_ongoing_signals)}",
+                className="metric-value"
+            )
+        ], className="metric-row"),
 
         html.Div([
-            html.Div("Ongoing Potential Outbreaks by State and Disease:", className='metric-label'),
-            html.Div(f"{len(ongoing_outbreaks)}", className='metric-value')
-        ],className='metric-row'),
+            html.Div(
+                "Ongoing Signals by Disease:",
+                className="metric-label"
+            ),
+            html.Div(
+                (
+                    f"{national_ongoing_signals['label'].nunique()}"
+                ),
+                className="metric-value"
+            )
+        ], className="metric-row"),
 
         html.Div([
-            html.Div("Ongoing Potential Outbreaks by Disease:", className='metric-label'),
-            html.Div(f"{len(ongoing_outbreaks['Disease'].unique())}", className='metric-value')
-        ],className='metric-row'),
-        
-        html.Div([
-            html.Div("States with Ongoing Potential Outbreaks:", className='metric-label'),
-            html.Div(f"{len(ongoing_outbreaks['US State / Territory'].unique())}", className='metric-value')
-        ],className='metric-row'),
+            html.Div(
+                "Jurisdictions with Ongoing Signals:",
+                className="metric-label"
+            ),
+            html.Div(
+                (
+                    f"{national_ongoing_signals['state'].nunique()}"
+                ),
+                className="metric-value"
+            )
+        ], className="metric-row"),
     ]
 
     # df_outbreak = df_outbreak[['item_id','date','state','label','potential_outbreak']]

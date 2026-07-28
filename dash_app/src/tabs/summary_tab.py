@@ -19,6 +19,12 @@ def summary_tab_layout():
 
     layout = dbc.Container([
 
+        dcc.Store(
+            id="selected-summary-state-code",
+            data=None,
+            storage_type="memory"
+        ),
+
         html.Div([
 
             html.Div([
@@ -91,6 +97,43 @@ def summary_tab_layout():
                     ),
 
                     dbc.Col(
+                        html.Div(
+                            [
+                                html.Span(
+                                    id="summary-state-filter-label",
+                                    children=(
+                                        "Showing: All states — click a state "
+                                        "on the map to filter"
+                                    ),
+                                    style={
+                                        "color": "#D0D0D0",
+                                        "fontSize": "15px",
+                                        "fontWeight": "bold"
+                                    }
+                                ),
+
+                                dbc.Button(
+                                    "Reset to all states",
+                                    id="reset-summary-state-button",
+                                    n_clicks=0,
+                                    color="secondary",
+                                    outline=True,
+                                    size="sm",
+                                    style={
+                                        "display": "none",
+                                        "marginLeft": "12px"
+                                    }
+                                )
+                            ],
+                            style={
+                                "display": "flex",
+                                "justifyContent": "center",
+                                "alignItems": "center",
+                                "minHeight": "38px",
+                                "marginBottom": "4px",
+                                "textAlign": "center"
+                            }
+                        ),
                         html.Div([  
                             dcc.Graph(
                                 id="sankey-chart",
