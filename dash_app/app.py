@@ -789,8 +789,8 @@ def update_kpi(
         html.Div([
             html.Div(
                 (
-                    "Ongoing Potential-Outbreak "
-                    "Signals by State and Disease:"
+                    "Ongoing Potential Outbreaks "
+                    "by State and Disease:"
                 ),
                 className="metric-label"
             ),
@@ -802,7 +802,7 @@ def update_kpi(
 
         html.Div([
             html.Div(
-                "Ongoing Signals by Disease:",
+                "Ongoing Potential Outbreaks by Disease:",
                 className="metric-label"
             ),
             html.Div(
@@ -813,7 +813,7 @@ def update_kpi(
 
         html.Div([
             html.Div(
-                "Jurisdictions with Ongoing Signals:",
+                "States with Ongoing Potential Outbreaks:",
                 className="metric-label"
             ),
             html.Div(
