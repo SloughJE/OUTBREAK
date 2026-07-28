@@ -13,6 +13,12 @@ common_div_style = {
 
 SUMMARY_GRAPH_HEIGHT = "720px"
 
+SUMMARY_FILTER_ROW_STYLE = {
+    "height": "44px",
+    "minHeight": "44px",
+    "marginBottom": "4px"
+}
+
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc.icons.BOOTSTRAP])
 
 def summary_tab_layout():
@@ -75,7 +81,12 @@ def summary_tab_layout():
             html.Div([
                 dbc.Row([
                     dbc.Col(
-                        html.Div([  
+                        html.Div([
+
+                            html.Div(
+                                style=SUMMARY_FILTER_ROW_STYLE
+                            ),
+
                             dcc.Graph(
                                 id="us-map",
                                 style={
@@ -90,10 +101,20 @@ def summary_tab_layout():
                                 config={
                                     "responsive": True
                                 }
-                            ),                            
-                            html.Div(id='territories-table', style={'color': 'white', 'padding': '0px', 'marginTop': '14px'})
-                        ], style={**common_div_style}),  
-                        xs=12, lg=6
+                            ),
+
+                            html.Div(
+                                id="territories-table",
+                                style={
+                                    "color": "white",
+                                    "padding": "0px",
+                                    "marginTop": "14px"
+                                }
+                            )
+
+                        ], style={**common_div_style}),
+                        xs=12,
+                        lg=6
                     ),
 
                     dbc.Col(
@@ -112,7 +133,7 @@ def summary_tab_layout():
                                             ),
                                             style={
                                                 "color": "#D0D0D0",
-                                                "fontSize": "15px",
+                                                "fontSize": "20px",
                                                 "fontWeight": "bold"
                                             }
                                         ),
@@ -131,12 +152,12 @@ def summary_tab_layout():
                                         )
                                     ],
                                     style={
+                                        **SUMMARY_FILTER_ROW_STYLE,
                                         "display": "flex",
                                         "justifyContent": "center",
                                         "alignItems": "center",
-                                        "minHeight": "38px",
-                                        "marginBottom": "4px",
-                                        "textAlign": "center"
+                                        "textAlign": "center",
+                                        "whiteSpace": "nowrap"
                                     }
                                 ),
 
