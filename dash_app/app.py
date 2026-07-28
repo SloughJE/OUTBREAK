@@ -175,7 +175,7 @@ app.layout = html.Div([
                 'borderRadius': '50px'
             }),
         ], style={'textAlign': 'center', 'width': '100%', 'marginTop': '0px', 'backgroundColor': 'black'}),
-        html.Div("Automatic Weekly Identification of Potential Outbreaks Signals for CDC Nationally Notifiable Diseases", className='main-subtitle',
+        html.Div("Automatic Weekly Identification of Potential Outbreak Signals for CDC Nationally Notifiable Diseases", className='main-subtitle',
                  style={'justifyContent': 'center', 'color': 'white',
                         'fontSize': '26px', 'color': '#F08080',
                         'alignItems': 'center', 'textAlign': 'center', 'paddingBottom': '20px',
@@ -373,7 +373,7 @@ def update_kpi(
     num_outbreaks_per_disease = len(df_outbreak[df_outbreak['potential_outbreak'] == True]['label'].unique())
     num_states_with_outbreak = len(df_outbreak[df_outbreak['potential_outbreak'] == True]['state'].unique())
 
-    top_state = df_outbreak.groupby(['state'],as_index=False)['potential_outbreak'].sum().sort_values('potential_outbreak',ascending=False).iloc[0]
+    #top_state = df_outbreak.groupby(['state'],as_index=False)['potential_outbreak'].sum().sort_values('potential_outbreak',ascending=False).iloc[0]
     
     df_outbreak = is_outbreak_resolved(df_outbreak)
     map_content, df_territories = create_us_map(df_outbreak)
@@ -574,18 +574,13 @@ def update_kpi(
         selected_state_name
     )
 
-    sankey_chart, latest_week_signals, resolved_outbreaks_week_2 = (
+    sankey_chart, latest_week_signals, _ = (
         create_sankey_chart(
             df_outbreak_all,
             selected_state=selected_state_name,
             scope_label=scope_label
         )
     )
-
-    if latest_week_signals.empty:
-        table_title = "Latest Week Potential Outbreak Signals: None"
-    else:
-        table_title = "Latest Week Potential Outbreak Signals"
 
     if selected_state_name:
         table_title = (
@@ -791,7 +786,7 @@ def update_kpi(
                 className="metric-label"
             ),
             html.Div(
-                f"{len(national_ongoing_signals)}",
+                f"{len(ongoing_outbreaks)}",
                 className="metric-value"
             )
         ], className="metric-row"),
@@ -802,9 +797,7 @@ def update_kpi(
                 className="metric-label"
             ),
             html.Div(
-                (
-                    f"{national_ongoing_signals['label'].nunique()}"
-                ),
+                f"{ongoing_outbreaks['label'].nunique()}",
                 className="metric-value"
             )
         ], className="metric-row"),
@@ -815,9 +808,7 @@ def update_kpi(
                 className="metric-label"
             ),
             html.Div(
-                (
-                    f"{national_ongoing_signals['state'].nunique()}"
-                ),
+                f"{ongoing_outbreaks['state'].nunique()}",
                 className="metric-value"
             )
         ], className="metric-row"),
@@ -1509,89 +1500,6 @@ def update_outbreak_history_graph(
         trends_summary_content
     )    
 
-def update_type_counts(selected_interval, analysis_type, states_selected):
-    
-    if states_selected:
-        df_outbreak_type_filt = df_preds[df_preds.state.isin(states_selected)]
-    else:
-        df_outbreak_type_filt = df_preds
-
-    df_outbreak = get_outbreaks(df_outbreak_type_filt, chosen_interval=selected_interval)
-
-    current_week = df_latest['date'].max().strftime('%Y-%m-%d')
-    num_outbreaks_per_state_and_disease = df_outbreak['potential_outbreak'].sum()
-    num_outbreaks_per_disease = len(df_outbreak[df_outbreak['potential_outbreak'] == True]['label'].unique())
-    num_states_with_outbreak = len(df_outbreak[df_outbreak['potential_outbreak'] == True]['state'].unique())
-
-    
-    #df_outbreak = is_outbreak_resolved(df_outbreak)
-    #df_outbreak_all = get_outbreaks_all(df_preds_all, selected_interval)
-
-    df_outbreak = df_outbreak[['item_id','date','state','label','new_cases','potential_outbreak','pred_upper']]
-    df_outbreak = add_disease_info(df_outbreak)
-
-    if analysis_type == 'all':
-        outbreak_counts_category = df_outbreak[df_outbreak['potential_outbreak']][['category']].groupby('category').size()
-        body_system_counts = df_outbreak[df_outbreak['potential_outbreak']][['body_system']].explode('body_system').groupby('body_system').size()
-        transmission_counts = df_outbreak[df_outbreak['potential_outbreak']][['transmission']].explode('transmission').groupby('transmission').size()
-        note_text=""
-        pathogen_chart = bar_chart_counts(outbreak_counts_category,"Pathogen Type", "blue",note_text)
-        note_text = "*a single disease may belong to multiple categories"
-        bodily_system_chart = bar_chart_counts(body_system_counts, "Affected Bodily System", "green",note_text)
-        transmission_type_chart = bar_chart_counts(transmission_counts, "Transmission Type", "purple",note_text)
-
-    else:
-        unique_outbreak_counts_category = df_outbreak[df_outbreak['potential_outbreak']][['category','label']].groupby('category')['label'].nunique()
-        exploded_body_system = df_outbreak[df_outbreak['potential_outbreak']][['body_system','label']].explode('body_system')
-        unique_outbreak_counts_body_system = exploded_body_system.groupby('body_system')['label'].nunique()
-        exploded_transmission = df_outbreak[df_outbreak['potential_outbreak']][['transmission','label']].explode('transmission')
-        unique_outbreak_counts_transmission = exploded_transmission.groupby('transmission')['label'].nunique()
-
-        pathogen_chart = bar_chart_counts(unique_outbreak_counts_category,"Pathogen Type", "blue", "")
-        note_text = "*a single disease may belong to multiple categories"
-        bodily_system_chart = bar_chart_counts(unique_outbreak_counts_body_system, "Affected Bodily System", "green", note_text)
-        transmission_type_chart = bar_chart_counts(unique_outbreak_counts_transmission, "Transmission Type", "purple", note_text)
-
-
-    df_out_table = df_outbreak[df_outbreak.potential_outbreak==True][['state','label','category','body_system','transmission','new_cases']]
-    #print(df_out_table.head())
-    df_out_table['body_system'] = df_out_table['body_system'].apply(lambda x: ', '.join(x))
-    df_out_table['transmission'] = df_out_table['transmission'].apply(lambda x: ', '.join(x))
-    df_out_table.columns = ['State / Territory','Disease','Pathogen', 'Affected System', 'Transmission', 'Cases']
-    df_out_table['Cases'] = df_out_table.Cases.astype(int)
-
-    table_title = "Potential Outbreaks Details"
-    table_content_outbreaks = html.Div([
-        html.H3(table_title, style={'textAlign': 'center', 'color': 'white','fontSize':'26px'}),
-        dash_table.DataTable(
-                id='table',
-                columns=[{'id': c, 'name': c} for c in df_out_table.columns],
-                data=df_out_table.to_dict('records'),
-                style_table={'overflowX': 'auto', 'minWdith':'100%'},
-                # Enable sorting
-                sort_action='native',
-                # Optional features
-                filter_action='native',  # Enables filtering of data by user
-                page_action='native',    # Enables data pagination
-                page_size=15,             # Number of rows visible per page
-
-            style_header={'backgroundColor': 'rgb(50, 50, 50)', 'color': 'white', 'fontWeight': 'bold', 'border': '1px solid white',
-                          'whiteSpace': 'normal','height':'3em'},
-            style_cell={'backgroundColor': 'rgb(0, 0, 0)', 'color': 'white', 'border': '1px solid grey', 'paddingRight': '5px',
-                    'whiteSpace': 'normal',
-                    'height': 'auto'},
-            style_filter={ 'fontWeight': 'bold','fontSize':'20px'},
-            style_cell_conditional=[
-                {'if': {'column_id': 'State / Territory'}, 'width': '11.5%'},
-                {'if': {'column_id': 'Disease'}, 'width': '42.5%'},  # Wide column for variable content
-                {'if': {'column_id': 'Pathogen'}, 'width': '7%'},
-                {'if': {'column_id': 'Affected System'}, 'width': '17%'},
-                {'if': {'column_id': 'Transmission'}, 'width': '17%'},
-                {'if': {'column_id': 'Cases'}, 'width': '5%'}
-            ],)
-        ])
-
-    return pathogen_chart, bodily_system_chart, transmission_type_chart, table_content_outbreaks
 
 ################################
 @app.callback(
