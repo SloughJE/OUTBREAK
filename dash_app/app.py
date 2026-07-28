@@ -215,6 +215,8 @@ app.layout = html.Div([
     ),
     prevent_initial_call=True
 )
+
+
 def update_selected_summary_state(
     map_click_data,
     reset_clicks,
@@ -562,7 +564,7 @@ def update_kpi(
             ].copy()
 
 
-    # --------------------------------------------------
+    # -------------selected-summary-state-code-------------------------------------
     # Selected-state transition chart and table
     # --------------------------------------------------
 

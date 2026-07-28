@@ -99,60 +99,85 @@ def summary_tab_layout():
                     dbc.Col(
                         html.Div(
                             [
-                                html.Span(
-                                    id="summary-state-filter-label",
-                                    children=(
-                                        "Showing: All states — click a state "
-                                        "on the map to filter"
-                                    ),
+                                # --------------------------------------------------
+                                # Selected-state label and reset button
+                                # --------------------------------------------------
+                                html.Div(
+                                    [
+                                        html.Span(
+                                            id="summary-state-filter-label",
+                                            children=(
+                                                "Showing: All states — click a state "
+                                                "on the map to filter"
+                                            ),
+                                            style={
+                                                "color": "#D0D0D0",
+                                                "fontSize": "15px",
+                                                "fontWeight": "bold"
+                                            }
+                                        ),
+
+                                        dbc.Button(
+                                            "Reset to all states",
+                                            id="reset-summary-state-button",
+                                            n_clicks=0,
+                                            color="secondary",
+                                            outline=True,
+                                            size="sm",
+                                            style={
+                                                "display": "none",
+                                                "marginLeft": "12px"
+                                            }
+                                        )
+                                    ],
                                     style={
-                                        "color": "#D0D0D0",
-                                        "fontSize": "15px",
-                                        "fontWeight": "bold"
+                                        "display": "flex",
+                                        "justifyContent": "center",
+                                        "alignItems": "center",
+                                        "minHeight": "38px",
+                                        "marginBottom": "4px",
+                                        "textAlign": "center"
                                     }
                                 ),
 
-                                dbc.Button(
-                                    "Reset to all states",
-                                    id="reset-summary-state-button",
-                                    n_clicks=0,
-                                    color="secondary",
-                                    outline=True,
-                                    size="sm",
+                                # --------------------------------------------------
+                                # Transition chart and latest-week table
+                                # --------------------------------------------------
+                                html.Div(
+                                    [
+                                        dcc.Graph(
+                                            id="sankey-chart",
+                                            style={
+                                                **common_div_style,
+                                                "width": "100%",
+                                                "height": SUMMARY_GRAPH_HEIGHT,
+                                                "display": "block",
+                                                "marginBottom": "6px",
+                                                "marginLeft": "auto",
+                                                "marginRight": "auto"
+                                            },
+                                            config={
+                                                "responsive": True
+                                            }
+                                        ),
+
+                                        html.Div(
+                                            id="ongoing-outbreaks-table",
+                                            style={
+                                                "color": "white",
+                                                "padding": "0px",
+                                                "marginTop": "14px"
+                                            }
+                                        )
+                                    ],
                                     style={
-                                        "display": "none",
-                                        "marginLeft": "12px"
+                                        **common_div_style
                                     }
                                 )
-                            ],
-                            style={
-                                "display": "flex",
-                                "justifyContent": "center",
-                                "alignItems": "center",
-                                "minHeight": "38px",
-                                "marginBottom": "4px",
-                                "textAlign": "center"
-                            }
+                            ]
                         ),
-                        html.Div([  
-                            dcc.Graph(
-                                id="sankey-chart",
-                                style={
-                                    **common_div_style,
-                                    "width": "100%",
-                                    "height": SUMMARY_GRAPH_HEIGHT,
-                                    "display": "block",
-                                    "marginBottom": "6px",
-                                    "marginLeft": "auto",
-                                    "marginRight": "auto"
-                                },
-                                config={
-                                    "responsive": True
-                                }
-                            ),                            
-                            html.Div(id='ongoing-outbreaks-table', style={'color': 'white', 'padding': '0px', 'marginTop': '14px'})                             
-                        ], style={**common_div_style}),  
-                        xs=12, lg=6
+                        xs=12,
+                        lg=6
                     )
                 ], align="stretch", style={'color': '#7FDBFF','borderRadius': '10px'}),
             ], style={'backgroundColor': 'black','borderRadius': '10px'}),
