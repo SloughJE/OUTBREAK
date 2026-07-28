@@ -138,18 +138,24 @@ def summary_tab_layout():
                                             }
                                         ),
 
-                                        dbc.Button(
-                                            "Reset to all states",
-                                            id="reset-summary-state-button",
-                                            n_clicks=0,
-                                            color="secondary",
-                                            outline=True,
-                                            size="sm",
-                                            style={
-                                                "display": "none",
-                                                "marginLeft": "12px"
-                                            }
-                                        )
+                                    dbc.Button(
+                                        "Reset to all states",
+                                        id="reset-summary-state-button",
+                                        n_clicks=0,
+                                        color="light",
+                                        size="sm",
+                                        style={
+                                            "display": "none",
+                                            "marginLeft": "12px",
+                                            "backgroundColor": "#3A3A3A",
+                                            "border": "1px solid #BFBFBF",
+                                            "color": "white",
+                                            "fontWeight": "600",
+                                            "fontSize": "14px",
+                                            "padding": "4px 10px",
+                                            "borderRadius": "6px"
+                                        }
+                                    )
                                     ],
                                     style={
                                         **SUMMARY_FILTER_ROW_STYLE,

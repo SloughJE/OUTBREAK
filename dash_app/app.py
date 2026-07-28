@@ -268,7 +268,14 @@ def update_summary_state_filter_controls(
     selected_state_code
 ):
     reset_button_base_style = {
-        "marginLeft": "12px"
+        "marginLeft": "12px",
+        "backgroundColor": "#3A3A3A",
+        "border": "1px solid #BFBFBF",
+        "color": "white",
+        "fontWeight": "600",
+        "fontSize": "14px",
+        "padding": "4px 10px",
+        "borderRadius": "6px"
     }
 
     selected_state_name = STATE_NAME_BY_CODE.get(
