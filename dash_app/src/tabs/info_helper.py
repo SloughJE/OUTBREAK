@@ -31,7 +31,7 @@ disease_tab_data = (
     "and the latest potential-outbreak status. It also provides summary statistics for "
     "a selected 12-, 26-, or 52-week period, including total reported cases, flagged "
     "weeks, potential-outbreak episodes, and peak weekly cases. Disease classification "
-    "and transmission information are also provided."
+    "and transmission information are also provided. Disease information was prepared with AI assistance, may contain inaccuracies, and should not be considered medical advice."
 )
 
 
