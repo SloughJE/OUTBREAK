@@ -8,7 +8,7 @@ import textwrap
 outbreak_uncertainty_level_explanation = """• Indicates how certain we want to be in identifying a "potential outbreak"
 • Corresponds to the model prediction interval
 • The model forecasts by predicting distributions of values for the future time period, reflecting the probable range of outcome values.
-• If the actual value for the current week is greater than the upper prediction interval value from last week's prediction, we label it as an "outbreak".
+• If the actual value for the Latest week is greater than the upper prediction interval value from last week's prediction, we label it as an "outbreak".
 • A higher "Outbreak Model Certainty Level" yields a higher threshold value, and is therefore less like to identify a new value as an "outbreak".
 • In other words, a higher "Outbreak Model Certainty Level" means if the model identifies a value as an "outhreak", we are more confident that it is actually an outbreak.
 • Example: 99% means we use the 99th percentile of the predicted distribution values as the threshold for identifying an "outbreak".
@@ -238,7 +238,7 @@ def is_outbreak_resolved(df):
     # Step 2: Remove rows with NA for new cases (assume data skips a week)
     df_copy = df_copy[df_copy.new_cases.notna()]
     
-    # Step 3: Create a column for potential outbreak in the past week by shifting the current week
+    # Step 3: Create a column for potential outbreak in the past week by shifting the Latest week
     df_copy['potential_outbreak_past_week'] = df_copy.groupby('item_id')['potential_outbreak'].shift(1)
     
     # Step 4: Determine if the potential outbreak was resolved
@@ -791,7 +791,7 @@ def create_sankey_chart(
             ),
             customdata=[
                 "Previous week",
-                "Current week"
+                "Latest week"
             ]
         )
     )
@@ -849,7 +849,7 @@ def create_sankey_chart(
             textposition="inside",
             insidetextanchor="middle",
             hovertemplate=(
-                "Current week"
+                "Latest week"
                 "<br>New this week: %{y:,} signals"
                 "<extra></extra>"
             )
@@ -959,13 +959,13 @@ def create_sankey_chart(
         barmode="stack",
         title=dict(
             text=(
-                "How Potential-Outbreak Signals "
-                "Changed This Week"
+                "How Potential Outbreak Signals "
+                "Changed this Week"
                 "<br>"
                 "<span style='font-size:14px'>"
                 f"{scope_label}: "
-                f"{previous_total} previous-week signals "
-                f"→ {current_total} current-week signals"
+                f"{previous_total} previous week signals "
+                f"→ {current_total} latest week signals"
                 "</span>"
             ),
             x=0.5,
@@ -1000,7 +1000,7 @@ def create_sankey_chart(
             tickvals=[0, 1],
             ticktext=[
                 "Previous week",
-                "Current week"
+                "Latest week"
             ],
             tickfont=dict(
                 size=14
